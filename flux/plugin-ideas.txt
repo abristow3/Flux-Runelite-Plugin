@@ -1,0 +1,82 @@
+# TODO
+- Remove all references of "Clan Events" and turn into "Flux"
+- Create all cards for content
+- Add glowing effect to buttons when an event is live (such as SOTW or BOTM or HUNT)
+- Update config panel, try to make minimal config options
+
+
+
+FEATURES:
+
+On Login:
+- Chat message that has an announcement message that is configurable
+- is roll call running? if yes then also send login message about roll call
+- check users clan rank, if they are admin then load the plugin pane with admin options in UI enabled
+- let them know if there is an event running in the next 12 hours, and if so a link to the discord post
+
+Plugin Nav Pane:
+- maybe turn the drop down into just static buttons that when pressed render the space below them in a seperate component? less clicks long term easier to naviagate
+    at a glance
+
+BOTM card will have a button for the WoM contest link, one for the GDoc points contest link, one for the Score link, and one for the BOTM discord channel and BOTM drops channel?
+
+Password will be handeled by the plugin, users can toggle on a password overlay option to turn it off or on,
+
+if admin rank then can set password in the settings panel underneath "botm" collapsable section.
+
+
+Clan Home Page
+- list of staff?
+- Link to the Discord
+- Link to Hunt Discord
+- Link to WoM
+- Link to Clan Announcements in Discord
+- list of upcoming clan events (populate the ongoing / upcoming events from WoM?)
+- link to roll call channel
+- newest members from last 3-5 that joined in WoM?
+
+Plugin Settings Panel:
+- if user has event host rank or higher, then allow the "events" section of the config to show
+    - show a table of current events
+    - in it, have the option to create a new event with a plus sign 
+    - pop up window for user to enter event details
+    - cancel / create button
+    - on creation update Gdoc with new event item with confirmation popup
+    - add to front end UI component (auto-refresh)
+- basically all CRUD capabilities
+
+- if user is staff rank
+    - staff section of config is visible
+    - field for entering clan login message
+    - field for turning roll call option on and providing discord message ID (this will create the o login roll call messages with hyperlink to disc message)
+    - field for sending real time announcment message and then button to manually send to all online users (if possible?)
+
+Hunt Features:
+- automatically put in passwords also enable date and time for passwords(pull list from GDoc or allow staff to input in config panel?)
+    - check users clan rank to make sure they are a hunt participant - 1 day before the hunt enable the password overlay but enter default messages for pass
+    - confirmation passwords stored succesfully in Gdoc
+    - users will pull new password data on gdoc refresh interval and update in memory
+    - password overlay logic will check password date and times and populate the passwords when criteria met
+    - check box in settings to allow users to disable the overlay if they want
+
+- live score updating
+    - login message of current hunt score? - allow users to toggle it on or off?
+    - maybe show last 5 items and who got them from hunt Gdoc
+    - display current hunt score in the Hunt Page
+
+- Bounty Daily and general drop screenshot uploader
+    - checks a users clan rank to determine hunt team channel to post pic in
+    - simple step by step guide
+    - user checks which channels they want to upload screnie to via radio buttons:
+        - Bounties o
+        - Dailies o
+    ================
+        - General o
+    - if bounty or daily is selected, then general will be autoselected and greyed out, on unselect general is unseelected and ungreeyed.
+    - button to take screenie after channel selection
+    - scuess notif (maybe tray icon or chat message in game) that screnie was uploaded succesfully or notif
+    - screenie will get sent to discord hunt bot server and stored in a directory
+    - hunt bot will check directory each loop to see if any new files, if there is then hunt bot will post them in correct channels an delete from dir upon succesfull post
+    - if not then bot will skip and retry next iteration (only allow 1 screenie to be uploaded per channel message loop)
+
+- Tray notif on new bounty or daily release and ingame chat message
