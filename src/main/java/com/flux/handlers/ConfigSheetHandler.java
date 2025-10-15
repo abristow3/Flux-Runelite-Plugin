@@ -1,7 +1,9 @@
 package com.flux.handlers;
 
+import com.flux.FluxPanel;
 import net.runelite.client.config.ConfigManager;
 
+import javax.swing.*;
 import java.util.Map;
 
 /**
@@ -11,7 +13,7 @@ public class ConfigSheetHandler {
     private static final String CONFIG_GROUP = "flux";
 
     private final ConfigManager configManager;
-
+    private FluxPanel panel;  // Add this field
     public ConfigSheetHandler(ConfigManager configManager) {
         this.configManager = configManager;
     }
@@ -40,6 +42,11 @@ public class ConfigSheetHandler {
         if (announcement != null && !announcement.isEmpty()) {
             configManager.setConfiguration(CONFIG_GROUP, "plugin_announcement_message", announcement);
             System.out.println("  Updated ANNOUNCEMENT_MESSAGE: " + announcement);
+
+            // Manually trigger the UI update since setConfiguration doesn't fire events
+            if (panel != null && panel.getHomeCard() != null) {
+                SwingUtilities.invokeLater(() -> panel.getHomeCard().refreshPluginAnnouncement());
+            }
         }
     }
 

@@ -75,11 +75,18 @@ public class FluxPanel extends PluginPanel {
         footerManager = new FooterButtonManager(footerPanel);
         glowManager = new EventGlowManager(footerManager.getButtons(), cardManager, footerPanel);
 
-        // Set up coordination between header and footer
+        // Set up bidirectional coordination between header and footer
+
+        // Header → Footer: When dropdown selection changes
         headerManager.setOnSelectionChanged(cardId -> {
             String selectedLabel = getSelectedLabelFromCardId(cardId);
             footerManager.activateButtonByLabel(selectedLabel);
             cardLayout.show(centerPanel, cardId);
+        });
+
+        // Footer → Header: When button is clicked
+        footerManager.setOnButtonClicked(buttonLabel -> {
+            headerManager.syncWithButtonLabel(buttonLabel);
         });
     }
 

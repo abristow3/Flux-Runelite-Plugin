@@ -6,6 +6,7 @@ import net.runelite.client.util.ImageUtil;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionListener;
 import java.util.Optional;
 import java.util.function.Consumer;
 
@@ -17,6 +18,8 @@ public class HeaderDropdownManager {
     private final JComboBox<ComboBoxIconEntry> dropdown;
     private final ComboBoxIconListRenderer renderer;
     private Consumer<String> onSelectionChanged;
+    private ActionListener selectionListener;
+    private boolean isUpdating = false; // Flag to prevent recursive updates
 
     public HeaderDropdownManager(JPanel headerPanel) {
         this.headerPanel = headerPanel;
@@ -65,12 +68,22 @@ public class HeaderDropdownManager {
 
     /**
      * Synchronizes dropdown selection with the given button label.
+     * Does not trigger the selection callback to avoid circular updates.
      */
     public void syncWithButtonLabel(String buttonLabel) {
+        if (isUpdating) {
+            return; // Prevent recursive calls
+        }
+
         for (int i = 0; i < dropdown.getItemCount(); i++) {
             ComboBoxIconEntry item = dropdown.getItemAt(i);
-            if (item.getText().trim().equals(buttonLabel) && dropdown.getSelectedIndex() != i) {
-                dropdown.setSelectedIndex(i);
+            if (item.getText().trim().equals(buttonLabel.trim()) && dropdown.getSelectedIndex() != i) {
+                isUpdating = true;
+                try {
+                    dropdown.setSelectedIndex(i);
+                } finally {
+                    isUpdating = false;
+                }
                 break;
             }
         }
@@ -87,10 +100,16 @@ public class HeaderDropdownManager {
         dropdown.setFocusable(false);
         dropdown.setForeground(Color.WHITE);
         dropdown.setRenderer(renderer);
-        dropdown.addActionListener(e -> handleSelection());
+
+        selectionListener = e -> handleSelection();
+        dropdown.addActionListener(selectionListener);
     }
 
     private void handleSelection() {
+        if (isUpdating) {
+            return; // Don't trigger callback during programmatic updates
+        }
+
         ComboBoxIconEntry selectedItem = (ComboBoxIconEntry) dropdown.getSelectedItem();
         if (selectedItem == null || !selectedItem.getId().isPresent()) {
             return;

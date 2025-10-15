@@ -8,6 +8,7 @@ import java.awt.*;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * Manages footer navigation buttons and their layout.
@@ -16,9 +17,17 @@ public class FooterButtonManager {
     private final JPanel footerPanel;
     private final List<InverseCornerButton> buttons = new ArrayList<>();
     private InverseCornerButton activeButton;
+    private Consumer<String> onButtonClicked; // Add callback for button clicks
 
     public FooterButtonManager(JPanel footerPanel) {
         this.footerPanel = footerPanel;
+    }
+
+    /**
+     * Sets the callback for when a button is clicked.
+     */
+    public void setOnButtonClicked(Consumer<String> callback) {
+        this.onButtonClicked = callback;
     }
 
     /**
@@ -30,6 +39,11 @@ public class FooterButtonManager {
         button.addActionListener(e -> {
             activateButton(button);
             clickListener.actionPerformed(e);
+
+            // Notify header to sync
+            if (onButtonClicked != null) {
+                onButtonClicked.accept(label);
+            }
         });
         buttons.add(button);
         return button;
