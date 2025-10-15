@@ -282,7 +282,7 @@ public class GoogleSheetParser {
                     leaderboardCallback.accept(leaderboard);
                 }
 
-                Thread.sleep(5000); // 5 seconds
+                Thread.sleep(420000); // 7 minutes
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
@@ -297,7 +297,7 @@ public class GoogleSheetParser {
                     huntScoreCallback.accept(scores);
                 }
 
-                Thread.sleep(5000); // 5 seconds
+                Thread.sleep(420000); // 7 minutes
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
@@ -312,7 +312,7 @@ public class GoogleSheetParser {
                     configCallback.accept(configValues);
                 }
 
-                Thread.sleep(10000); // 10 seconds (config changes less frequently)
+                Thread.sleep(420000); // 7 minutes
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }

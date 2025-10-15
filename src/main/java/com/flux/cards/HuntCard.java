@@ -7,7 +7,9 @@ import com.flux.components.LeaderboardCellRenderer;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -19,10 +21,7 @@ public class HuntCard extends FluxCard {
     private JLabel countdownLabel;
     private JLabel scoreTitleLabel;
     private JLabel scoreLabel;
-    private JLabel team1Label;
-    private JLabel team2Label;
-    private DefaultTableModel team1TableModel;
-    private DefaultTableModel team2TableModel;
+    private DefaultTableModel combinedTableModel;
     private Timer countdownTimer;
     private GoogleSheetParser sheetParser;
     private boolean wasEventActive = false;
@@ -36,7 +35,7 @@ public class HuntCard extends FluxCard {
         startCountdownTimer();
 
         SwingUtilities.invokeLater(() -> {
-            refreshLeaderboards();
+            refreshLeaderboard();
             updateTeamScores();
         });
     }
@@ -63,7 +62,7 @@ public class HuntCard extends FluxCard {
 
         addScoreSection();
         addVerticalSpace(SPACING_MEDIUM);
-        addTeamLeaderboards();
+        addCombinedLeaderboard();
         addVerticalSpace(SPACING_MEDIUM);
         addButtons();
     }
@@ -85,60 +84,34 @@ public class HuntCard extends FluxCard {
         String team2Name = getConfigValue("hunt_team_2_name", "Team 2", configManager);
         int team1Score = getConfigInt("hunt_team_1_score", 0, configManager);
         int team2Score = getConfigInt("hunt_team_2_score", 0, configManager);
-        return String.format("%s: %,d<br>%s: %,d", team1Name, team1Score, team2Name, team2Score);
+
+        Color team1Color = parseColor(getConfigValue("hunt_team_1_color", "#FF0000", configManager));
+        Color team2Color = parseColor(getConfigValue("hunt_team_2_color", "#0000FF", configManager));
+
+        String team1ColorHex = String.format("#%02x%02x%02x", team1Color.getRed(), team1Color.getGreen(), team1Color.getBlue());
+        String team2ColorHex = String.format("#%02x%02x%02x", team2Color.getRed(), team2Color.getGreen(), team2Color.getBlue());
+
+        return String.format("<span style='color: %s;'>%s: %,d</span><br><span style='color: %s;'>%s: %,d</span>",
+                team1ColorHex, team1Name, team1Score,
+                team2ColorHex, team2Name, team2Score);
     }
 
-    private void addTeamLeaderboards() {
-        addTeamSection(true);
-        addVerticalSpace(SPACING_MEDIUM);
-        addTeamSection(false);
-        refreshLeaderboards();
-    }
-
-    private void addTeamSection(boolean isTeam1) {
-        String nameKey = isTeam1 ? "hunt_team_1_name" : "hunt_team_2_name";
-        String colorKey = isTeam1 ? "hunt_team_1_color" : "hunt_team_2_color";
-
-        String teamName = getConfigValue(nameKey, isTeam1 ? "Team 1" : "Team 2", configManager);
-        Color teamColor = parseColor(getConfigValue(colorKey, "#FF0000", configManager));
-
-        JLabel label = createCenteredLabel(teamName, FONT_NORMAL, teamColor);
-        if (isTeam1) {
-            team1Label = label;
-        } else {
-            team2Label = label;
-        }
-        add(label);
+    private void addCombinedLeaderboard() {
+        add(createSectionTitle("Top 10 Players"));
         addVerticalSpace(SPACING_SMALL);
-        add(createTeamTable(isTeam1));
-    }
 
-    private JScrollPane createTeamTable(boolean isTeam1) {
-        DefaultTableModel model = new DefaultTableModel(new Object[]{"Username", "EHB"}, 0) {
+        combinedTableModel = new DefaultTableModel(new Object[]{"Player", "EHB"}, 0) {
             @Override
-            public boolean isCellEditable(int row, int column) { return false; }
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
         };
 
-        if (isTeam1) {
-            team1TableModel = model;
-        } else {
-            team2TableModel = model;
-        }
+        JTable table = new JTable(combinedTableModel);
+        configureTable(table);
 
-        JTable table = new JTable(model);
-        table.setFillsViewportHeight(true);
-        table.setRowSelectionAllowed(false);
-        table.setShowGrid(false);
-        table.setFont(FONT_NORMAL);
-        table.setRowHeight(TABLE_ROW_HEIGHT);
-        table.setIntercellSpacing(new Dimension(0, TABLE_ROW_SPACING));
-
-        LeaderboardCellRenderer renderer = new LeaderboardCellRenderer();
-        renderer.setTable(table);
-        table.getColumnModel().getColumn(0).setCellRenderer(renderer);
-        table.getColumnModel().getColumn(1).setCellRenderer(renderer);
-
-        int scrollHeight = (TABLE_ROW_HEIGHT + TABLE_ROW_SPACING) * 4 +
+        // Calculate height for 5 rows + header
+        int scrollHeight = (TABLE_ROW_HEIGHT + TABLE_ROW_SPACING) * 5 +
                 table.getTableHeader().getPreferredSize().height + 4;
 
         JScrollPane scrollPane = new JScrollPane(table);
@@ -146,12 +119,26 @@ public class HuntCard extends FluxCard {
         scrollPane.setMaximumSize(new Dimension(Integer.MAX_VALUE, scrollHeight));
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
         scrollPane.setAlignmentX(Component.CENTER_ALIGNMENT);
+        add(scrollPane);
+    }
 
-        return scrollPane;
+    private void configureTable(JTable table) {
+        table.setFillsViewportHeight(true);
+        table.setRowSelectionAllowed(false);
+        table.setShowGrid(false);
+        table.setFont(FONT_NORMAL);
+        table.setRowHeight(TABLE_ROW_HEIGHT);
+        table.setIntercellSpacing(new Dimension(0, TABLE_ROW_SPACING));
+
+        // Use the same renderer as SOTW for consistent styling with animated borders
+        TeamColoredLeaderboardRenderer renderer = new TeamColoredLeaderboardRenderer();
+        renderer.setTable(table);
+        table.getColumnModel().getColumn(0).setCellRenderer(renderer);
+        table.getColumnModel().getColumn(1).setCellRenderer(renderer);
     }
 
     private void addButtons() {
-        String gdocUrl = getConfigValue("hunt_gdoc_url", "https://discord.com", configManager);
+        String gdocUrl = getConfigValue("hunt_gdoc_url", "https://docs.google.com/spreadsheets/d/e/2PACX-1vSLCxscAVFZY9wuDqmeBPu4UZio2I39DHDGy_8DXrvHqYKmZc8NgsC4DWv_olXOTjGQktcBnU88Fmf4/pubhtml?gid=0&single=true", configManager);
         String womUrl = getConfigValue("hunt_wom_url", "https://wiseoldman.net/competitions", configManager);
 
         addLinkButtons(new LinkButton[] {
@@ -166,24 +153,45 @@ public class HuntCard extends FluxCard {
         return getConfigBoolean("huntActive", configManager);
     }
 
-    public void refreshLeaderboards() {
-        refreshTeamTable(team1TableModel, "hunt_team_1_leaderboard");
-        refreshTeamTable(team2TableModel, "hunt_team_2_leaderboard");
-    }
+    public void refreshLeaderboard() {
+        // Combine both team leaderboards and show top 10
+        String team1Name = getConfigValue("hunt_team_1_name", "Team 1", configManager);
+        String team2Name = getConfigValue("hunt_team_2_name", "Team 2", configManager);
 
-    private void refreshTeamTable(DefaultTableModel model, String configKey) {
-        LinkedHashMap<String, Double> leaderboard = loadLeaderboardFromConfig(configKey);
-        model.setRowCount(0);
+        Map<String, Double> team1Data = loadLeaderboardFromConfig("hunt_team_1_leaderboard");
+        Map<String, Double> team2Data = loadLeaderboardFromConfig("hunt_team_2_leaderboard");
 
-        for (Map.Entry<String, Double> entry : leaderboard.entrySet()) {
-            model.addRow(new Object[]{entry.getKey(), String.format("%.2f", entry.getValue())});
+        // Create combined list of players
+        List<PlayerEntry> allPlayers = new ArrayList<>();
+
+        for (Map.Entry<String, Double> entry : team1Data.entrySet()) {
+            allPlayers.add(new PlayerEntry(entry.getKey(), team1Name, entry.getValue()));
         }
 
-        model.fireTableDataChanged();
+        for (Map.Entry<String, Double> entry : team2Data.entrySet()) {
+            allPlayers.add(new PlayerEntry(entry.getKey(), team2Name, entry.getValue()));
+        }
+
+        // Sort by EHB descending
+        allPlayers.sort((a, b) -> Double.compare(b.ehb, a.ehb));
+
+        // Take top 10
+        List<PlayerEntry> top10 = allPlayers.size() > 10 ? allPlayers.subList(0, 10) : allPlayers;
+
+        // Update table
+        combinedTableModel.setRowCount(0);
+        for (PlayerEntry player : top10) {
+            combinedTableModel.addRow(new Object[]{
+                    player.username,
+                    String.format("%.2f", player.ehb)
+            });
+        }
+
+        combinedTableModel.fireTableDataChanged();
     }
 
-    private LinkedHashMap<String, Double> loadLeaderboardFromConfig(String configKey) {
-        LinkedHashMap<String, Double> leaderboard = new LinkedHashMap<>();
+    private Map<String, Double> loadLeaderboardFromConfig(String configKey) {
+        Map<String, Double> leaderboard = new LinkedHashMap<>();
         String raw = configManager.getConfiguration("flux", configKey);
 
         if (raw == null || raw.isEmpty()) return leaderboard;
@@ -205,21 +213,21 @@ public class HuntCard extends FluxCard {
         String titleText = getConfigValue("huntTitle", "No active hunt event", configManager);
         updateWrappedLabelText(eventTitle, titleText, true);
         eventTitle.setMaximumSize(new Dimension(getWidth() - CONTENT_PADDING, Integer.MAX_VALUE));
+        eventTitle.revalidate();
+        eventTitle.repaint();
     }
 
     public void updateTeamLabels() {
-        updateTeamLabel(team1Label, "hunt_team_1_name", "hunt_team_1_color", "Team 1");
-        updateTeamLabel(team2Label, "hunt_team_2_name", "hunt_team_2_color", "Team 2");
+        // Team labels are now in the table and score section
         updateTeamScores();
-    }
-
-    private void updateTeamLabel(JLabel label, String nameKey, String colorKey, String defaultName) {
-        label.setText(getConfigValue(nameKey, defaultName, configManager));
-        label.setForeground(parseColor(getConfigValue(colorKey, "#FF0000", configManager)));
+        refreshLeaderboard();
     }
 
     public void updateTeamScores() {
+        // Team scores come from Google Sheets
         updateWrappedLabelText(scoreLabel, buildScoreText(), false);
+        scoreLabel.revalidate();
+        scoreLabel.repaint();
     }
 
     public void refreshButtonLinks() {
@@ -239,7 +247,7 @@ public class HuntCard extends FluxCard {
         updateEventTitle();
         updateTeamLabels();
         refreshButtonLinks();
-        refreshLeaderboards();
+        refreshLeaderboard();
 
         if (isEventActive()) {
             startSheetPolling();
@@ -262,6 +270,7 @@ public class HuntCard extends FluxCard {
     }
 
     private void handleSheetScoreUpdate(Map<String, Integer> scores) {
+        // Google Sheets provides the team scores
         String team1Name = getConfigValue("hunt_team_1_name", "Team 1", configManager);
         String team2Name = getConfigValue("hunt_team_2_name", "Team 2", configManager);
 
@@ -309,10 +318,47 @@ public class HuntCard extends FluxCard {
     }
 
     private void updateCountdownLabel() {
-        String message = isEventActive()
-                ? formatCountdownMessage("hunt_start_time", "hunt_end_time", configManager)
-                : "No active Hunt event.";
+        if (!isEventActive()) {
+            updateWrappedLabelText(countdownLabel, getEventEndedMessage(), false);
+            return;
+        }
+
+        String message = formatCountdownMessage("hunt_start_time", "hunt_end_time", configManager);
         updateWrappedLabelText(countdownLabel, message, false);
+    }
+
+    private String getEventEndedMessage() {
+        // Winner is determined from Google Sheets scores
+        String winner = getWinnerFromGoogleSheetScores();
+
+        if (winner != null && !winner.isEmpty()) {
+            return "The Hunt has ended!<br>Winning team: " + winner;
+        }
+
+        return "No active Hunt event.";
+    }
+
+    private String getWinnerFromGoogleSheetScores() {
+        // Get scores from Google Sheets (stored in config via handleSheetScoreUpdate)
+        int team1Score = getConfigInt("hunt_team_1_score", 0, configManager);
+        int team2Score = getConfigInt("hunt_team_2_score", 0, configManager);
+
+        // If both scores are 0, no event has occurred
+        if (team1Score == 0 && team2Score == 0) {
+            return null;
+        }
+
+        String team1Name = getConfigValue("hunt_team_1_name", "Team 1", configManager);
+        String team2Name = getConfigValue("hunt_team_2_name", "Team 2", configManager);
+
+        // Determine winner based on Google Sheets scores
+        if (team1Score > team2Score) {
+            return team1Name;
+        } else if (team2Score > team1Score) {
+            return team2Name;
+        } else {
+            return team1Name + " and " + team2Name + " (Tie)";
+        }
     }
 
     @Override
@@ -322,5 +368,66 @@ public class HuntCard extends FluxCard {
         }
         stopSheetPolling();
         super.shutdown();
+    }
+
+    // Helper classes
+    private static class PlayerEntry {
+        final String username;
+        final String teamName;
+        final double ehb;
+
+        PlayerEntry(String username, String teamName, double ehb) {
+            this.username = username;
+            this.teamName = teamName;
+            this.ehb = ehb;
+        }
+    }
+
+    /**
+     * Custom renderer that extends LeaderboardCellRenderer to add team color support.
+     */
+    private class TeamColoredLeaderboardRenderer extends LeaderboardCellRenderer {
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value,
+                                                       boolean isSelected, boolean hasFocus, int row, int column) {
+
+            // Get the base rendering from LeaderboardCellRenderer (includes animated borders and backgrounds)
+            Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+
+            // Apply team colors to ALL rows (including top 3)
+            // Get player name from Player column (column 0)
+            String playerName = "";
+            if (row < table.getRowCount() && table.getColumnCount() > 0) {
+                Object nameValue = table.getValueAt(row, 0);
+                if (nameValue != null) {
+                    playerName = nameValue.toString();
+                }
+            }
+
+            // Determine which team this player is on
+            Map<String, Double> team1Data = loadLeaderboardFromConfig("hunt_team_1_leaderboard");
+            Map<String, Double> team2Data = loadLeaderboardFromConfig("hunt_team_2_leaderboard");
+
+            Color team1Color = parseColor(getConfigValue("hunt_team_1_color", "#FF0000", configManager));
+            Color team2Color = parseColor(getConfigValue("hunt_team_2_color", "#0000FF", configManager));
+
+            // Set text color based on team (overrides the default gold/silver/bronze from parent)
+            if (team1Data.containsKey(playerName)) {
+                c.setForeground(team1Color);
+            } else if (team2Data.containsKey(playerName)) {
+                c.setForeground(team2Color);
+            } else {
+                c.setForeground(COLOR_WHITE);
+            }
+
+            // Column alignment - EHB column (1) centered, Player column (0) left
+            if (column == 1) {
+                setHorizontalAlignment(SwingConstants.CENTER);
+            } else {
+                setHorizontalAlignment(SwingConstants.LEFT);
+            }
+
+            return c;
+        }
     }
 }

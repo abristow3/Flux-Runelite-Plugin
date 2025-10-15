@@ -36,8 +36,6 @@ public class AdminHubCard extends FluxCard {
                 new ConfigField("Clan Login Message", "clan_login_message", false),
                 new ConfigField("Plugin Announcement", "plugin_announcement_message", false),
                 new ConfigField("Hunt GDoc URL", "hunt_gdoc_url", false),
-                new ConfigField("Hunt Team 1 Color", "hunt_team_1_color", false),
-                new ConfigField("Hunt Team 2 Color", "hunt_team_2_color", false),
                 new ConfigField("Hunt Passwords", "hunt_passwords", false)
         };
 

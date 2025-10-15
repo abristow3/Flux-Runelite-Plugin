@@ -1,10 +1,5 @@
 package com.flux;
 
-import com.flux.cards.HomeCard;
-import com.flux.cards.BotmCard;
-import com.flux.cards.SotwCard;
-import com.flux.cards.HuntCard;
-import com.flux.cards.AdminHubCard;
 import com.flux.services.ClanRankMonitor;
 import com.flux.services.CompetitionScheduler;
 import com.flux.services.GoogleSheetParser;
@@ -283,6 +278,45 @@ public class FluxPlugin extends Plugin {
                 if (panel.getHomeCard() != null) {
                     panel.getHomeCard().refreshHuntStatus();
                 }
+            }
+        }
+        if (key.equals("huntActive")) {
+            if (panel != null && panel.getHuntCard() != null) {
+                panel.getHuntCard().checkEventStateChanged();
+            }
+            if (panel != null && panel.getHomeCard() != null) {
+                panel.getHomeCard().refreshHuntStatus();
+            }
+        }
+
+        if (key.equals("huntTitle")) {
+            if (panel != null && panel.getHuntCard() != null) {
+                panel.getHuntCard().updateEventTitle();
+            }
+        }
+
+        if (key.equals("hunt_team_1_name") || key.equals("hunt_team_2_name") ||
+                key.equals("hunt_team_1_color") || key.equals("hunt_team_2_color")) {
+            if (panel != null && panel.getHuntCard() != null) {
+                panel.getHuntCard().updateTeamLabels();
+            }
+        }
+
+        if (key.equals("hunt_team_1_leaderboard") || key.equals("hunt_team_2_leaderboard")) {
+            if (panel != null && panel.getHuntCard() != null) {
+                panel.getHuntCard().refreshLeaderboard();
+            }
+        }
+
+        if (key.equals("hunt_team_1_score") || key.equals("hunt_team_2_score")) {
+            if (panel != null && panel.getHuntCard() != null) {
+                panel.getHuntCard().updateTeamScores();
+            }
+        }
+
+        if (key.equals("hunt_wom_url") || key.equals("hunt_gdoc_url")) {
+            if (panel != null && panel.getHuntCard() != null) {
+                panel.getHuntCard().refreshButtonLinks();
             }
         }
     }

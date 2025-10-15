@@ -2,8 +2,6 @@ package com.flux.services.wom;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
-
-import java.time.Instant;
 import java.util.*;
 
 import static com.flux.services.wom.CompetitionModels.*;
