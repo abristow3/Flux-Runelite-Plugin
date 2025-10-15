@@ -11,7 +11,7 @@ public class AdminHubCard extends FluxCard {
     private static final int TEXT_FIELD_COLUMNS = 30;
     private static final int SPACING_VERTICAL = 5;
     private static final int SPACING_HORIZONTAL = 10;
-    
+
     private final FluxConfig config;
     private final ConfigManager configManager;
     private final Map<String, JTextField> textFields = new LinkedHashMap<>();
@@ -21,31 +21,31 @@ public class AdminHubCard extends FluxCard {
         super();
         this.config = config;
         this.configManager = configManager;
-        
+
         setLayout(new GridBagLayout());
         buildUI();
     }
 
     private void buildUI() {
         GridBagConstraints gbc = createBaseConstraints();
-        
+
         ConfigField[] configFields = {
-            new ConfigField("Roll Call Active", "rollCallActive", true),
-            new ConfigField("BOTM Password", "botm_password", false),
-            new ConfigField("BOTM GDoc URL", "botmGdocUrl", false),
-            new ConfigField("Clan Login Message", "clan_login_message", false),
-            new ConfigField("Plugin Announcement", "plugin_announcement_message", false),
-            new ConfigField("Hunt GDoc URL", "hunt_gdoc_url", false),
-            new ConfigField("Hunt Team 1 Color", "hunt_team_1_color", false),
-            new ConfigField("Hunt Team 2 Color", "hunt_team_2_color", false),
-            new ConfigField("Hunt Passwords", "hunt_passwords", false)
+                new ConfigField("Roll Call Active", "rollCallActive", true),
+                new ConfigField("BOTM Password", "botm_password", false),
+                new ConfigField("BOTM GDoc URL", "botmGdocUrl", false),
+                new ConfigField("Clan Login Message", "clan_login_message", false),
+                new ConfigField("Plugin Announcement", "plugin_announcement_message", false),
+                new ConfigField("Hunt GDoc URL", "hunt_gdoc_url", false),
+                new ConfigField("Hunt Team 1 Color", "hunt_team_1_color", false),
+                new ConfigField("Hunt Team 2 Color", "hunt_team_2_color", false),
+                new ConfigField("Hunt Passwords", "hunt_passwords", false)
         };
 
         int row = 0;
         for (ConfigField field : configFields) {
             gbc.gridy = row++;
             addFieldLabel(field.label, gbc);
-            
+
             gbc.gridy = row++;
             if (field.isCheckbox) {
                 addCheckboxField(field.configKey, gbc);
@@ -78,7 +78,7 @@ public class AdminHubCard extends FluxCard {
 
     private void addCheckboxField(String configKey, GridBagConstraints gbc) {
         rollCallActiveCheckbox = new JCheckBox("Active");
-        
+
         // Load initial state from config
         boolean isActive = getConfigBoolean(configKey);
         rollCallActiveCheckbox.setSelected(isActive);
@@ -94,11 +94,11 @@ public class AdminHubCard extends FluxCard {
 
     private void addTextField(String fieldKey, String configKey, GridBagConstraints gbc) {
         JTextField textField = new JTextField(TEXT_FIELD_COLUMNS);
-        
+
         // Load initial value from config
         String value = configManager.getConfiguration("flux", configKey);
         textField.setText(value != null ? value : "");
-        
+
         // Store original value in component name for change detection
         textField.putClientProperty("originalValue", textField.getText());
 
@@ -120,7 +120,7 @@ public class AdminHubCard extends FluxCard {
     private void saveTextField(JTextField textField, String configKey) {
         String oldValue = (String) textField.getClientProperty("originalValue");
         String newValue = textField.getText();
-        
+
         if (!Objects.equals(oldValue, newValue)) {
             configManager.setConfiguration("flux", configKey, newValue);
             textField.putClientProperty("originalValue", newValue);
@@ -147,15 +147,15 @@ public class AdminHubCard extends FluxCard {
         for (Map.Entry<String, JTextField> entry : textFields.entrySet()) {
             String fieldLabel = entry.getKey();
             JTextField textField = entry.getValue();
-            
+
             // Convert field label back to config key
             String configKey = convertLabelToConfigKey(fieldLabel);
             String value = configManager.getConfiguration("flux", configKey);
-            
+
             textField.setText(value != null ? value : "");
             textField.putClientProperty("originalValue", textField.getText());
         }
-        
+
         // Refresh checkbox
         if (rollCallActiveCheckbox != null) {
             boolean isActive = getConfigBoolean("rollCallActive");
@@ -165,20 +165,17 @@ public class AdminHubCard extends FluxCard {
 
     @Override
     protected boolean getConfigBoolean(String key) {
-        return "true".equals(configManager.getConfiguration("flux", key));
+        return getConfigBoolean(key, configManager);
     }
 
     @Override
     protected String getConfigValue(String key, String defaultValue) {
-        String value = configManager.getConfiguration("flux", key);
-        return (value != null && !value.isEmpty()) ? value : defaultValue;
+        return getConfigValue(key, defaultValue, configManager);
     }
 
     // Helper methods
     private String convertLabelToConfigKey(String label) {
         // Convert display label back to config key format
-        // This is a reverse operation - we need the original config keys
-        // For simplicity, maintain a mapping
         Map<String, String> labelToKey = new LinkedHashMap<>();
         labelToKey.put("BOTM Password", "botm_password");
         labelToKey.put("BOTM GDoc URL", "botmGdocUrl");
@@ -188,7 +185,7 @@ public class AdminHubCard extends FluxCard {
         labelToKey.put("Hunt Team 1 Color", "hunt_team_1_color");
         labelToKey.put("Hunt Team 2 Color", "hunt_team_2_color");
         labelToKey.put("Hunt Passwords", "hunt_passwords");
-        
+
         return labelToKey.getOrDefault(label, label.toLowerCase().replace(" ", "_"));
     }
 

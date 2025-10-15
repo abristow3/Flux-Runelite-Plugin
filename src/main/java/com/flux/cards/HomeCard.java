@@ -2,37 +2,29 @@ package com.flux.cards;
 
 import net.runelite.client.config.ConfigManager;
 import com.flux.FluxConfig;
-import com.flux.InverseCornerButton;
+import com.flux.components.InverseCornerButton;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import java.awt.*;
-import java.util.HashMap;
-import java.util.Map;
 
 public class HomeCard extends FluxCard {
     private static final Font HEADER_FONT = new Font("SansSerif", Font.BOLD, 14);
-    
+
     private static final Color TABLE_BG = new Color(30, 30, 30);
     private static final Color HEADER_BG = new Color(50, 50, 50);
     private static final Color GRID_COLOR = new Color(70, 70, 70);
-    
-    private static final int BUTTON_WIDTH = 200;
-    private static final int BUTTON_HEIGHT = 25;
-    private static final int SPACING_SMALL = 10;
-    private static final int SPACING_MEDIUM = 20;
-    
+
     // Event row indices
     private static final int BOTM_ROW = 0;
     private static final int SOTW_ROW = 1;
     private static final int HUNT_ROW = 2;
-    
+
     private final FluxConfig config;
     private final ConfigManager configManager;
-    private final Map<String, InverseCornerButton> buttons = new HashMap<>();
-    
+
     private DefaultTableModel tableModel;
     private JLabel announcementsLabel;
 
@@ -40,7 +32,7 @@ public class HomeCard extends FluxCard {
         super();
         this.config = config;
         this.configManager = configManager;
-        
+
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         buildUI();
         refreshAllStatuses();
@@ -48,7 +40,7 @@ public class HomeCard extends FluxCard {
 
     private void buildUI() {
         add(createVerticalStrut(SPACING_MEDIUM));
-        addTitle();
+        add(createCenteredLabel("Welcome to Flux!", FONT_TITLE, COLOR_YELLOW));
         addVerticalSpace(SPACING_MEDIUM);
         addAnnouncementsSection();
         addVerticalSpace(SPACING_MEDIUM);
@@ -58,20 +50,15 @@ public class HomeCard extends FluxCard {
         add(Box.createVerticalGlue());
     }
 
-    private void addTitle() {
-        JLabel title = createCenteredLabel("Welcome to Flux!", FONT_TITLE, COLOR_YELLOW);
-        add(title);
-    }
-
     private void addAnnouncementsSection() {
         add(createSectionTitle("Announcements"));
         addVerticalSpace(SPACING_SMALL);
-        
+
         String announcement = configManager.getConfiguration("flux", "plugin_announcement_message");
         announcementsLabel = createWrappedLabel(
-            announcement != null ? announcement : "No Announcements.",
-            null,
-            COLOR_LIGHT_GRAY
+                announcement != null ? announcement : "No Announcements.",
+                null,
+                COLOR_LIGHT_GRAY
         );
         add(announcementsLabel);
     }
@@ -79,7 +66,7 @@ public class HomeCard extends FluxCard {
     private void addEventsSection() {
         add(createSectionTitle("Events"));
         addVerticalSpace(SPACING_SMALL);
-        
+
         JScrollPane eventsTable = createEventsTable();
         add(eventsTable);
     }
@@ -87,16 +74,24 @@ public class HomeCard extends FluxCard {
     private void addLinksSection() {
         add(createSectionTitle("Links"));
         addVerticalSpace(SPACING_SMALL);
-        
-        addLinkButtons();
+
+        LinkButton[] linkButtons = {
+                new LinkButton("Flux Clan Server", "/discord.png", "https://discord.gg/Sr4r6wXy"),
+                new LinkButton("Roll Call", "/discord.png", "https://discord.com/channels/414435426007384075/636902420403847168"),
+                new LinkButton("Name Changes", "/discord.png", "https://discord.com/channels/414435426007384075/415499145017557032"),
+                new LinkButton("Announcements", "/discord.png", "https://discord.com/channels/414435426007384075/1349697176183246868"),
+                new LinkButton("Events", "/discord.png", "https://discord.com/channels/414435426007384075/414458243499425792"),
+                new LinkButton("Wise Old Man", "/wom.png", "https://wiseoldman.net/groups/141")
+        };
+        addLinkButtons(linkButtons);
     }
 
     private JScrollPane createEventsTable() {
         String[] columnNames = {"Event", "Status"};
         Object[][] rowData = {
-            {"BOTM", "Idle"},
-            {"SOTW", "Idle"},
-            {"The Hunt", "Idle"}
+                {"BOTM", "Idle"},
+                {"SOTW", "Idle"},
+                {"The Hunt", "Idle"}
         };
 
         tableModel = new DefaultTableModel(rowData, columnNames) {
@@ -108,10 +103,10 @@ public class HomeCard extends FluxCard {
 
         JTable table = new JTable(tableModel);
         configureTable(table);
-        
+
         JScrollPane scrollPane = new JScrollPane(table);
         configureScrollPane(scrollPane, table);
-        
+
         return scrollPane;
     }
 
@@ -146,12 +141,12 @@ public class HomeCard extends FluxCard {
 
     private void configureScrollPane(JScrollPane scrollPane, JTable table) {
         int totalHeight = calculateTableHeight(table, scrollPane);
-        
+
         scrollPane.setPreferredSize(new Dimension(400, totalHeight));
         scrollPane.setAlignmentX(Component.CENTER_ALIGNMENT);
         scrollPane.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(GRID_COLOR, 1, true),
-            BorderFactory.createEmptyBorder(10, 10, 10, 10)
+                BorderFactory.createLineBorder(GRID_COLOR, 1, true),
+                BorderFactory.createEmptyBorder(10, 10, 10, 10)
         ));
     }
 
@@ -160,45 +155,11 @@ public class HomeCard extends FluxCard {
         int intercellSpacing = table.getIntercellSpacing().height;
         int headerHeight = table.getTableHeader().getPreferredSize().height;
         int rowCount = table.getRowCount();
-        
+
         int totalHeight = headerHeight + (rowHeight + intercellSpacing) * rowCount;
         totalHeight += scrollPane.getInsets().top + scrollPane.getInsets().bottom + 2;
-        
+
         return totalHeight;
-    }
-
-    private void addLinkButtons() {
-        LinkButton[] linkButtons = {
-            new LinkButton("Flux Clan Server", "/discord.png", "https://discord.gg/Sr4r6wXy"),
-            new LinkButton("Roll Call", "/discord.png", "https://discord.com/channels/414435426007384075/636902420403847168"),
-            new LinkButton("Name Changes", "/discord.png", "https://discord.com/channels/414435426007384075/415499145017557032"),
-            new LinkButton("Announcements", "/discord.png", "https://discord.com/channels/414435426007384075/1349697176183246868"),
-            new LinkButton("Events", "/discord.png", "https://discord.com/channels/414435426007384075/414458243499425792"),
-            new LinkButton("Wise Old Man", "/wom.png", "https://wiseoldman.net/groups/141")
-        };
-
-        for (LinkButton linkButton : linkButtons) {
-            InverseCornerButton button = createLinkButton(linkButton);
-            buttons.put(linkButton.label, button);
-            add(button);
-            addVerticalSpace(SPACING_SMALL);
-        }
-    }
-
-    private InverseCornerButton createLinkButton(LinkButton linkButton) {
-        InverseCornerButton button = InverseCornerButton.withLabelImageAndUrl(
-            linkButton.label,
-            linkButton.iconPath,
-            linkButton.url
-        );
-        
-        button.setAlignmentX(Component.CENTER_ALIGNMENT);
-        Dimension size = new Dimension(BUTTON_WIDTH, BUTTON_HEIGHT);
-        button.setPreferredSize(size);
-        button.setMaximumSize(size);
-        button.setMinimumSize(size);
-        
-        return button;
     }
 
     // Public API for status updates
@@ -228,12 +189,7 @@ public class HomeCard extends FluxCard {
     }
 
     public void refreshButtonLinks() {
-        String womLink = configManager.getConfiguration("flux", "wom_url");
-        InverseCornerButton womButton = buttons.get("Wise Old Man");
-        
-        if (womButton != null && womLink != null && !womLink.isEmpty()) {
-            womButton.setUrl(womLink);
-        }
+        updateButtonUrl("Wise Old Man", "wom_url", configManager);
     }
 
     public void refreshHuntStatus() {
@@ -254,7 +210,7 @@ public class HomeCard extends FluxCard {
     public void isRollCallActive() {
         boolean active = getConfigBoolean("rollCallActive");
         InverseCornerButton rollCallButton = buttons.get("Roll Call");
-        
+
         if (rollCallButton != null) {
             rollCallButton.setGlowing(active);
             if (!active) {
@@ -277,14 +233,12 @@ public class HomeCard extends FluxCard {
 
     @Override
     protected boolean getConfigBoolean(String key) {
-        String value = configManager.getConfiguration("flux", key);
-        return Boolean.parseBoolean(value);
+        return getConfigBoolean(key, configManager);
     }
 
     @Override
     protected String getConfigValue(String key, String defaultValue) {
-        String value = configManager.getConfiguration("flux", key);
-        return (value != null && !value.isEmpty()) ? value : defaultValue;
+        return getConfigValue(key, defaultValue, configManager);
     }
 
     // Helper classes
@@ -294,7 +248,7 @@ public class HomeCard extends FluxCard {
                 JTable table, Object value, boolean isSelected,
                 boolean hasFocus, int row, int column) {
             Component c = super.getTableCellRendererComponent(
-                table, value, isSelected, hasFocus, row, column
+                    table, value, isSelected, hasFocus, row, column
             );
 
             if (column == 1) {

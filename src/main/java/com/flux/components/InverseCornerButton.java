@@ -1,4 +1,4 @@
-package com.flux;
+package com.flux.components;
 
 import javax.swing.*;
 import java.awt.*;

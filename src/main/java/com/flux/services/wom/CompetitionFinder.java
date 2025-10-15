@@ -1,0 +1,174 @@
+package com.flux.services.wom;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.time.Instant;
+import java.util.EnumMap;
+import java.util.Map;
+
+import static com.flux.services.wom.CompetitionModels.*;
+
+/**
+ * Finds active and completed competitions from WOM API.
+ */
+public class CompetitionFinder {
+    private final WiseOldManApiClient apiClient;
+    private final CompetitionDataParser dataParser;
+
+    public CompetitionFinder(WiseOldManApiClient apiClient, CompetitionDataParser dataParser) {
+        this.apiClient = apiClient;
+        this.dataParser = dataParser;
+    }
+
+    /**
+     * Finds active SOTW and BOTM competitions from the group.
+     * Returns null for inactive events.
+     */
+    public Map<EventType, CompetitionData> findActiveCompetitions() {
+        Map<EventType, CompetitionData> results = new EnumMap<>(EventType.class);
+        results.put(EventType.SOTW, null);
+        results.put(EventType.BOTM, null);
+
+        try {
+            JSONArray competitions = apiClient.fetchGroupCompetitions();
+            Instant now = Instant.now();
+
+            for (int i = 0; i < competitions.length(); i++) {
+                JSONObject comp = competitions.getJSONObject(i);
+
+                Instant startsAt = Instant.parse(comp.getString("startsAt"));
+                Instant endsAt = Instant.parse(comp.getString("endsAt"));
+
+                // Skip if not currently active
+                if (now.isBefore(startsAt) || !now.isBefore(endsAt)) {
+                    continue;
+                }
+
+                String title = comp.getString("title").toLowerCase();
+                int competitionId = comp.getInt("id");
+
+                // Check for SOTW and BOTM
+                for (EventType type : new EventType[]{EventType.SOTW, EventType.BOTM}) {
+                    if (type.matchesTitle(title) && results.get(type) == null) {
+                        CompetitionData data = fetchCompetitionData(competitionId, type, startsAt, endsAt);
+                        if (data != null) {
+                            results.put(type, data);
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error finding active competitions: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return results;
+    }
+
+    /**
+     * Finds the most recently completed competition for the given event type.
+     */
+    public CompetitionData findLastCompletedCompetition(EventType type) {
+        if (type == EventType.HUNT) {
+            return null; // Hunt is handled separately
+        }
+
+        try {
+            JSONArray competitions = apiClient.fetchGroupCompetitions();
+            Instant now = Instant.now();
+
+            JSONObject mostRecentCompleted = null;
+            Instant mostRecentEndTime = null;
+
+            for (int i = 0; i < competitions.length(); i++) {
+                JSONObject comp = competitions.getJSONObject(i);
+                String title = comp.getString("title").toLowerCase();
+
+                if (!type.matchesTitle(title)) {
+                    continue;
+                }
+
+                Instant endsAt = Instant.parse(comp.getString("endsAt"));
+
+                // Skip if not yet ended
+                if (now.isBefore(endsAt)) {
+                    continue;
+                }
+
+                // Check if this is more recent
+                if (mostRecentEndTime == null || endsAt.isAfter(mostRecentEndTime)) {
+                    mostRecentCompleted = comp;
+                    mostRecentEndTime = endsAt;
+                }
+            }
+
+            if (mostRecentCompleted != null) {
+                int competitionId = mostRecentCompleted.getInt("id");
+                Instant startsAt = Instant.parse(mostRecentCompleted.getString("startsAt"));
+                Instant endsAt = Instant.parse(mostRecentCompleted.getString("endsAt"));
+
+                return fetchCompetitionData(competitionId, type, startsAt, endsAt);
+            }
+        } catch (Exception e) {
+            System.err.println("Error finding last completed " + type.name() + ": " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    /**
+     * Fetches Hunt competition data by ID.
+     */
+    public CompetitionData findHuntCompetition(int competitionId) {
+        try {
+            JSONObject details = apiClient.fetchCompetitionDetails(competitionId);
+            if (details == null) {
+                return null;
+            }
+
+            Instant startsAt = Instant.parse(details.getString("startsAt"));
+            Instant endsAt = Instant.parse(details.getString("endsAt"));
+
+            HuntTeamData huntData = dataParser.parseHuntTeamData(details);
+
+            return new CompetitionData(
+                    competitionId,
+                    details.getString("title"),
+                    startsAt,
+                    endsAt,
+                    null,
+                    huntData
+            );
+        } catch (Exception e) {
+            System.err.println("Error finding Hunt competition: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    private CompetitionData fetchCompetitionData(int competitionId, EventType type,
+                                                 Instant startsAt, Instant endsAt) {
+        try {
+            JSONObject details = apiClient.fetchCompetitionDetails(competitionId);
+            if (details == null) {
+                return null;
+            }
+
+            return new CompetitionData(
+                    competitionId,
+                    details.getString("title"),
+                    startsAt,
+                    endsAt,
+                    type == EventType.SOTW ? dataParser.parseSotwLeaderboard(details) : null,
+                    null
+            );
+        } catch (Exception e) {
+            System.err.println("Error fetching competition " + competitionId + ": " + e.getMessage());
+        }
+
+        return null;
+    }
+}

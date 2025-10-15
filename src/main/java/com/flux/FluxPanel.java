@@ -1,218 +1,135 @@
 package com.flux;
 
 import java.awt.*;
-import java.util.*;
 import javax.swing.*;
-import javax.swing.Timer;
 
-import com.flux.components.combobox.ComboBoxIconEntry;
-import com.flux.components.combobox.ComboBoxIconListRenderer;
 import com.flux.constants.EntrySelect;
+import com.flux.ui.CardManager;
+import com.flux.ui.EventGlowManager;
+import com.flux.ui.FooterButtonManager;
+import com.flux.ui.HeaderDropdownManager;
 import net.runelite.client.config.ConfigManager;
-import com.flux.cards.*;
 import net.runelite.client.ui.PluginPanel;
-import net.runelite.client.util.ImageUtil;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Main panel for the Flux plugin.
+ * Delegates responsibilities to specialized manager classes.
+ */
 @Slf4j
-class FluxPanel extends PluginPanel {
-    private static final int GLOW_CHECK_INTERVAL = 500;
+public class FluxPanel extends PluginPanel {
     private static final int SCROLL_UNIT_INCREMENT = 16;
-    
+
     // Configuration
     private FluxConfig config;
     private ConfigManager configManager;
-    
-    // UI Components
+
+    // UI Panels
     private final JPanel headerPanel = new JPanel();
     private final JPanel centerPanel = new JPanel();
     private final JPanel footerPanel = new JPanel();
     private final CardLayout cardLayout = new CardLayout();
-    
-    private final JComboBox<ComboBoxIconEntry> dropdown = new JComboBox<>();
-    private final ComboBoxIconListRenderer renderer = new ComboBoxIconListRenderer();
-    private final java.util.List<InverseCornerButton> footerButtons = new ArrayList<>();
-    
-    // Cards
-    private final Map<EntrySelect, JPanel> cards = new EnumMap<>(EntrySelect.class);
-    private HomeCard homeCard;
-    private SotwCard sotwCard;
-    private BotmCard botmCard;
-    private AdminHubCard adminHubCard;
-    private HuntCard huntCard;
-    
+
+    // Managers
+    private CardManager cardManager;
+    private HeaderDropdownManager headerManager;
+    private FooterButtonManager footerManager;
+    private EventGlowManager glowManager;
+
     // State
-    private InverseCornerButton activeFooterButton;
     private boolean isAdmiralOrHigher = false;
     private boolean adminHubInitialized = false;
-    
-    private final Timer glowTimer = new Timer(GLOW_CHECK_INTERVAL, e -> updateEventGlows());
 
     public FluxPanel() {
         super(false);
         setupLayout();
-        glowTimer.start();
     }
 
     public void init(FluxConfig config, ConfigManager configManager) {
         this.config = config;
         this.configManager = configManager;
-        
+
+        initializeManagers();
         initializeCards();
         setupHeader();
         setupFooter();
-        
-        selectFirstEntry();
+
+        glowManager.start();
+        headerManager.selectFirst();
     }
 
     private void setupLayout() {
         setLayout(new BorderLayout());
-        
+
         centerPanel.setLayout(cardLayout);
         centerPanel.setOpaque(false);
-        
+
         add(headerPanel, BorderLayout.NORTH);
         add(centerPanel, BorderLayout.CENTER);
         add(footerPanel, BorderLayout.SOUTH);
     }
 
+    private void initializeManagers() {
+        cardManager = new CardManager(config, configManager);
+        headerManager = new HeaderDropdownManager(headerPanel);
+        footerManager = new FooterButtonManager(footerPanel);
+        glowManager = new EventGlowManager(footerManager.getButtons(), cardManager, footerPanel);
+
+        // Set up coordination between header and footer
+        headerManager.setOnSelectionChanged(cardId -> {
+            String selectedLabel = getSelectedLabelFromCardId(cardId);
+            footerManager.activateButtonByLabel(selectedLabel);
+            cardLayout.show(centerPanel, cardId);
+        });
+    }
+
     private void initializeCards() {
-        addEntry(config.entry_1());
-        addEntry(config.entry_3());
-        addEntry(config.entry_4());
-        addEntry(config.entry_5());
+        addEntry(config.entry_1());  // Home
+        addEntry(config.entry_3());  // SOTW
+        addEntry(config.entry_4());  // BOTM
+        addEntry(config.entry_5());  // Hunt
         addEntry(config.entry_6());
         addEntry(config.entry_7());
         addEntry(config.entry_8());
     }
 
     private void setupHeader() {
-        headerPanel.removeAll();
-        headerPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
-        
-        configureDropdown();
-        headerPanel.add(dropdown);
-        
-        headerPanel.revalidate();
-        headerPanel.repaint();
-    }
-
-    private void configureDropdown() {
-        dropdown.setFocusable(false);
-        dropdown.setForeground(Color.WHITE);
-        dropdown.setRenderer(renderer);
-        dropdown.addActionListener(e -> handleDropdownSelection());
-    }
-
-    private void handleDropdownSelection() {
-        ComboBoxIconEntry selectedItem = (ComboBoxIconEntry) dropdown.getSelectedItem();
-        if (selectedItem == null || !selectedItem.getId().isPresent()) {
-            return;
-        }
-
-        String cardId = selectedItem.getId().get();
-        String selectedText = selectedItem.getText().trim();
-        
-        activateButtonByLabel(selectedText);
-        cardLayout.show(centerPanel, cardId);
+        headerManager.buildHeader();
     }
 
     private void setupFooter() {
-        footerPanel.removeAll();
-        footerPanel.setLayout(new GridBagLayout());
-        footerPanel.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
-
-        GridBagConstraints gbc = createFooterConstraints();
-        
-        for (int i = 0; i < footerButtons.size(); i++) {
-            configureButtonPosition(gbc, i);
-            footerPanel.add(footerButtons.get(i), gbc);
-        }
-
-        footerPanel.revalidate();
-        footerPanel.repaint();
-        
-        activateFirstButton();
-    }
-
-    private GridBagConstraints createFooterConstraints() {
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.weightx = 1.0;
-        return gbc;
-    }
-
-    private void configureButtonPosition(GridBagConstraints gbc, int index) {
-        gbc.gridx = index % 2;
-        gbc.gridy = index / 2;
-        gbc.gridwidth = 1;
-        
-        // Last button in odd count spans both columns
-        if (index == footerButtons.size() - 1 && footerButtons.size() % 2 != 0) {
-            gbc.gridx = 0;
-            gbc.gridwidth = 2;
-        }
+        footerManager.rebuildFooter();
     }
 
     private void addEntry(EntrySelect entry) {
-        EntryConfig entryConfig = createEntryConfig(entry);
-        if (entryConfig == null) {
+        CardManager.CardEntry cardEntry = cardManager.createCard(entry);
+        if (cardEntry == null) {
             return;
         }
 
-        addToDropdown(entryConfig);
-        InverseCornerButton button = createFooterButton(entryConfig, entry);
-        footerButtons.add(button);
-        
-        centerPanel.add(makeScrollable(entryConfig.card), entry.name().toLowerCase());
-        cards.put(entry, entryConfig.card);
+        // Add to dropdown
+        headerManager.addEntry(
+                cardEntry.label,
+                cardEntry.iconPath,
+                entry.name().toLowerCase(),
+                getClass()
+        );
+
+        // Add to footer
+        footerManager.addButton(
+                cardEntry.label,
+                cardEntry.iconPath,
+                entry,
+                e -> cardLayout.show(centerPanel, entry.name().toLowerCase())
+        );
+
+        // Add to center panel
+        centerPanel.add(makeScrollable(cardEntry.card), entry.name().toLowerCase());
     }
 
-    private EntryConfig createEntryConfig(EntrySelect entry) {
-        switch (entry) {
-            case HOME:
-                homeCard = new HomeCard(config, configManager);
-                return new EntryConfig(" Home", "/home.png", homeCard, entry);
-            
-            case SOTW:
-                sotwCard = new SotwCard(configManager);
-                return new EntryConfig(" SOTW", "/sotw.png", sotwCard, entry);
-            
-            case BOTM:
-                botmCard = new BotmCard(configManager);
-                return new EntryConfig(" BOTM", "/botm.png", botmCard, entry);
-            
-            case HUB:
-                adminHubCard = new AdminHubCard(config, configManager);
-                return new EntryConfig(" Admin Hub", "/hub.png", adminHubCard, entry);
-            
-            case HUNT:
-                huntCard = new HuntCard(configManager);
-                return new EntryConfig(" The Hunt", "/hunt.png", huntCard, entry);
-            
-            default:
-                return null;
-        }
-    }
-
-    private void addToDropdown(EntryConfig config) {
-        dropdown.addItem(new ComboBoxIconEntry(
-            new ImageIcon(ImageUtil.loadImageResource(getClass(), config.iconPath)),
-            config.label,
-            Optional.of(config.entry.name().toLowerCase())
-        ));
-    }
-
-    private InverseCornerButton createFooterButton(EntryConfig config, EntrySelect entry) {
-        InverseCornerButton button = InverseCornerButton.withImage(config.label, config.iconPath);
-        button.addActionListener(e -> {
-            activateFooterButton(button);
-            cardLayout.show(centerPanel, entry.name().toLowerCase());
-        });
-        return button;
-    }
-
+    /**
+     * Updates admin hub visibility based on clan rank.
+     */
     public void updateClanRankStatus(boolean isAdmiralOrHigher) {
         if (this.isAdmiralOrHigher == isAdmiralOrHigher && adminHubInitialized) {
             return;
@@ -221,94 +138,32 @@ class FluxPanel extends PluginPanel {
         this.isAdmiralOrHigher = isAdmiralOrHigher;
 
         if (isAdmiralOrHigher && !adminHubInitialized) {
-            addEntry(config.entry_2());
+            addEntry(config.entry_2());  // Admin Hub
             setupFooter();
-            dropdown.repaint();
+            headerManager.repaint();
             centerPanel.revalidate();
             centerPanel.repaint();
             adminHubInitialized = true;
         }
     }
 
-    private void activateFooterButton(InverseCornerButton button) {
-        if (activeFooterButton != null) {
-            activeFooterButton.setActive(false);
+    /**
+     * Refreshes all card data.
+     */
+    public void refreshAllCards() {
+        if (cardManager.getHomeCard() != null) {
+            cardManager.getHomeCard().refreshSotwStatus();
+            cardManager.getHomeCard().refreshBotmStatus();
+            cardManager.getHomeCard().refreshHuntStatus();
+            cardManager.getHomeCard().refreshPluginAnnouncement();
+            cardManager.getHomeCard().refreshButtonLinks();
         }
-        
-        activeFooterButton = button;
-        activeFooterButton.setActive(true);
-        
-        syncDropdownWithButton(button.getText().trim());
-    }
 
-    private void activateButtonByLabel(String label) {
-        footerButtons.stream()
-            .filter(btn -> btn.getText().trim().equals(label))
-            .findFirst()
-            .ifPresent(this::activateFooterButton);
-    }
-
-    private void syncDropdownWithButton(String buttonLabel) {
-        for (int i = 0; i < dropdown.getItemCount(); i++) {
-            ComboBoxIconEntry item = dropdown.getItemAt(i);
-            if (item.getText().trim().equals(buttonLabel) && dropdown.getSelectedIndex() != i) {
-                dropdown.setSelectedIndex(i);
-                break;
-            }
+        if (cardManager.getSotwCard() != null) {
+            cardManager.getSotwCard().refreshLeaderboard();
         }
-    }
 
-    private void setButtonGlow(String label, boolean glow) {
-        footerButtons.stream()
-            .filter(btn -> btn.getText().trim().equalsIgnoreCase(label.trim()))
-            .findFirst()
-            .ifPresent(btn -> {
-                btn.setGlowing(glow);
-                if (!glow) {
-                    btn.repaint();
-                    footerPanel.repaint();
-                }
-            });
-    }
-
-    private void updateEventGlows() {
-        updateCardGlow(sotwCard, " SOTW", card -> card.isEventActive());
-        updateCardGlow(botmCard, " BOTM", card -> card.isEventActive());
-        updateCardGlow(huntCard, " The Hunt", card -> card.isEventActive());
-    }
-
-    private <T extends JPanel> void updateCardGlow(T card, String label, EventActiveChecker<T> checker) {
-        if (card != null) {
-            boolean active = checker.isActive(card);
-            setButtonGlow(label, active);
-            
-            if (homeCard != null) {
-                updateHomeCardEventStatus(label, active);
-            }
-        }
-    }
-
-    private void updateHomeCardEventStatus(String label, boolean active) {
-        switch (label.trim()) {
-            case "SOTW":
-                homeCard.updateSotwStatus(active);
-                break;
-            case "BOTM":
-                homeCard.updateBotmStatus(active);
-                break;
-        }
-    }
-
-    private void selectFirstEntry() {
-        if (dropdown.getItemCount() > 0) {
-            dropdown.setSelectedIndex(0);
-        }
-    }
-
-    private void activateFirstButton() {
-        if (!footerButtons.isEmpty()) {
-            footerButtons.get(0).doClick();
-        }
+        glowManager.updateAllEventGlows();
     }
 
     private JScrollPane makeScrollable(JPanel card) {
@@ -321,51 +176,43 @@ class FluxPanel extends PluginPanel {
         return scroll;
     }
 
+    private String getSelectedLabelFromCardId(String cardId) {
+        // This is a bit hacky but works with the current structure
+        // Could be improved by storing a mapping
+        for (EntrySelect entry : EntrySelect.values()) {
+            if (entry.name().equalsIgnoreCase(cardId)) {
+                CardManager.CardEntry cardEntry = cardManager.createCard(entry);
+                if (cardEntry != null) {
+                    return cardEntry.label;
+                }
+            }
+        }
+        return "";
+    }
+
     // Public API for card access
-    public HomeCard getHomeCard() { return homeCard; }
-    public BotmCard getBotmCard() { return botmCard; }
-    public SotwCard getSotwCard() { return sotwCard; }
-    public HuntCard getHuntCard() { return huntCard; }
-
-    public void refreshAllCards() {
-        refreshHomeCard();
-        refreshSotwCard();
-        updateEventGlows();
+    public CardManager getCardManager() {
+        return cardManager;
     }
 
-    private void refreshHomeCard() {
-        if (homeCard != null) {
-            homeCard.refreshSotwStatus();
-            homeCard.refreshBotmStatus();
-            homeCard.refreshHuntStatus();
-            homeCard.refreshPluginAnnouncement();
-            homeCard.refreshButtonLinks();
-        }
+    // Convenience methods for backward compatibility
+    public com.flux.cards.HomeCard getHomeCard() {
+        return cardManager != null ? cardManager.getHomeCard() : null;
     }
 
-    private void refreshSotwCard() {
-        if (sotwCard != null) {
-            sotwCard.refreshLeaderboard();
-        }
+    public com.flux.cards.SotwCard getSotwCard() {
+        return cardManager != null ? cardManager.getSotwCard() : null;
     }
 
-    // Helper classes
-    private static class EntryConfig {
-        final String label;
-        final String iconPath;
-        final JPanel card;
-        final EntrySelect entry;
-
-        EntryConfig(String label, String iconPath, JPanel card, EntrySelect entry) {
-            this.label = label;
-            this.iconPath = iconPath;
-            this.card = card;
-            this.entry = entry;
-        }
+    public com.flux.cards.BotmCard getBotmCard() {
+        return cardManager != null ? cardManager.getBotmCard() : null;
     }
 
-    @FunctionalInterface
-    private interface EventActiveChecker<T> {
-        boolean isActive(T card);
+    public com.flux.cards.HuntCard getHuntCard() {
+        return cardManager != null ? cardManager.getHuntCard() : null;
+    }
+
+    public com.flux.cards.AdminHubCard getAdminHubCard() {
+        return cardManager != null ? cardManager.getAdminHubCard() : null;
     }
 }
