@@ -1,15 +1,20 @@
 package com.flux;
 
-import com.flux.handlers.ConfigChangeHandler;
-import com.flux.handlers.ConfigSheetHandler;
+import com.flux.cards.HomeCard;
+import com.flux.cards.BotmCard;
+import com.flux.cards.SotwCard;
+import com.flux.cards.HuntCard;
+import com.flux.cards.AdminHubCard;
 import com.flux.services.ClanRankMonitor;
 import com.flux.services.CompetitionScheduler;
 import com.flux.services.GoogleSheetParser;
 import com.flux.services.LoginMessageSender;
-import com.flux.FluxPanel;
 import com.google.inject.Provides;
 
 import javax.inject.Inject;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -49,13 +54,10 @@ public class FluxPlugin extends Plugin {
     private FluxPanel panel;
     private NavigationButton uiNavigationButton;
 
-    // Service handlers
     private CompetitionScheduler competitionScheduler;
     private GoogleSheetParser configParser;
     private ClanRankMonitor clanRankMonitor;
     private LoginMessageSender loginMessageSender;
-    private ConfigChangeHandler configChangeHandler;
-    private ConfigSheetHandler configSheetHandler;
 
     @Override
     protected void startUp() {
@@ -91,26 +93,17 @@ public class FluxPlugin extends Plugin {
     }
 
     private void initializeServices() {
-        // Competition scheduler
         competitionScheduler = new CompetitionScheduler(configManager);
 
-        // Config sheet parser
-        configSheetHandler = new ConfigSheetHandler(configManager);
         configParser = new GoogleSheetParser(
                 configManager,
                 GoogleSheetParser.SheetType.CONFIG,
-                configSheetHandler::handleConfigUpdate,
+                this::handleConfigUpdate,
                 true
         );
 
-        // Clan rank monitor
         clanRankMonitor = new ClanRankMonitor(client, this::handleRankChange);
-
-        // Login message sender
         loginMessageSender = new LoginMessageSender(chatMessageManager, configManager);
-
-        // Config change handler
-        configChangeHandler = new ConfigChangeHandler(panel, configManager);
     }
 
     private void startServices() {
@@ -131,22 +124,87 @@ public class FluxPlugin extends Plugin {
     }
 
     private void refreshAllCards() {
-        if (panel == null) return;
-
-        if (panel.getSotwCard() != null) {
-            panel.getSotwCard().checkEventStateChanged();
-        }
-        if (panel.getBotmCard() != null) {
-            panel.getBotmCard().checkEventStateChanged();
-        }
-        if (panel.getHuntCard() != null) {
-            panel.getHuntCard().checkEventStateChanged();
+        if (panel != null) {
+            if (panel.getSotwCard() != null) {
+                panel.getSotwCard().checkEventStateChanged();
+            }
+            if (panel.getBotmCard() != null) {
+                panel.getBotmCard().checkEventStateChanged();
+            }
+            if (panel.getHuntCard() != null) {
+                panel.getHuntCard().checkEventStateChanged();
+            }
         }
     }
 
     private void handleRankChange(boolean isAdmiralOrHigher) {
         if (panel != null) {
             panel.updateClanRankStatus(isAdmiralOrHigher);
+        }
+    }
+
+    private void handleConfigUpdate(java.util.Map<String, String> configValues) {
+        System.out.println("Received config updates from Google Sheets:");
+
+        updateLoginMessage(configValues);
+        updateAnnouncementMessage(configValues);
+        updateRollCallStatus(configValues);
+    }
+
+    private void updateLoginMessage(java.util.Map<String, String> configValues) {
+        String loginMsg = configValues.get("LOGIN_MESSAGE");
+        if (loginMsg != null && !loginMsg.isEmpty()) {
+            String currentValue = configManager.getConfiguration(CONFIG_GROUP, "clan_login_message");
+            if (!loginMsg.equals(currentValue)) {
+                configManager.setConfiguration(CONFIG_GROUP, "clan_login_message", loginMsg);
+                System.out.println("  Updated LOGIN_MESSAGE: " + loginMsg);
+            }
+        }
+    }
+
+    private void updateAnnouncementMessage(java.util.Map<String, String> configValues) {
+        String announcement = configValues.get("ANNOUNCEMENT_MESSAGE");
+        if (announcement != null && !announcement.isEmpty()) {
+            String currentAnnouncement = configManager.getConfiguration(CONFIG_GROUP, "plugin_announcement_message");
+
+            if (!announcement.equals(currentAnnouncement)) {
+                System.out.println("  Updating ANNOUNCEMENT_MESSAGE: " + announcement);
+                configManager.setConfiguration(CONFIG_GROUP, "plugin_announcement_message", announcement);
+
+                // Trigger UI update directly
+                if (panel != null && panel.getHomeCard() != null) {
+                    javax.swing.SwingUtilities.invokeLater(() -> {
+                        panel.getHomeCard().refreshPluginAnnouncement();
+                        panel.getHomeCard().refreshButtonLinks();
+                    });
+                }
+            }
+        }
+    }
+
+    private void updateRollCallStatus(java.util.Map<String, String> configValues) {
+        String rollCallActive = configValues.get("ROLL_CALL_ACTIVE");
+        if (rollCallActive != null && !rollCallActive.isEmpty()) {
+            boolean isActive = rollCallActive.equalsIgnoreCase("TRUE");
+            String currentStatus = configManager.getConfiguration(CONFIG_GROUP, "rollCallActive");
+            boolean currentActive = currentStatus != null && Boolean.parseBoolean(currentStatus);
+
+            if (isActive != currentActive) {
+                System.out.println("  Updating ROLL_CALL_ACTIVE: " + isActive);
+                configManager.setConfiguration(CONFIG_GROUP, "rollCallActive", String.valueOf(isActive));
+
+                // Trigger UI update directly
+                if (panel != null) {
+                    javax.swing.SwingUtilities.invokeLater(() -> {
+                        if (panel.getHomeCard() != null) {
+                            panel.getHomeCard().isRollCallActive();
+                        }
+                        if (panel.getAdminHubCard() != null) {
+                            panel.getAdminHubCard().refresh();
+                        }
+                    });
+                }
+            }
         }
     }
 
@@ -165,7 +223,87 @@ public class FluxPlugin extends Plugin {
 
     @Subscribe
     public void onConfigChanged(ConfigChanged event) {
-        configChangeHandler.handleConfigChange(event);
+        if (!event.getGroup().equals(CONFIG_GROUP)) {
+            return;
+        }
+
+        String key = event.getKey();
+        System.out.println("CONFIG CHANGE EVENT KEY: " + key);
+
+        if (key.equals("plugin_announcement_message")) {
+            if (panel != null && panel.getHomeCard() != null) {
+                panel.getHomeCard().refreshPluginAnnouncement();
+                panel.getHomeCard().refreshButtonLinks();
+            }
+        }
+
+        if (key.equals("rollCallActive")) {
+            System.out.println("Roll Call Status Changed");
+            if (panel != null && panel.getHomeCard() != null) {
+                panel.getHomeCard().isRollCallActive();
+            }
+            if (panel != null && panel.getAdminHubCard() != null) {
+                panel.getAdminHubCard().refresh();
+            }
+        }
+
+        if (key.equals("botmActive") || key.equals("botm_active")) {
+            if (panel != null && panel.getBotmCard() != null) {
+                panel.getBotmCard().checkEventStateChanged();
+            }
+        }
+
+        if (key.equals("sotw_active") || key.equals("sotwActive")) {
+            if (panel != null) {
+                panel.refreshAllCards();
+                if (panel.getSotwCard() != null) {
+                    panel.getSotwCard().checkEventStateChanged();
+                }
+            }
+        }
+
+        if (key.equals("sotw_wom_link") || key.equals("sotwWomLink")) {
+            if (panel != null && panel.getSotwCard() != null) {
+                panel.getSotwCard().refreshButtonLinks();
+            }
+        }
+
+        if (key.equals("sotw_leaderboard") || key.equals("sotwLeaderboard")) {
+            logLeaderboard();
+            if (panel != null) {
+                panel.refreshAllCards();
+            }
+        }
+
+        if (key.equals("huntActive")) {
+            if (panel != null) {
+                if (panel.getHuntCard() != null) {
+                    panel.getHuntCard().checkEventStateChanged();
+                }
+                if (panel.getHomeCard() != null) {
+                    panel.getHomeCard().refreshHuntStatus();
+                }
+            }
+        }
+    }
+
+    private void logLeaderboard() {
+        String leaderboardJson = configManager.getConfiguration(CONFIG_GROUP, "sotwLeaderboard", String.class);
+
+        if (leaderboardJson != null && !leaderboardJson.isEmpty()) {
+            try {
+                JSONArray leaderboardArray = new JSONArray(leaderboardJson);
+                System.out.println("Current SOTW Leaderboard:");
+                for (int i = 0; i < leaderboardArray.length(); i++) {
+                    JSONObject entry = leaderboardArray.getJSONObject(i);
+                    String username = entry.getString("username");
+                    int xp = entry.getInt("xp");
+                    System.out.printf(" - %-20s %,d XP%n", username, xp);
+                }
+            } catch (Exception e) {
+                System.out.println("Error parsing leaderboard JSON: " + e.getMessage());
+            }
+        }
     }
 
     @Provides

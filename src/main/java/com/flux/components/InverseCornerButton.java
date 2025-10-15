@@ -152,14 +152,10 @@ public class InverseCornerButton extends JButton {
         return url;
     }
 
-    /**
+     /**
      * Enables or disables the glow effect animation.
      */
     public void setGlowing(boolean glowing) {
-        if (this.glowing == glowing) {
-            return; // Already in desired state
-        }
-
         this.glowing = glowing;
 
         if (glowing) {
@@ -167,6 +163,9 @@ public class InverseCornerButton extends JButton {
         } else {
             stopGlowAnimation();
         }
+
+        // Always repaint to ensure visual updates
+        repaint();
     }
 
     /**

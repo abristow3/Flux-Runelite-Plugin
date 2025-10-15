@@ -208,14 +208,22 @@ public class HomeCard extends FluxCard {
     }
 
     public void isRollCallActive() {
+        String configValue = configManager.getConfiguration("flux", "rollCallActive");
+        System.out.println("    isRollCallActive() called - config value: '" + configValue + "'");
+
         boolean active = getConfigBoolean("rollCallActive");
+        System.out.println("    Parsed as boolean: " + active);
+
         InverseCornerButton rollCallButton = buttons.get("Roll Call");
 
         if (rollCallButton != null) {
+            System.out.println("    Roll Call button found, setting glow to: " + active);
             rollCallButton.setGlowing(active);
-            if (!active) {
-                rollCallButton.repaint();
-            }
+            // ALWAYS repaint to update the visual state, whether turning on OR off
+            rollCallButton.repaint();
+            System.out.println("    Called repaint()");
+        } else {
+            System.out.println("    ERROR: Roll Call button is NULL! Available buttons: " + buttons.keySet());
         }
     }
 
