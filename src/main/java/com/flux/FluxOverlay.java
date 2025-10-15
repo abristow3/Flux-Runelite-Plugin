@@ -31,33 +31,53 @@ public class FluxOverlay extends OverlayPanel {
     public Dimension render(Graphics2D graphics) {
         panelComponent.getChildren().clear();
 
-        // Fetch real-time config values
-        boolean overlayEnabled = config.overlay(); // displayOverlay
-        boolean botmActive = Boolean.parseBoolean(configManager.getConfiguration("flux", "botmActive"));
+        // Check if overlay is enabled
+        boolean overlayEnabled = config.overlay();
+        if (!overlayEnabled) {
+            return null; // Overlay is disabled
+        }
 
-        String eventPass = configManager.getConfiguration("flux", "eventPass");
-        String botmPass = configManager.getConfiguration("flux", "botmPassword");
+        // Fetch active event statuses
+        boolean botmActive = getBooleanConfig("botmActive", false);
+        boolean huntActive = getBooleanConfig("huntActive", false);
 
-        // Final string to display
+        // Fetch passwords
+        String eventPass = config.eventPass();
+        String botmPass = config.botmPass();
+        String huntPasswords = getStringConfig("hunt_passwords", "");
+
+        // Build the display text
         StringBuilder textBuilder = new StringBuilder();
 
+        // Always show event password if configured (no prefix)
         if (eventPass != null && !eventPass.isEmpty()) {
             textBuilder.append(eventPass);
         }
 
-        if (botmActive && overlayEnabled && botmPass != null && !botmPass.isEmpty()) {
+        // Show BOTM password if BOTM is active (with prefix)
+        if (botmActive && botmPass != null && !botmPass.isEmpty()) {
             if (textBuilder.length() > 0) {
-                textBuilder.append(" ");
+                textBuilder.append(" | ");
             }
-            textBuilder.append(botmPass);
+            textBuilder.append("BOTM: ").append(botmPass);
+        }
+
+        // Show Hunt passwords if Hunt is active (with prefix)
+        if (huntActive && huntPasswords != null && !huntPasswords.isEmpty()) {
+            if (textBuilder.length() > 0) {
+                textBuilder.append(" | ");
+            }
+            textBuilder.append("Hunt: ").append(huntPasswords);
         }
 
         String text = textBuilder.toString().trim();
 
-        if (text.isEmpty() || !overlayEnabled) {
-            return null; // Nothing to render
+        // If no text to display, don't render
+        if (text.isEmpty()) {
+            return null;
         }
 
+        // Get colors
         Color passColor = config.passColor();
         Color timeColor = config.timeColor();
 
@@ -67,11 +87,13 @@ public class FluxOverlay extends OverlayPanel {
             timeColor = Color.WHITE;
         }
 
+        // Add password text
         panelComponent.getChildren().add(LineComponent.builder()
                 .left(text)
                 .leftColor(passColor)
                 .build());
 
+        // Add date/time if enabled
         if (config.dtm()) {
             String time = localToGMT();
             LineComponent line = (LineComponent) panelComponent.getChildren().get(0);
@@ -87,6 +109,19 @@ public class FluxOverlay extends OverlayPanel {
         }
 
         return super.render(graphics);
+    }
+
+    private boolean getBooleanConfig(String key, boolean defaultValue) {
+        String value = configManager.getConfiguration("flux", key);
+        if (value == null || value.isEmpty()) {
+            return defaultValue;
+        }
+        return Boolean.parseBoolean(value);
+    }
+
+    private String getStringConfig(String key, String defaultValue) {
+        String value = configManager.getConfiguration("flux", key);
+        return (value != null && !value.isEmpty()) ? value : defaultValue;
     }
 
     public static String localToGMT() {
