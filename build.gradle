@@ -4,7 +4,6 @@ plugins {
 
 def runeLiteVersion = 'latest.release'
 
-// ✅ Add these Java compatibility settings
 java {
     sourceCompatibility = JavaVersion.VERSION_11
     targetCompatibility = JavaVersion.VERSION_11
@@ -19,12 +18,6 @@ repositories {
         }
     }
     mavenCentral()
-    maven {
-        url = uri("https://www.googleapis.com/download/storage/v1/b/maven-central/o")
-        content {
-            includeGroup "com.google.apis"
-        }
-    }
 }
 
 dependencies {
