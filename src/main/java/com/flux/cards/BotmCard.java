@@ -3,7 +3,7 @@ package com.flux.cards;
 import net.runelite.client.config.ConfigManager;
 import com.flux.services.GoogleSheetParser;
 import com.flux.components.LeaderboardCellRenderer;
-
+import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import org.json.JSONArray;
@@ -21,6 +21,7 @@ public class BotmCard extends FluxCard {
     private Timer countdownTimer;
     private GoogleSheetParser sheetParser;
     private boolean wasEventActive = false;
+    private static final Logger logger = LoggerFactory.getLogger(BotmCard.class);
 
     public BotmCard(ConfigManager configManager) {
         super();
@@ -133,7 +134,7 @@ public class BotmCard extends FluxCard {
             }
         } catch (Exception e) {
             handleAsyncError(e);
-            System.err.println("Failed to parse BOTM leaderboard");
+            logger.error("Failed to parse BOTM leaderboard", e);
         }
     }
 

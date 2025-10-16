@@ -3,12 +3,13 @@ package com.flux.services.wom;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import java.util.*;
-
+import lombok.extern.slf4j.Slf4j;
 import static com.flux.services.wom.CompetitionModels.*;
 
 /**
  * Parses WOM API responses into structured competition data.
  */
+@Slf4j
 public class CompetitionDataParser {
     private static final int TOP_PARTICIPANTS_COUNT = 10;
 
@@ -39,7 +40,7 @@ public class CompetitionDataParser {
                     .forEach(entry -> leaderboard.put(entry.username, entry.xp));
 
         } catch (Exception e) {
-            System.err.println("Error parsing SOTW leaderboard: " + e.getMessage());
+            log.error("Error parsing SOTW leaderboard: " + e);
         }
 
         return leaderboard;
@@ -94,8 +95,7 @@ public class CompetitionDataParser {
             );
 
         } catch (Exception e) {
-            System.err.println("Error parsing Hunt team data: " + e.getMessage());
-            e.printStackTrace();
+            log.error("Error parsing Hunt team data: " + e);
         }
 
         return null;

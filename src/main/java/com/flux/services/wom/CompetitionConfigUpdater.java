@@ -3,7 +3,7 @@ package com.flux.services.wom;
 import net.runelite.client.config.ConfigManager;
 import org.json.JSONArray;
 import org.json.JSONObject;
-
+import lombok.extern.slf4j.Slf4j;
 import java.util.LinkedHashMap;
 
 import static com.flux.services.wom.CompetitionModels.*;
@@ -11,6 +11,7 @@ import static com.flux.services.wom.CompetitionModels.*;
 /**
  * Updates RuneLite config with competition data.
  */
+@Slf4j
 public class CompetitionConfigUpdater {
     private final ConfigManager configManager;
 

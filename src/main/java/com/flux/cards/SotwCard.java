@@ -2,7 +2,7 @@ package com.flux.cards;
 
 import net.runelite.client.config.ConfigManager;
 import com.flux.components.LeaderboardCellRenderer;
-
+import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
@@ -17,6 +17,7 @@ public class SotwCard extends FluxCard {
     private JLabel countdownLabel;
     private Timer countdownTimer;
     private boolean wasEventActive = false;
+    private static final Logger logger = LoggerFactory.getLogger(SotwCard.class);
 
     public SotwCard(ConfigManager configManager) {
         super();

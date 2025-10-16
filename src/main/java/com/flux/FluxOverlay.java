@@ -31,30 +31,24 @@ public class FluxOverlay extends OverlayPanel {
     public Dimension render(Graphics2D graphics) {
         panelComponent.getChildren().clear();
 
-        // Check if overlay is enabled
         boolean overlayEnabled = config.overlay();
         if (!overlayEnabled) {
-            return null; // Overlay is disabled
+            return null;
         }
 
-        // Fetch active event statuses
         boolean botmActive = getBooleanConfig("botmActive", false);
         boolean huntActive = getBooleanConfig("huntActive", false);
 
-        // Fetch passwords
         String eventPass = config.eventPass();
         String botmPass = config.botmPass();
         String huntPasswords = getStringConfig("hunt_passwords", "");
 
-        // Build the display text
         StringBuilder textBuilder = new StringBuilder();
 
-        // Always show event password if configured (no prefix)
         if (eventPass != null && !eventPass.isEmpty()) {
             textBuilder.append(eventPass);
         }
 
-        // Show BOTM password if BOTM is active (with prefix)
         if (botmActive && botmPass != null && !botmPass.isEmpty()) {
             if (textBuilder.length() > 0) {
                 textBuilder.append(" | ");
@@ -62,7 +56,6 @@ public class FluxOverlay extends OverlayPanel {
             textBuilder.append("BOTM: ").append(botmPass);
         }
 
-        // Show Hunt passwords if Hunt is active (with prefix)
         if (huntActive && huntPasswords != null && !huntPasswords.isEmpty()) {
             if (textBuilder.length() > 0) {
                 textBuilder.append(" | ");
@@ -72,28 +65,23 @@ public class FluxOverlay extends OverlayPanel {
 
         String text = textBuilder.toString().trim();
 
-        // If no text to display, don't render
         if (text.isEmpty()) {
             return null;
         }
 
-        // Get colors
         Color passColor = config.passColor();
         Color timeColor = config.timeColor();
 
-        // Ensure pass color isn't the same as time color
         if (passColor.equals(timeColor)) {
             passColor = Color.GREEN;
             timeColor = Color.WHITE;
         }
 
-        // Add password text
         panelComponent.getChildren().add(LineComponent.builder()
                 .left(text)
                 .leftColor(passColor)
                 .build());
 
-        // Add date/time if enabled
         if (config.dtm()) {
             String time = localToGMT();
             LineComponent line = (LineComponent) panelComponent.getChildren().get(0);

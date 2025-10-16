@@ -3,6 +3,8 @@ package com.flux.cards;
 import net.runelite.client.config.ConfigManager;
 import com.flux.FluxConfig;
 import com.flux.components.InverseCornerButton;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -11,13 +13,14 @@ import javax.swing.table.JTableHeader;
 import java.awt.*;
 
 public class HomeCard extends FluxCard {
+    private static final Logger logger = LoggerFactory.getLogger(HomeCard.class);
+
     private static final Font HEADER_FONT = new Font("SansSerif", Font.BOLD, 14);
 
     private static final Color TABLE_BG = new Color(30, 30, 30);
     private static final Color HEADER_BG = new Color(50, 50, 50);
     private static final Color GRID_COLOR = new Color(70, 70, 70);
 
-    // Event row indices
     private static final int BOTM_ROW = 0;
     private static final int SOTW_ROW = 1;
     private static final int HUNT_ROW = 2;
@@ -162,7 +165,6 @@ public class HomeCard extends FluxCard {
         return totalHeight;
     }
 
-    // Public API for status updates
     public void updateSotwStatus(boolean isActive) {
         updateEventStatus(SOTW_ROW, isActive);
     }
@@ -182,7 +184,6 @@ public class HomeCard extends FluxCard {
         }
     }
 
-    // Refresh methods
     public void refreshPluginAnnouncement() {
         String announcement = configManager.getConfiguration("flux", "plugin_announcement_message");
         announcementsLabel.setText(announcement);
@@ -208,22 +209,13 @@ public class HomeCard extends FluxCard {
     }
 
     public void isRollCallActive() {
-        String configValue = configManager.getConfiguration("flux", "rollCallActive");
-        System.out.println("    isRollCallActive() called - config value: '" + configValue + "'");
-
         boolean active = getConfigBoolean("rollCallActive");
-        System.out.println("    Parsed as boolean: " + active);
 
         InverseCornerButton rollCallButton = buttons.get("Roll Call");
 
         if (rollCallButton != null) {
-            System.out.println("    Roll Call button found, setting glow to: " + active);
             rollCallButton.setGlowing(active);
-            // ALWAYS repaint to update the visual state, whether turning on OR off
             rollCallButton.repaint();
-            System.out.println("    Called repaint()");
-        } else {
-            System.out.println("    ERROR: Roll Call button is NULL! Available buttons: " + buttons.keySet());
         }
     }
 
@@ -249,7 +241,6 @@ public class HomeCard extends FluxCard {
         return getConfigValue(key, defaultValue, configManager);
     }
 
-    // Helper classes
     private static class StatusColorRenderer extends DefaultTableCellRenderer {
         @Override
         public Component getTableCellRendererComponent(

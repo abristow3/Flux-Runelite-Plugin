@@ -8,12 +8,13 @@ import com.google.api.services.sheets.v4.model.ValueRange;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import net.runelite.client.config.ConfigManager;
-
+import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
+@Slf4j
 public class GoogleSheetParser {
     private static final String APPLICATION_NAME = "Google Sheets API Java Quickstart";
     private static final String API_KEY = "AIzaSyBu-qDCAFvD_z00uohkfD_ub0sZj-H8s1E";
@@ -103,7 +104,7 @@ public class GoogleSheetParser {
                 }
             }
         } catch (IOException e) {
-            System.err.println("Error fetching Google Sheets data: " + e.getMessage());
+            log.error("Error fetching Google Sheets data", e);
         }
 
         if (leaderboard.length() > 10) {
@@ -124,8 +125,6 @@ public class GoogleSheetParser {
                 int scoreStartRow = findCurrentScoreSection(values);
 
                 if (scoreStartRow >= 0) {
-                    System.out.println("Found Current Score section at row: " + scoreStartRow);
-
                     int dataStartRow = scoreStartRow + 2;
 
                     for (int i = dataStartRow; i < values.size() && i < dataStartRow + 10; i++) {
@@ -142,19 +141,17 @@ public class GoogleSheetParser {
                             try {
                                 int points = Integer.parseInt(pointsStr);
                                 scores.put(teamName, points);
-                                System.out.println("Parsed Hunt Score: " + teamName + " = " + points);
                             } catch (NumberFormatException e) {
-                                System.err.println("Failed to parse points for team: " + teamName + ", value: " + pointsStr);
+                                log.warn("Failed to parse points for team: {}, value: {}", teamName, pointsStr);
                             }
                         }
                     }
                 } else {
-                    System.err.println("Could not find 'Current Score' section in Hunt sheet");
+                    log.warn("Could not find 'Current Score' section in Hunt sheet");
                 }
             }
         } catch (IOException e) {
-            System.err.println("Error fetching Hunt scores from Google Sheets: " + e.getMessage());
-            e.printStackTrace();
+            log.error("Error fetching Hunt scores from Google Sheets", e);
         }
 
         return scores;
@@ -168,8 +165,6 @@ public class GoogleSheetParser {
             List<List<Object>> values = response.getValues();
 
             if (values != null && !values.isEmpty()) {
-                System.out.println("Parsing Config sheet...");
-
                 // Parse key-value pairs from Config sheet
                 // Expected format: Key in column A, Value in column B
                 for (int i = 0; i < values.size(); i++) {
@@ -190,16 +185,12 @@ public class GoogleSheetParser {
                                 key.equalsIgnoreCase("ROLL_CALL_ACTIVE")) {
 
                             configValues.put(key.toUpperCase(), value);
-                            System.out.println("Parsed Config: " + key + " = " + value);
                         }
                     }
                 }
-
-                System.out.println("Config parsing complete. Found " + configValues.size() + " values.");
             }
         } catch (IOException e) {
-            System.err.println("Error fetching Config values from Google Sheets: " + e.getMessage());
-            e.printStackTrace();
+            log.error("Error fetching Config values from Google Sheets", e);
         }
 
         return configValues;

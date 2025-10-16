@@ -139,7 +139,7 @@ public class FluxPlugin extends Plugin {
     }
 
     private void handleConfigUpdate(java.util.Map<String, String> configValues) {
-        System.out.println("Received config updates from Google Sheets:");
+        log.info("Received config updates from Google Sheets");
 
         updateLoginMessage(configValues);
         updateAnnouncementMessage(configValues);
@@ -152,7 +152,7 @@ public class FluxPlugin extends Plugin {
             String currentValue = configManager.getConfiguration(CONFIG_GROUP, "clan_login_message");
             if (!loginMsg.equals(currentValue)) {
                 configManager.setConfiguration(CONFIG_GROUP, "clan_login_message", loginMsg);
-                System.out.println("  Updated LOGIN_MESSAGE: " + loginMsg);
+                log.info("Updated LOGIN_MESSAGE: {}", loginMsg);
             }
         }
     }
@@ -163,10 +163,9 @@ public class FluxPlugin extends Plugin {
             String currentAnnouncement = configManager.getConfiguration(CONFIG_GROUP, "plugin_announcement_message");
 
             if (!announcement.equals(currentAnnouncement)) {
-                System.out.println("  Updating ANNOUNCEMENT_MESSAGE: " + announcement);
+                log.info("Updating ANNOUNCEMENT_MESSAGE: {}", announcement);
                 configManager.setConfiguration(CONFIG_GROUP, "plugin_announcement_message", announcement);
 
-                // Trigger UI update directly
                 if (panel != null && panel.getHomeCard() != null) {
                     javax.swing.SwingUtilities.invokeLater(() -> {
                         panel.getHomeCard().refreshPluginAnnouncement();
@@ -185,10 +184,9 @@ public class FluxPlugin extends Plugin {
             boolean currentActive = currentStatus != null && Boolean.parseBoolean(currentStatus);
 
             if (isActive != currentActive) {
-                System.out.println("  Updating ROLL_CALL_ACTIVE: " + isActive);
+                log.info("Updating ROLL_CALL_ACTIVE: {}", isActive);
                 configManager.setConfiguration(CONFIG_GROUP, "rollCallActive", String.valueOf(isActive));
 
-                // Trigger UI update directly
                 if (panel != null) {
                     javax.swing.SwingUtilities.invokeLater(() -> {
                         if (panel.getHomeCard() != null) {
@@ -223,7 +221,7 @@ public class FluxPlugin extends Plugin {
         }
 
         String key = event.getKey();
-        System.out.println("CONFIG CHANGE EVENT KEY: " + key);
+        log.debug("CONFIG CHANGE EVENT KEY: {}", key);
 
         if (key.equals("plugin_announcement_message")) {
             if (panel != null && panel.getHomeCard() != null) {
@@ -233,7 +231,7 @@ public class FluxPlugin extends Plugin {
         }
 
         if (key.equals("rollCallActive")) {
-            System.out.println("Roll Call Status Changed");
+            log.debug("Roll Call Status Changed");
             if (panel != null && panel.getHomeCard() != null) {
                 panel.getHomeCard().isRollCallActive();
             }
@@ -327,15 +325,15 @@ public class FluxPlugin extends Plugin {
         if (leaderboardJson != null && !leaderboardJson.isEmpty()) {
             try {
                 JSONArray leaderboardArray = new JSONArray(leaderboardJson);
-                System.out.println("Current SOTW Leaderboard:");
+                log.debug("Current SOTW Leaderboard:");
                 for (int i = 0; i < leaderboardArray.length(); i++) {
                     JSONObject entry = leaderboardArray.getJSONObject(i);
                     String username = entry.getString("username");
                     int xp = entry.getInt("xp");
-                    System.out.printf(" - %-20s %,d XP%n", username, xp);
+                    log.debug(" - {} {} XP", username, xp);
                 }
             } catch (Exception e) {
-                System.out.println("Error parsing leaderboard JSON: " + e.getMessage());
+                log.error("Error parsing leaderboard JSON", e);
             }
         }
     }

@@ -22,25 +22,23 @@ public class AnimatedShinyBorder extends AbstractBorder {
         Graphics2D g2 = (Graphics2D) g.create();
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        // Draw base border
         g2.setColor(baseColor);
         for (int i = 0; i < thickness; i++) {
             g2.drawRect(x + i, y + i, width - 1 - i * 2, height - 1 - i * 2);
         }
 
-        // Lighter color similar to base (slightly brighter, not full white)
-        Color shineColor = lightenColor(baseColor, 0.5f); // 50% lighter
+        Color shineColor = lightenColor(baseColor, 0.5f);
 
         g2.setColor(new Color(shineColor.getRed(), shineColor.getGreen(), shineColor.getBlue(), 180));
 
         int perimeter = 2 * (width + height - 4 * thickness);
-        int shineLength = 8; // smaller shine length
+        int shineLength = 8;
         int shinePosPixel = (int) (shinePosition * perimeter);
 
         for (int i = 0; i < shineLength; i++) {
             int pos = (shinePosPixel + i) % perimeter;
             Point p = pointOnOuterPerimeter(x, y, width, height, pos);
-            int size = 3; // smaller dot
+            int size = 3;
             g2.fillOval(p.x - size / 2, p.y - size / 2, size, size);
         }
 
@@ -52,18 +50,18 @@ public class AnimatedShinyBorder extends AbstractBorder {
         int h = height - 1;
 
         if (pos < w)
-            return new Point(x + pos, y); // Top edge
+            return new Point(x + pos, y);
         pos -= w;
 
         if (pos < h)
-            return new Point(x + w, y + pos); // Right edge
+            return new Point(x + w, y + pos);
         pos -= h;
 
         if (pos < w)
-            return new Point(x + w - pos, y + h); // Bottom edge
+            return new Point(x + w - pos, y + h);
         pos -= w;
 
-        return new Point(x, y + h - pos); // Left edge
+        return new Point(x, y + h - pos);
     }
 
     private Color lightenColor(Color color, float factor) {

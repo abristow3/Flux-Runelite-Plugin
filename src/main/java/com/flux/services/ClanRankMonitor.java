@@ -4,7 +4,7 @@ import net.runelite.api.Client;
 import net.runelite.api.clan.ClanChannel;
 import net.runelite.api.clan.ClanChannelMember;
 import net.runelite.api.clan.ClanRank;
-
+import lombok.extern.slf4j.Slf4j;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -14,6 +14,7 @@ import java.util.function.Consumer;
 /**
  * Monitors the player's clan rank and notifies when it changes.
  */
+@Slf4j
 public class ClanRankMonitor {
     private static final String TARGET_CLAN_NAME = "Flux";
     private static final int CHECK_DELAY_SECONDS = 7;

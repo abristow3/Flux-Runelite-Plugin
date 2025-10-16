@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 
 public class HuntCard extends FluxCard {
     private final ConfigManager configManager;
@@ -25,6 +26,7 @@ public class HuntCard extends FluxCard {
     private Timer countdownTimer;
     private GoogleSheetParser sheetParser;
     private boolean wasEventActive = false;
+    private static final Logger logger = LoggerFactory.getLogger(HuntCard.class);
 
     public HuntCard(ConfigManager configManager) {
         super();

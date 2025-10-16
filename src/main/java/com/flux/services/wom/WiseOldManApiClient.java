@@ -2,7 +2,7 @@ package com.flux.services.wom;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
-
+import lombok.extern.slf4j.Slf4j;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -11,6 +11,7 @@ import java.net.URL;
 /**
  * Client for interacting with the Wise Old Man API.
  */
+@Slf4j
 public class WiseOldManApiClient {
     private static final String BASE_API_URL = "https://api.wiseoldman.net/v2";
     private static final String GROUP_ID = "141";

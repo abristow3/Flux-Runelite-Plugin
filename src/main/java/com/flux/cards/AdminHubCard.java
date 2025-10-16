@@ -3,10 +3,12 @@ package com.flux.cards;
 import javax.swing.*;
 import net.runelite.client.config.ConfigManager;
 import com.flux.FluxConfig;
+import lombok.extern.slf4j.Slf4j;
 
 import java.awt.*;
 import java.util.*;
 
+@Slf4j
 public class AdminHubCard extends FluxCard {
     private static final int TEXT_FIELD_COLUMNS = 30;
     private static final int SPACING_VERTICAL = 5;
@@ -52,7 +54,6 @@ public class AdminHubCard extends FluxCard {
             }
         }
 
-        // Add vertical glue at the end to push everything to the top
         gbc.gridy = row;
         gbc.weighty = 1.0;
         add(Box.createVerticalGlue(), gbc);
@@ -77,11 +78,9 @@ public class AdminHubCard extends FluxCard {
     private void addCheckboxField(String configKey, GridBagConstraints gbc) {
         rollCallActiveCheckbox = new JCheckBox("Active");
 
-        // Load initial state from config
         boolean isActive = getConfigBoolean(configKey);
         rollCallActiveCheckbox.setSelected(isActive);
 
-        // Update config when checkbox changes
         rollCallActiveCheckbox.addActionListener(e -> {
             boolean selected = rollCallActiveCheckbox.isSelected();
             configManager.setConfiguration("flux", configKey, String.valueOf(selected));
@@ -93,17 +92,13 @@ public class AdminHubCard extends FluxCard {
     private void addTextField(String fieldKey, String configKey, GridBagConstraints gbc) {
         JTextField textField = new JTextField(TEXT_FIELD_COLUMNS);
 
-        // Load initial value from config
         String value = configManager.getConfiguration("flux", configKey);
         textField.setText(value != null ? value : "");
 
-        // Store original value in component name for change detection
         textField.putClientProperty("originalValue", textField.getText());
 
-        // Update config on Enter key
         textField.addActionListener(e -> saveTextField(textField, configKey));
 
-        // Update config on focus loss (if changed)
         textField.addFocusListener(new java.awt.event.FocusAdapter() {
             @Override
             public void focusLost(java.awt.event.FocusEvent e) {
@@ -125,7 +120,6 @@ public class AdminHubCard extends FluxCard {
         }
     }
 
-    // Public API
     public void setValue(String fieldLabel, String value) {
         JTextField textField = textFields.get(fieldLabel);
         if (textField != null) {
@@ -141,12 +135,10 @@ public class AdminHubCard extends FluxCard {
 
     @Override
     public void refresh() {
-        // Reload all values from config
         for (Map.Entry<String, JTextField> entry : textFields.entrySet()) {
             String fieldLabel = entry.getKey();
             JTextField textField = entry.getValue();
 
-            // Convert field label back to config key
             String configKey = convertLabelToConfigKey(fieldLabel);
             String value = configManager.getConfiguration("flux", configKey);
 
@@ -154,7 +146,6 @@ public class AdminHubCard extends FluxCard {
             textField.putClientProperty("originalValue", textField.getText());
         }
 
-        // Refresh checkbox
         if (rollCallActiveCheckbox != null) {
             boolean isActive = getConfigBoolean("rollCallActive");
             rollCallActiveCheckbox.setSelected(isActive);
@@ -171,9 +162,7 @@ public class AdminHubCard extends FluxCard {
         return getConfigValue(key, defaultValue, configManager);
     }
 
-    // Helper methods
     private String convertLabelToConfigKey(String label) {
-        // Convert display label back to config key format
         Map<String, String> labelToKey = new LinkedHashMap<>();
         labelToKey.put("BOTM Password", "botm_password");
         labelToKey.put("BOTM GDoc URL", "botmGdocUrl");
@@ -187,7 +176,6 @@ public class AdminHubCard extends FluxCard {
         return labelToKey.getOrDefault(label, label.toLowerCase().replace(" ", "_"));
     }
 
-    // Helper class
     private static class ConfigField {
         final String label;
         final String configKey;

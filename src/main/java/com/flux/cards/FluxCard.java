@@ -4,6 +4,8 @@ import com.flux.components.InverseCornerButton;
 import net.runelite.client.config.ConfigManager;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
@@ -16,40 +18,31 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Base class for all Flux plugin cards.
- * Provides scrollable panel functionality, async execution utilities, and common UI helpers.
- */
 public abstract class FluxCard extends JPanel implements Scrollable {
+    private static final Logger logger = LoggerFactory.getLogger(FluxCard.class);
 
-    // Constants
     protected static final int SCROLL_UNIT_INCREMENT = 16;
     protected static final int SCROLL_BLOCK_INCREMENT = 64;
     protected static final int SIDE_PADDING = 10;
     protected static final int CONTENT_PADDING = 40;
     protected static final int TIMER_INTERVAL = 1000;
 
-    // Common spacing
     protected static final int SPACING_SMALL = 10;
     protected static final int SPACING_MEDIUM = 20;
     protected static final int SPACING_LARGE = 25;
 
-    // Common button dimensions
     protected static final int BUTTON_WIDTH = 200;
     protected static final int BUTTON_HEIGHT = 25;
 
-    // Common table dimensions
     protected static final int TABLE_ROW_HEIGHT = 26;
     protected static final int TABLE_ROW_SPACING = 3;
 
-    // Common colors used across cards
     protected static final Color COLOR_YELLOW = Color.YELLOW;
     protected static final Color COLOR_LIGHT_GRAY = Color.LIGHT_GRAY;
     protected static final Color COLOR_WHITE = Color.WHITE;
     protected static final Color COLOR_GREEN = Color.GREEN;
     protected static final Color COLOR_RED = Color.RED;
 
-    // Common fonts used across cards
     protected static final Font FONT_TITLE = new Font("SansSerif", Font.BOLD, 20);
     protected static final Font FONT_SECTION = new Font("SansSerif", Font.BOLD, 16);
     protected static final Font FONT_NORMAL = new Font("SansSerif", Font.PLAIN, 14);
@@ -62,8 +55,6 @@ public abstract class FluxCard extends JPanel implements Scrollable {
         setAlignmentX(Component.CENTER_ALIGNMENT);
         setBorder(BorderFactory.createEmptyBorder(0, SIDE_PADDING, 0, SIDE_PADDING));
     }
-
-    // ========== Scrollable Interface ==========
 
     @Override
     public boolean getScrollableTracksViewportWidth() {
@@ -90,8 +81,6 @@ public abstract class FluxCard extends JPanel implements Scrollable {
         return SCROLL_BLOCK_INCREMENT;
     }
 
-    // ========== Async Utilities ==========
-
     protected void runAsync(Runnable task) {
         executor.submit(task);
     }
@@ -108,11 +97,8 @@ public abstract class FluxCard extends JPanel implements Scrollable {
     }
 
     protected void handleAsyncError(Exception e) {
-        System.err.println("Async error in " + getClass().getSimpleName() + ": " + e.getMessage());
-        e.printStackTrace();
+        logger.error("Async error in {}", getClass().getSimpleName(), e);
     }
-
-    // ========== UI Helper Methods ==========
 
     protected JLabel createCenteredLabel(String text, Font font, Color color) {
         JLabel label = new JLabel(text);
@@ -187,12 +173,10 @@ public abstract class FluxCard extends JPanel implements Scrollable {
                 return Color.decode(hexColor);
             }
         } catch (Exception e) {
-            System.err.println("Failed to parse color: " + hexColor);
+            logger.warn("Failed to parse color: {}", hexColor);
         }
         return COLOR_YELLOW;
     }
-
-    // ========== Button Creation ==========
 
     protected InverseCornerButton createLinkButton(LinkButton linkButton) {
         InverseCornerButton button = InverseCornerButton.withLabelImageAndUrl(
@@ -225,8 +209,6 @@ public abstract class FluxCard extends JPanel implements Scrollable {
             buttons.get(buttonLabel).setUrl(url);
         }
     }
-
-    // ========== Timer Utilities ==========
 
     protected Timer createCountdownTimer(Runnable tickHandler) {
         return new Timer(TIMER_INTERVAL, e -> tickHandler.run());
@@ -280,8 +262,6 @@ public abstract class FluxCard extends JPanel implements Scrollable {
         return false;
     }
 
-    // ========== Configuration Helpers ==========
-
     protected boolean getConfigBoolean(String key, ConfigManager configManager) {
         return "true".equals(configManager.getConfiguration("flux", key));
     }
@@ -303,10 +283,6 @@ public abstract class FluxCard extends JPanel implements Scrollable {
         return defaultValue;
     }
 
-    /**
-     * Simplified config methods for subclasses with direct ConfigManager access.
-     * Subclasses can override these to avoid passing configManager repeatedly.
-     */
     protected boolean getConfigBoolean(String key) {
         throw new UnsupportedOperationException("Subclass must override getConfigBoolean(String) or use getConfigBoolean(String, ConfigManager)");
     }
@@ -319,15 +295,6 @@ public abstract class FluxCard extends JPanel implements Scrollable {
         throw new UnsupportedOperationException("Subclass must override getConfigInt(String, int) or use getConfigInt(String, int, ConfigManager)");
     }
 
-    // ========== JSON Leaderboard Parsing ==========
-
-    /**
-     * Parse a JSON leaderboard with username and integer score field.
-     * @param configKey The config key containing the JSON array
-     * @param scoreField The name of the score field (e.g., "score", "xp")
-     * @param configManager The ConfigManager instance
-     * @return LinkedHashMap preserving insertion order
-     */
     protected LinkedHashMap<String, Integer> parseLeaderboardJson(String configKey, String scoreField, ConfigManager configManager) {
         LinkedHashMap<String, Integer> leaderboard = new LinkedHashMap<>();
         String raw = configManager.getConfiguration("flux", configKey);
@@ -346,19 +313,12 @@ public abstract class FluxCard extends JPanel implements Scrollable {
             }
         } catch (Exception e) {
             handleAsyncError(e);
-            System.err.println("Failed to parse leaderboard from config key: " + configKey);
+            logger.error("Failed to parse leaderboard from config key: {}", configKey);
         }
 
         return leaderboard;
     }
 
-    /**
-     * Parse a JSON leaderboard with username and double score field.
-     * @param configKey The config key containing the JSON array
-     * @param scoreField The name of the score field (e.g., "ehb")
-     * @param configManager The ConfigManager instance
-     * @return LinkedHashMap preserving insertion order
-     */
     protected LinkedHashMap<String, Double> parseLeaderboardJsonDouble(String configKey, String scoreField, ConfigManager configManager) {
         LinkedHashMap<String, Double> leaderboard = new LinkedHashMap<>();
         String raw = configManager.getConfiguration("flux", configKey);
@@ -377,16 +337,13 @@ public abstract class FluxCard extends JPanel implements Scrollable {
             }
         } catch (Exception e) {
             handleAsyncError(e);
-            System.err.println("Failed to parse leaderboard from config key: " + configKey);
+            logger.error("Failed to parse leaderboard from config key: {}", configKey);
         }
 
         return leaderboard;
     }
 
-    // ========== Lifecycle ==========
-
     public void refresh() {
-        // Default: no-op, override in subclasses
     }
 
     public void shutdown() {
@@ -400,8 +357,6 @@ public abstract class FluxCard extends JPanel implements Scrollable {
             Thread.currentThread().interrupt();
         }
     }
-
-    // ========== Helper Classes ==========
 
     protected static class LinkButton {
         public final String label;

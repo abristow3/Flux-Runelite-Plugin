@@ -2,7 +2,7 @@ package com.flux.services.wom;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
-
+import lombok.extern.slf4j.Slf4j;
 import java.time.Instant;
 import java.util.EnumMap;
 import java.util.Map;
@@ -12,6 +12,7 @@ import static com.flux.services.wom.CompetitionModels.*;
 /**
  * Finds active and completed competitions from WOM API.
  */
+@Slf4j
 public class CompetitionFinder {
     private final WiseOldManApiClient apiClient;
     private final CompetitionDataParser dataParser;
@@ -59,8 +60,7 @@ public class CompetitionFinder {
                 }
             }
         } catch (Exception e) {
-            System.err.println("Error finding active competitions: " + e.getMessage());
-            e.printStackTrace();
+            log.error("Error finding active competitions: " + e);
         }
 
         return results;
@@ -111,8 +111,7 @@ public class CompetitionFinder {
                 return fetchCompetitionData(competitionId, type, startsAt, endsAt);
             }
         } catch (Exception e) {
-            System.err.println("Error finding last completed " + type.name() + ": " + e.getMessage());
-            e.printStackTrace();
+            log.error("Error finding last completed " + type.name() + ": " + e);
         }
 
         return null;
@@ -142,8 +141,7 @@ public class CompetitionFinder {
                     huntData
             );
         } catch (Exception e) {
-            System.err.println("Error finding Hunt competition: " + e.getMessage());
-            e.printStackTrace();
+            log.error("Error finding Hunt competition: " + e);
         }
 
         return null;
@@ -166,7 +164,7 @@ public class CompetitionFinder {
                     null
             );
         } catch (Exception e) {
-            System.err.println("Error fetching competition " + competitionId + ": " + e.getMessage());
+            log.error("Error fetching competition " + competitionId + ": " + e);
         }
 
         return null;

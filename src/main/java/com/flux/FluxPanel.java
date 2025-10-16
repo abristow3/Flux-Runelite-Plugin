@@ -13,18 +13,18 @@ import net.runelite.client.config.ConfigManager;
 import com.flux.cards.*;
 import net.runelite.client.ui.PluginPanel;
 import net.runelite.client.util.ImageUtil;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 public class FluxPanel extends PluginPanel {
+    private static final Logger logger = LoggerFactory.getLogger(FluxPanel.class);
+
     private static final int GLOW_CHECK_INTERVAL = 500;
     private static final int SCROLL_UNIT_INCREMENT = 16;
 
-    // Configuration
     private FluxConfig config;
     private ConfigManager configManager;
 
-    // UI Components
     private final JPanel headerPanel = new JPanel();
     private final JPanel centerPanel = new JPanel();
     private final JPanel footerPanel = new JPanel();
@@ -34,7 +34,6 @@ public class FluxPanel extends PluginPanel {
     private final ComboBoxIconListRenderer renderer = new ComboBoxIconListRenderer();
     private final java.util.List<InverseCornerButton> footerButtons = new ArrayList<>();
 
-    // Cards
     private final Map<EntrySelect, JPanel> cards = new EnumMap<>(EntrySelect.class);
     private HomeCard homeCard;
     private SotwCard sotwCard;
@@ -42,7 +41,6 @@ public class FluxPanel extends PluginPanel {
     private AdminHubCard adminHubCard;
     private HuntCard huntCard;
 
-    // State
     private InverseCornerButton activeFooterButton;
     private boolean isAdmiralOrHigher = false;
     private boolean adminHubInitialized = false;
@@ -149,7 +147,6 @@ public class FluxPanel extends PluginPanel {
         gbc.gridy = index / 2;
         gbc.gridwidth = 1;
 
-        // Last button in odd count spans both columns
         if (index == footerButtons.size() - 1 && footerButtons.size() % 2 != 0) {
             gbc.gridx = 0;
             gbc.gridwidth = 2;
@@ -277,7 +274,6 @@ public class FluxPanel extends PluginPanel {
         updateCardGlow(botmCard, " BOTM", card -> card.isEventActive());
         updateCardGlow(huntCard, " The Hunt", card -> card.isEventActive());
 
-        // Also update roll call
         if (homeCard != null) {
             homeCard.isRollCallActive();
         }
@@ -330,7 +326,6 @@ public class FluxPanel extends PluginPanel {
         return scroll;
     }
 
-    // Public API for card access
     public HomeCard getHomeCard() { return homeCard; }
     public BotmCard getBotmCard() { return botmCard; }
     public SotwCard getSotwCard() { return sotwCard; }
@@ -359,7 +354,6 @@ public class FluxPanel extends PluginPanel {
         }
     }
 
-    // Helper classes
     private static class EntryConfig {
         final String label;
         final String iconPath;

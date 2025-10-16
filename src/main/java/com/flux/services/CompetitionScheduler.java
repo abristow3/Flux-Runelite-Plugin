@@ -2,7 +2,7 @@ package com.flux.services;
 
 import com.flux.services.wom.*;
 import net.runelite.client.config.ConfigManager;
-
+import lombok.extern.slf4j.Slf4j;
 import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.*;
@@ -13,6 +13,7 @@ import static com.flux.services.wom.CompetitionModels.*;
  * Scheduler for checking and updating competition data from Wise Old Man API.
  * Delegates responsibilities to specialized classes for API calls, parsing, and config updates.
  */
+@Slf4j
 public class CompetitionScheduler {
     private static final int CHECK_INTERVAL_MINUTES = 7;
     private static final String DEFAULT_HUNT_COMPETITION_ID = "100262";
@@ -67,14 +68,13 @@ public class CompetitionScheduler {
      * Main method that checks all competitions and updates config.
      */
     private void checkAndUpdateCompetitions() {
-        System.out.println("\n[" + Instant.now() + "] Checking competitions...");
+        log.debug("Checking competitions...");
 
         try {
             checkSotwAndBotm();
             checkHunt();
         } catch (Exception e) {
-            System.err.println("Error during scheduled check: " + e.getMessage());
-            e.printStackTrace();
+            log.error("Error during scheduled check", e);
         }
     }
 
@@ -89,17 +89,12 @@ public class CompetitionScheduler {
             CompetitionData data = entry.getValue();
 
             if (data != null) {
-                System.out.println("Found active " + type.name() + " competition: " + data.title);
                 updateEvent(type, data, true);
             } else {
-                System.out.println("No active " + type.name() + " competition found. Searching for last completed...");
-
                 CompetitionData lastCompleted = finder.findLastCompletedCompetition(type);
                 if (lastCompleted != null) {
-                    System.out.println("Found last completed " + type.name() + " competition: " + lastCompleted.title);
                     updateEvent(type, lastCompleted, false);
                 } else {
-                    System.out.println("No past " + type.name() + " competition found.");
                     configUpdater.setEventInactive(type);
                 }
             }
@@ -112,11 +107,9 @@ public class CompetitionScheduler {
     private void checkHunt() {
         try {
             int huntCompId = getHuntCompetitionId();
-            System.out.println("Checking Hunt competition ID: " + huntCompId);
-
             CompetitionData huntData = finder.findHuntCompetition(huntCompId);
             if (huntData == null) {
-                System.err.println("Failed to fetch Hunt competition details");
+                log.error("Failed to fetch Hunt competition details");
                 return;
             }
 
@@ -125,15 +118,8 @@ public class CompetitionScheduler {
 
             // Always update config with Hunt data, even if not active
             updateEvent(EventType.HUNT, huntData, isActive);
-
-            System.out.println("Hunt competition updated: " + huntData.title + " (Active: " + isActive + ")");
-            if (huntData.huntTeamData != null) {
-                System.out.println("  Team 1 leaderboard size: " + huntData.huntTeamData.team1Leaderboard.size());
-                System.out.println("  Team 2 leaderboard size: " + huntData.huntTeamData.team2Leaderboard.size());
-            }
-
         } catch (Exception e) {
-            System.err.println("Error checking Hunt competition: " + e.getMessage());
+            log.error("Error checking Hunt competition", e);
             e.printStackTrace();
         }
     }
