@@ -3,7 +3,7 @@ package com.flux.services.wom;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 
-// Data models for WISE OLD MAN competition-related objects.
+// Data models for wom comp objects.
 public class CompetitionModels {
 
     public static class CompetitionData {
