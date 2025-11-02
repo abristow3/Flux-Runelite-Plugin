@@ -11,9 +11,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
-/**
- * Monitors the player's clan rank and notifies when it changes.
- */
+// periodically check users clan rank for Flux to authorize the admin card rednering
 @Slf4j
 public class ClanRankMonitor {
     private static final String TARGET_CLAN_NAME = "Flux";
@@ -25,7 +23,7 @@ public class ClanRankMonitor {
     private final Consumer<Boolean> rankChangeCallback;
 
     private ScheduledFuture<?> updateTask;
-    private boolean isAdmiralOrHigher = false;
+    private boolean isAdminOrHigher = false;
 
     public ClanRankMonitor(Client client, Consumer<Boolean> rankChangeCallback) {
         this.client = client;
@@ -33,9 +31,6 @@ public class ClanRankMonitor {
         this.scheduler = Executors.newSingleThreadScheduledExecutor();
     }
 
-    /**
-     * Starts monitoring clan rank.
-     */
     public void startMonitoring() {
         if (updateTask != null && !updateTask.isCancelled()) {
             updateTask.cancel(false);
@@ -49,9 +44,6 @@ public class ClanRankMonitor {
         );
     }
 
-    /**
-     * Stops monitoring clan rank.
-     */
     public void stopMonitoring() {
         if (updateTask != null) {
             updateTask.cancel(false);
@@ -59,9 +51,6 @@ public class ClanRankMonitor {
         }
     }
 
-    /**
-     * Shuts down the monitor completely.
-     */
     public void shutdown() {
         stopMonitoring();
         scheduler.shutdown();
@@ -76,8 +65,8 @@ public class ClanRankMonitor {
     }
 
     private void checkAndUpdateRank() {
-        boolean wasAdmiralOrHigher = isAdmiralOrHigher;
-        isAdmiralOrHigher = false;
+        boolean wasAdminOrHigher = isAdminOrHigher;
+        isAdminOrHigher = false;
 
         ClanChannel clanChannel = client.getClanChannel();
         if (clanChannel == null || clanChannel.getName() == null) {
@@ -96,15 +85,15 @@ public class ClanRankMonitor {
 
         int myRankValue = rank.getRank();
         int adminThreshold = ClanRank.ADMINISTRATOR.getRank();
-        isAdmiralOrHigher = myRankValue >= adminThreshold;
+        isAdminOrHigher = myRankValue >= adminThreshold;
 
         // Notify if rank changed
-        if (wasAdmiralOrHigher != isAdmiralOrHigher) {
-            rankChangeCallback.accept(isAdmiralOrHigher);
+        if (wasAdminOrHigher != isAdminOrHigher) {
+            rankChangeCallback.accept(isAdminOrHigher);
         }
 
         // Stop monitoring if admin or higher (no need to keep checking)
-        if (isAdmiralOrHigher) {
+        if (isAdminOrHigher) {
             stopMonitoring();
         }
     }
@@ -132,7 +121,7 @@ public class ClanRankMonitor {
         return null;
     }
 
-    public boolean isAdmiralOrHigher() {
-        return isAdmiralOrHigher;
+    public boolean isAdminOrHigher() {
+        return isAdminOrHigher;
     }
 }

@@ -76,3 +76,20 @@ tasks.register('shadowJar', Jar) {
     archiveClassifier.set('shadow')
     archiveFileName.set("${rootProject.name}-${project.version}-all.jar")
 }
+
+// REMOVE BELOW AFTER TESTING
+// sourceSets {
+//     runTest {
+//         java {
+//             srcDir 'src/test/java'
+//         }
+//         compileClasspath += sourceSets.main.output + configurations.testCompileClasspath
+//         runtimeClasspath += output + compileClasspath + configurations.testRuntimeClasspath
+//     }
+// }
+
+// task runTest(type: JavaExec) {
+//     classpath = sourceSets.runTest.runtimeClasspath
+//     main = 'com.flux.FluxPluginTest'
+//     jvmArgs = ['-ea']
+// }

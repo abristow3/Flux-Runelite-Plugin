@@ -42,7 +42,7 @@ public class FluxPanel extends PluginPanel {
     private HuntCard huntCard;
 
     private InverseCornerButton activeFooterButton;
-    private boolean isAdmiralOrHigher = false;
+    private boolean isAdminOrHigher = false;
     private boolean adminHubInitialized = false;
 
     private final Timer glowTimer = new Timer(GLOW_CHECK_INTERVAL, e -> updateEventGlows());
@@ -211,14 +211,14 @@ public class FluxPanel extends PluginPanel {
         return button;
     }
 
-    public void updateClanRankStatus(boolean isAdmiralOrHigher) {
-        if (this.isAdmiralOrHigher == isAdmiralOrHigher && adminHubInitialized) {
+    public void updateClanRankStatus(boolean isAdminOrHigher) {
+        if (this.isAdminOrHigher == isAdminOrHigher && adminHubInitialized) {
             return;
         }
 
-        this.isAdmiralOrHigher = isAdmiralOrHigher;
+        this.isAdminOrHigher = isAdminOrHigher;
 
-        if (isAdmiralOrHigher && !adminHubInitialized) {
+        if (isAdminOrHigher && !adminHubInitialized) {
             addEntry(config.entry_2());
             setupFooter();
             dropdown.repaint();

@@ -3,14 +3,18 @@ package com.flux.services.wom;
 import net.runelite.client.config.ConfigManager;
 import org.json.JSONArray;
 import org.json.JSONObject;
+
+import com.flux.services.wom.CompetitionModels.CompetitionData;
+import com.flux.services.wom.CompetitionModels.EventType;
+import com.flux.services.wom.CompetitionModels.HuntTeamData;
+
 import lombok.extern.slf4j.Slf4j;
 import java.util.LinkedHashMap;
 
 import static com.flux.services.wom.CompetitionModels.*;
 
-/**
- * Updates RuneLite config with competition data.
- */
+
+// Updates RuneLite config with competition data.
 @Slf4j
 public class CompetitionConfigUpdater {
     private final ConfigManager configManager;
@@ -19,9 +23,6 @@ public class CompetitionConfigUpdater {
         this.configManager = configManager;
     }
 
-    /**
-     * Updates config for a specific event type.
-     */
     public void updateEventConfig(EventType type, CompetitionData data, boolean isActive, String womUrl) {
         String prefix = type.getConfigPrefix();
 
@@ -37,7 +38,6 @@ public class CompetitionConfigUpdater {
 
         setConfigIfChanged(prefix + "_wom_link", womUrl);
 
-        // Type-specific updates
         switch (type) {
             case BOTM:
                 setConfigIfChanged("botmWomUrl", womUrl);
@@ -62,17 +62,11 @@ public class CompetitionConfigUpdater {
         }
     }
 
-    /**
-     * Sets an event as inactive.
-     */
     public void setEventInactive(EventType type) {
         String prefix = type.getConfigPrefix();
         setConfigIfChanged(prefix + "Active", "false");
     }
 
-    /**
-     * Gets a config value with a default fallback.
-     */
     public String getConfig(String key, String defaultValue) {
         String value = configManager.getConfiguration("flux", key);
         return (value != null && !value.isEmpty()) ? value : defaultValue;
@@ -90,11 +84,9 @@ public class CompetitionConfigUpdater {
     }
 
     private void saveHuntTeamData(HuntTeamData huntData) {
-        // Save team names and colors
+        // Save team names
         setConfigIfChanged("hunt_team_1_name", huntData.team1Name);
         setConfigIfChanged("hunt_team_2_name", huntData.team2Name);
-        setConfigIfChanged("hunt_team_1_color", huntData.team1Color);
-        setConfigIfChanged("hunt_team_2_color", huntData.team2Color);
 
         // Save Team 1 leaderboard
         JSONArray team1Json = new JSONArray();
@@ -120,6 +112,7 @@ public class CompetitionConfigUpdater {
         setConfigIfChanged("hunt_team_1_score", String.valueOf(huntData.team1TotalScore));
         setConfigIfChanged("hunt_team_2_score", String.valueOf(huntData.team2TotalScore));
     }
+
 
     private void setConfigIfChanged(String key, String value) {
         String currentValue = configManager.getConfiguration("flux", key);

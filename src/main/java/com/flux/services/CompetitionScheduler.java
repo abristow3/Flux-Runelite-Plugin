@@ -9,13 +9,12 @@ import java.util.concurrent.*;
 
 import static com.flux.services.wom.CompetitionModels.*;
 
-/**
- * Scheduler for checking and updating competition data from Wise Old Man API.
- * Delegates responsibilities to specialized classes for API calls, parsing, and config updates.
- */
+
+//Scheduler made for checking and updating comp data from wom API.
 @Slf4j
 public class CompetitionScheduler {
     private static final int CHECK_INTERVAL_MINUTES = 7;
+    // TODO in future release make configurable, next hunt is 8 months away
     private static final String DEFAULT_HUNT_COMPETITION_ID = "100262";
 
     private final ConfigManager configManager;
@@ -30,16 +29,15 @@ public class CompetitionScheduler {
         this.configManager = configManager;
         this.schedulerService = Executors.newSingleThreadScheduledExecutor();
 
-        // Initialize service components
+        // service components
         this.apiClient = new WiseOldManApiClient();
         this.dataParser = new CompetitionDataParser();
         this.finder = new CompetitionFinder(apiClient, dataParser);
         this.configUpdater = new CompetitionConfigUpdater(configManager);
     }
 
-    /**
-     * Starts the periodic competition check scheduler.
-     */
+
+    // Starts the periodic wom comp check scheduler.
     public void startScheduler() {
         schedulerService.scheduleAtFixedRate(
                 this::checkAndUpdateCompetitions,
@@ -49,9 +47,6 @@ public class CompetitionScheduler {
         );
     }
 
-    /**
-     * Stops the scheduler gracefully.
-     */
     public void stopScheduler() {
         schedulerService.shutdown();
         try {
@@ -64,9 +59,6 @@ public class CompetitionScheduler {
         }
     }
 
-    /**
-     * Main method that checks all competitions and updates config.
-     */
     private void checkAndUpdateCompetitions() {
         log.debug("Checking competitions...");
 
@@ -78,9 +70,6 @@ public class CompetitionScheduler {
         }
     }
 
-    /**
-     * Checks SOTW and BOTM competitions from the group.
-     */
     private void checkSotwAndBotm() {
         Map<EventType, CompetitionData> activeCompetitions = finder.findActiveCompetitions();
 
@@ -101,9 +90,6 @@ public class CompetitionScheduler {
         }
     }
 
-    /**
-     * Checks Hunt competition (fetched by specific competition ID).
-     */
     private void checkHunt() {
         try {
             int huntCompId = getHuntCompetitionId();
@@ -124,17 +110,11 @@ public class CompetitionScheduler {
         }
     }
 
-    /**
-     * Updates config for a specific event.
-     */
     private void updateEvent(EventType type, CompetitionData data, boolean isActive) {
         String womUrl = apiClient.getCompetitionUrl(data.competitionId);
         configUpdater.updateEventConfig(type, data, isActive, womUrl);
     }
 
-    /**
-     * Gets the Hunt competition ID from config, or uses default.
-     */
     private int getHuntCompetitionId() {
         String huntCompIdStr = configUpdater.getConfig("hunt_competition_id", DEFAULT_HUNT_COMPETITION_ID);
 

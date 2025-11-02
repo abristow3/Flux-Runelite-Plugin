@@ -385,9 +385,6 @@ public class HuntCard extends FluxCard {
         }
     }
 
-    /**
-     * Custom renderer that extends LeaderboardCellRenderer to add team color support.
-     */
     private class TeamColoredLeaderboardRenderer extends LeaderboardCellRenderer {
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value,

@@ -5,9 +5,7 @@ import net.runelite.client.chat.ChatMessageManager;
 import net.runelite.client.chat.QueuedMessage;
 import net.runelite.client.config.ConfigManager;
 import lombok.extern.slf4j.Slf4j;
-/**
- * Handles sending the clan login message once per session.
- */
+
 @Slf4j
 public class LoginMessageSender {
     private static final String CONFIG_GROUP = "flux";
@@ -23,9 +21,6 @@ public class LoginMessageSender {
         this.configManager = configManager;
     }
 
-    /**
-     * Sends the login message if it hasn't been sent yet this session.
-     */
     public void sendLoginMessage() {
         if (hasSentMessage) {
             return;
@@ -33,7 +28,7 @@ public class LoginMessageSender {
 
         String loginMessage = configManager.getConfiguration(CONFIG_GROUP, CONFIG_KEY);
         if (loginMessage == null || loginMessage.isEmpty()) {
-            hasSentMessage = true; // Mark as sent even if empty to avoid checking again
+            hasSentMessage = true;
             return;
         }
 
@@ -47,9 +42,6 @@ public class LoginMessageSender {
         hasSentMessage = true;
     }
 
-    /**
-     * Resets the message sent flag (call on logout).
-     */
     public void reset() {
         hasSentMessage = false;
     }

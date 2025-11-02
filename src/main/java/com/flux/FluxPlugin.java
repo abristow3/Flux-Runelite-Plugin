@@ -144,6 +144,8 @@ public class FluxPlugin extends Plugin {
         updateLoginMessage(configValues);
         updateAnnouncementMessage(configValues);
         updateRollCallStatus(configValues);
+        updateHuntTeamColors(configValues);
+        updateBotmPass(configValues);
     }
 
     private void updateLoginMessage(java.util.Map<String, String> configValues) {
@@ -200,6 +202,47 @@ public class FluxPlugin extends Plugin {
             }
         }
     }
+
+    private void updateHuntTeamColors(java.util.Map<String, String> configValues) {
+        // TEAM 1 COLOR
+        String team1Color = configValues.get("TEAM_1_COLOR");
+        if (team1Color != null && !team1Color.isEmpty()) {
+            String currentTeam1Color = configManager.getConfiguration(CONFIG_GROUP, "hunt_team_1_color");
+            if (!team1Color.equals(currentTeam1Color)) {
+                configManager.setConfiguration(CONFIG_GROUP, "hunt_team_1_color", team1Color);
+                log.info("Updated TEAM_1_COLOR: {}", team1Color);
+            }
+        }
+
+        // TEAM 2 COLOR
+        String team2Color = configValues.get("TEAM_2_COLOR");
+        if (team2Color != null && !team2Color.isEmpty()) {
+            String currentTeam2Color = configManager.getConfiguration(CONFIG_GROUP, "hunt_team_2_color");
+            if (!team2Color.equals(currentTeam2Color)) {
+                configManager.setConfiguration(CONFIG_GROUP, "hunt_team_2_color", team2Color);
+                log.info("Updated TEAM_2_COLOR: {}", team2Color);
+            }
+        }
+
+        // refresh the Hunt card UI if it existsto apply color change
+        if (panel != null && panel.getHuntCard() != null) {
+            javax.swing.SwingUtilities.invokeLater(() -> panel.getHuntCard().updateTeamLabels());
+        }
+    }
+
+    private void updateBotmPass(java.util.Map<String, String> configValues) {
+        String botmPass = configValues.get("BOTM_PASS");
+        if (botmPass != null && !botmPass.isEmpty()) {
+            String currentValue = configManager.getConfiguration(CONFIG_GROUP, "botm_password");
+            if (!botmPass.equals(currentValue)) {
+                configManager.setConfiguration(CONFIG_GROUP, "botm_password", botmPass);
+                log.info("Updated BOTM_PASS: {}", botmPass);
+            }
+        } else {
+            log.warn("BOTM_PASS is missing or empty in the Google Sheet values.");
+        }
+    }
+
 
     @Subscribe
     public void onGameStateChanged(GameStateChanged event) {

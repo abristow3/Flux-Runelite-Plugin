@@ -3,14 +3,9 @@ package com.flux.services.wom;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 
-/**
- * Data models for competition-related objects.
- */
+// Data models for WISE OLD MAN competition-related objects.
 public class CompetitionModels {
 
-    /**
-     * Complete competition data.
-     */
     public static class CompetitionData {
         public final int competitionId;
         public final String title;
@@ -38,28 +33,20 @@ public class CompetitionModels {
         }
     }
 
-    /**
-     * Hunt team data including leaderboards and scores.
-     */
     public static class HuntTeamData {
         public final String team1Name;
         public final String team2Name;
-        public final String team1Color;
-        public final String team2Color;
         public final LinkedHashMap<String, Double> team1Leaderboard;
         public final LinkedHashMap<String, Double> team2Leaderboard;
         public final int team1TotalScore;
         public final int team2TotalScore;
 
         public HuntTeamData(String team1Name, String team2Name,
-                            String team1Color, String team2Color,
                             LinkedHashMap<String, Double> team1Leaderboard,
                             LinkedHashMap<String, Double> team2Leaderboard,
                             int team1TotalScore, int team2TotalScore) {
             this.team1Name = team1Name;
             this.team2Name = team2Name;
-            this.team1Color = team1Color;
-            this.team2Color = team2Color;
             this.team1Leaderboard = team1Leaderboard;
             this.team2Leaderboard = team2Leaderboard;
             this.team1TotalScore = team1TotalScore;
@@ -67,9 +54,6 @@ public class CompetitionModels {
         }
     }
 
-    /**
-     * Hunt participant entry.
-     */
     public static class HuntParticipant {
         public final String username;
         public final double ehb;
@@ -80,9 +64,6 @@ public class CompetitionModels {
         }
     }
 
-    /**
-     * Event type enumeration.
-     */
     public enum EventType {
         SOTW("sotw", "sotw"),
         BOTM("botm", "botm"),
@@ -100,9 +81,7 @@ public class CompetitionModels {
             return configPrefix;
         }
 
-        /**
-         * Checks if a competition title matches this event type.
-         */
+        // Checks if a competition title matches this event type.
         public boolean matchesTitle(String title) {
             String lowerTitle = title.toLowerCase();
 
@@ -112,7 +91,8 @@ public class CompetitionModels {
                 case BOTM:
                     return lowerTitle.matches(".*\\bbotm\\b.*");
                 case HUNT:
-                    return false; // Hunt is fetched by ID, not title
+                    // Hunt is fetched by ID, not title
+                    return false; 
                 default:
                     return lowerTitle.contains(keyword);
             }

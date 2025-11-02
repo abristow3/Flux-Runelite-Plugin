@@ -33,21 +33,21 @@ public class GoogleSheetParser {
         CONFIG
     }
 
-    // Constructor for BOTM leaderboard
+    // BOTM leaderboard
     public GoogleSheetParser(ConfigManager configManager, Consumer<JSONArray> leaderboardCallback) {
         this.configManager = configManager;
         this.leaderboardCallback = leaderboardCallback;
         this.sheetType = SheetType.BOTM;
     }
 
-    // Constructor for Hunt scores
+    // Hunt scores
     public GoogleSheetParser(ConfigManager configManager, SheetType type, Consumer<Map<String, Integer>> huntScoreCallback) {
         this.configManager = configManager;
         this.huntScoreCallback = huntScoreCallback;
         this.sheetType = type;
     }
 
-    // Constructor for Config values
+    // Config values
     public GoogleSheetParser(ConfigManager configManager, SheetType type, Consumer<Map<String, String>> configCallback, boolean isConfigSheet) {
         this.configManager = configManager;
         this.configCallback = configCallback;
@@ -182,7 +182,10 @@ public class GoogleSheetParser {
                         // Look for specific config keys
                         if (key.equalsIgnoreCase("LOGIN_MESSAGE") ||
                                 key.equalsIgnoreCase("ANNOUNCEMENT_MESSAGE") ||
-                                key.equalsIgnoreCase("ROLL_CALL_ACTIVE")) {
+                                key.equalsIgnoreCase("ROLL_CALL_ACTIVE") ||
+                                key.equalsIgnoreCase("TEAM_1_COLOR") ||
+                                key.equalsIgnoreCase("TEAM_2_COLOR") ||
+                                key.equalsIgnoreCase("BOTM_PASS")) {
 
                             configValues.put(key.toUpperCase(), value);
                         }
@@ -272,8 +275,8 @@ public class GoogleSheetParser {
                 if (leaderboardCallback != null) {
                     leaderboardCallback.accept(leaderboard);
                 }
-
-                Thread.sleep(420000); // 7 minutes
+                // 7 minutes
+                Thread.sleep(420000);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
@@ -287,8 +290,8 @@ public class GoogleSheetParser {
                 if (huntScoreCallback != null && !scores.isEmpty()) {
                     huntScoreCallback.accept(scores);
                 }
-
-                Thread.sleep(420000); // 7 minutes
+                // 7 minutes
+                Thread.sleep(420000);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
@@ -302,8 +305,8 @@ public class GoogleSheetParser {
                 if (configCallback != null && !configValues.isEmpty()) {
                     configCallback.accept(configValues);
                 }
-
-                Thread.sleep(420000); // 7 minutes
+                // 7 minutes
+                Thread.sleep(420000);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }

@@ -9,9 +9,6 @@ import java.util.Map;
 
 import static com.flux.services.wom.CompetitionModels.*;
 
-/**
- * Finds active and completed competitions from WOM API.
- */
 @Slf4j
 public class CompetitionFinder {
     private final WiseOldManApiClient apiClient;
@@ -22,10 +19,6 @@ public class CompetitionFinder {
         this.dataParser = dataParser;
     }
 
-    /**
-     * Finds active SOTW and BOTM competitions from the group.
-     * Returns null for inactive events.
-     */
     public Map<EventType, CompetitionData> findActiveCompetitions() {
         Map<EventType, CompetitionData> results = new EnumMap<>(EventType.class);
         results.put(EventType.SOTW, null);
@@ -66,12 +59,10 @@ public class CompetitionFinder {
         return results;
     }
 
-    /**
-     * Finds the most recently completed competition for the given event type.
-     */
     public CompetitionData findLastCompletedCompetition(EventType type) {
+        // Hunt is handled differently
         if (type == EventType.HUNT) {
-            return null; // Hunt is handled separately
+            return null; 
         }
 
         try {
@@ -96,7 +87,7 @@ public class CompetitionFinder {
                     continue;
                 }
 
-                // Check if this is more recent
+                // Check if more recent
                 if (mostRecentEndTime == null || endsAt.isAfter(mostRecentEndTime)) {
                     mostRecentCompleted = comp;
                     mostRecentEndTime = endsAt;
@@ -117,9 +108,7 @@ public class CompetitionFinder {
         return null;
     }
 
-    /**
-     * Fetches Hunt competition data by ID.
-     */
+    // Get Hunt competition data by ID
     public CompetitionData findHuntCompetition(int competitionId) {
         try {
             JSONObject details = apiClient.fetchCompetitionDetails(competitionId);
