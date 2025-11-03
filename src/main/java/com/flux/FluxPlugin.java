@@ -139,7 +139,7 @@ public class FluxPlugin extends Plugin {
     }
 
     private void handleConfigUpdate(java.util.Map<String, String> configValues) {
-        log.info("Received config updates from Google Sheets");
+        log.debug("Received config updates from Google Sheets");
 
         updateLoginMessage(configValues);
         updateAnnouncementMessage(configValues);
@@ -154,7 +154,7 @@ public class FluxPlugin extends Plugin {
             String currentValue = configManager.getConfiguration(CONFIG_GROUP, "clan_login_message");
             if (!loginMsg.equals(currentValue)) {
                 configManager.setConfiguration(CONFIG_GROUP, "clan_login_message", loginMsg);
-                log.info("Updated LOGIN_MESSAGE: {}", loginMsg);
+                log.debug("Updated LOGIN_MESSAGE: {}", loginMsg);
             }
         }
     }
@@ -165,7 +165,7 @@ public class FluxPlugin extends Plugin {
             String currentAnnouncement = configManager.getConfiguration(CONFIG_GROUP, "plugin_announcement_message");
 
             if (!announcement.equals(currentAnnouncement)) {
-                log.info("Updating ANNOUNCEMENT_MESSAGE: {}", announcement);
+                log.debug("Updating ANNOUNCEMENT_MESSAGE: {}", announcement);
                 configManager.setConfiguration(CONFIG_GROUP, "plugin_announcement_message", announcement);
 
                 if (panel != null && panel.getHomeCard() != null) {
@@ -186,7 +186,7 @@ public class FluxPlugin extends Plugin {
             boolean currentActive = currentStatus != null && Boolean.parseBoolean(currentStatus);
 
             if (isActive != currentActive) {
-                log.info("Updating ROLL_CALL_ACTIVE: {}", isActive);
+                log.debug("Updating ROLL_CALL_ACTIVE: {}", isActive);
                 configManager.setConfiguration(CONFIG_GROUP, "rollCallActive", String.valueOf(isActive));
 
                 if (panel != null) {
@@ -210,7 +210,7 @@ public class FluxPlugin extends Plugin {
             String currentTeam1Color = configManager.getConfiguration(CONFIG_GROUP, "hunt_team_1_color");
             if (!team1Color.equals(currentTeam1Color)) {
                 configManager.setConfiguration(CONFIG_GROUP, "hunt_team_1_color", team1Color);
-                log.info("Updated TEAM_1_COLOR: {}", team1Color);
+                log.debug("Updated TEAM_1_COLOR: {}", team1Color);
             }
         }
 
@@ -220,7 +220,7 @@ public class FluxPlugin extends Plugin {
             String currentTeam2Color = configManager.getConfiguration(CONFIG_GROUP, "hunt_team_2_color");
             if (!team2Color.equals(currentTeam2Color)) {
                 configManager.setConfiguration(CONFIG_GROUP, "hunt_team_2_color", team2Color);
-                log.info("Updated TEAM_2_COLOR: {}", team2Color);
+                log.debug("Updated TEAM_2_COLOR: {}", team2Color);
             }
         }
 
@@ -236,7 +236,7 @@ public class FluxPlugin extends Plugin {
             String currentValue = configManager.getConfiguration(CONFIG_GROUP, "botm_password");
             if (!botmPass.equals(currentValue)) {
                 configManager.setConfiguration(CONFIG_GROUP, "botm_password", botmPass);
-                log.info("Updated BOTM_PASS: {}", botmPass);
+                log.debug("Updated BOTM_PASS: {}", botmPass);
             }
         } else {
             log.warn("BOTM_PASS is missing or empty in the Google Sheet values.");
