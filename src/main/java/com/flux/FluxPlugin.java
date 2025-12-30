@@ -5,12 +5,10 @@ import com.flux.services.CompetitionScheduler;
 import com.flux.services.GoogleSheetParser;
 import com.flux.services.LoginMessageSender;
 import com.google.inject.Provides;
-
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import javax.inject.Inject;
-
-import org.json.JSONArray;
-import org.json.JSONObject;
-
 import lombok.extern.slf4j.Slf4j;
 
 import net.runelite.api.Client;
@@ -367,12 +365,12 @@ public class FluxPlugin extends Plugin {
 
         if (leaderboardJson != null && !leaderboardJson.isEmpty()) {
             try {
-                JSONArray leaderboardArray = new JSONArray(leaderboardJson);
+                JsonArray leaderboardArray = JsonParser.parseString(leaderboardJson).getAsJsonArray();
                 log.debug("Current SOTW Leaderboard:");
-                for (int i = 0; i < leaderboardArray.length(); i++) {
-                    JSONObject entry = leaderboardArray.getJSONObject(i);
-                    String username = entry.getString("username");
-                    int xp = entry.getInt("xp");
+                for (int i = 0; i < leaderboardArray.size(); i++) {
+                    JsonObject entry = leaderboardArray.get(i).getAsJsonObject();
+                    String username = entry.get("username").getAsString();
+                    int xp = entry.get("xp").getAsInt();
                     log.debug(" - {} {} XP", username, xp);
                 }
             } catch (Exception e) {

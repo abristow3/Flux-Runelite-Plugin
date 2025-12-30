@@ -1,7 +1,8 @@
 package com.flux.services.wom;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import lombok.extern.slf4j.Slf4j;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -13,16 +14,16 @@ public class WiseOldManApiClient {
     private static final String BASE_API_URL = "https://api.wiseoldman.net/v2";
     private static final String GROUP_ID = "141";
 
-    public JSONArray fetchGroupCompetitions() throws Exception {
+    public JsonArray fetchGroupCompetitions() throws Exception {
         String urlString = BASE_API_URL + "/groups/" + GROUP_ID + "/competitions";
         String response = makeHttpRequest(urlString);
-        return new JSONArray(response);
+        return JsonParser.parseString(response).getAsJsonArray();
     }
 
-    public JSONObject fetchCompetitionDetails(int competitionId) throws Exception {
+    public JsonObject fetchCompetitionDetails(int competitionId) throws Exception {
         String urlString = BASE_API_URL + "/competitions/" + competitionId;
         String response = makeHttpRequest(urlString);
-        return new JSONObject(response);
+        return JsonParser.parseString(response).getAsJsonObject();
     }
 
     public String getCompetitionUrl(int competitionId) {

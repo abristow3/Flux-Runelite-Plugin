@@ -1,20 +1,14 @@
 package com.flux.services.wom;
 
 import net.runelite.client.config.ConfigManager;
-import org.json.JSONArray;
-import org.json.JSONObject;
-
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import com.flux.services.wom.CompetitionModels.CompetitionData;
 import com.flux.services.wom.CompetitionModels.EventType;
 import com.flux.services.wom.CompetitionModels.HuntTeamData;
-
 import lombok.extern.slf4j.Slf4j;
 import java.util.LinkedHashMap;
 
-import static com.flux.services.wom.CompetitionModels.*;
-
-
-// Updates RuneLite config with competition data.
 @Slf4j
 public class CompetitionConfigUpdater {
     private final ConfigManager configManager;
@@ -73,46 +67,41 @@ public class CompetitionConfigUpdater {
     }
 
     private void saveSotwLeaderboard(LinkedHashMap<String, Integer> leaderboard) {
-        JSONArray json = new JSONArray();
+        JsonArray json = new JsonArray();
         leaderboard.forEach((username, xp) -> {
-            JSONObject obj = new JSONObject();
-            obj.put("username", username);
-            obj.put("xp", xp);
-            json.put(obj);
+            JsonObject obj = new JsonObject();
+            obj.addProperty("username", username);
+            obj.addProperty("xp", xp);
+            json.add(obj);
         });
         setConfigIfChanged("sotwLeaderboard", json.toString());
     }
 
     private void saveHuntTeamData(HuntTeamData huntData) {
-        // Save team names
         setConfigIfChanged("hunt_team_1_name", huntData.team1Name);
         setConfigIfChanged("hunt_team_2_name", huntData.team2Name);
 
-        // Save Team 1 leaderboard
-        JSONArray team1Json = new JSONArray();
+        JsonArray team1Json = new JsonArray();
         huntData.team1Leaderboard.forEach((username, ehb) -> {
-            JSONObject obj = new JSONObject();
-            obj.put("username", username);
-            obj.put("ehb", ehb);
-            team1Json.put(obj);
+            JsonObject obj = new JsonObject();
+            obj.addProperty("username", username);
+            obj.addProperty("ehb", ehb);
+            team1Json.add(obj);
         });
         setConfigIfChanged("hunt_team_1_leaderboard", team1Json.toString());
 
-        // Save Team 2 leaderboard
-        JSONArray team2Json = new JSONArray();
+        JsonArray team2Json = new JsonArray();
         huntData.team2Leaderboard.forEach((username, ehb) -> {
-            JSONObject obj = new JSONObject();
-            obj.put("username", username);
-            obj.put("ehb", ehb);
-            team2Json.put(obj);
+            JsonObject obj = new JsonObject();
+            obj.addProperty("username", username);
+            obj.addProperty("ehb", ehb);
+            team2Json.add(obj);
         });
         setConfigIfChanged("hunt_team_2_leaderboard", team2Json.toString());
 
-        // Save team scores
         setConfigIfChanged("hunt_team_1_score", String.valueOf(huntData.team1TotalScore));
         setConfigIfChanged("hunt_team_2_score", String.valueOf(huntData.team2TotalScore));
     }
-
 
     private void setConfigIfChanged(String key, String value) {
         String currentValue = configManager.getConfiguration("flux", key);

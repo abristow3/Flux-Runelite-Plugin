@@ -5,8 +5,8 @@ import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.sheets.v4.Sheets;
 import com.google.api.services.sheets.v4.model.ValueRange;
-import org.json.JSONArray;
-import org.json.JSONObject;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import net.runelite.client.config.ConfigManager;
 import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
@@ -21,7 +21,7 @@ public class GoogleSheetParser {
     private static final String SPREADSHEET_ID = "1qqkjx4YjuQ9FIBDgAGzSpmoKcDow3yEa9lYFmc-JeDA";
 
     private final ConfigManager configManager;
-    private Consumer<JSONArray> leaderboardCallback;
+    private Consumer<JsonArray> leaderboardCallback;
     private Consumer<Map<String, Integer>> huntScoreCallback;
     private Consumer<Map<String, String>> configCallback;
     private final AtomicBoolean isRunning = new AtomicBoolean(false);
@@ -33,21 +33,18 @@ public class GoogleSheetParser {
         CONFIG
     }
 
-    // BOTM leaderboard
-    public GoogleSheetParser(ConfigManager configManager, Consumer<JSONArray> leaderboardCallback) {
+    public GoogleSheetParser(ConfigManager configManager, Consumer<JsonArray> leaderboardCallback) {
         this.configManager = configManager;
         this.leaderboardCallback = leaderboardCallback;
         this.sheetType = SheetType.BOTM;
     }
 
-    // Hunt scores
     public GoogleSheetParser(ConfigManager configManager, SheetType type, Consumer<Map<String, Integer>> huntScoreCallback) {
         this.configManager = configManager;
         this.huntScoreCallback = huntScoreCallback;
         this.sheetType = type;
     }
 
-    // Config values
     public GoogleSheetParser(ConfigManager configManager, SheetType type, Consumer<Map<String, String>> configCallback, boolean isConfigSheet) {
         this.configManager = configManager;
         this.configCallback = configCallback;
@@ -72,8 +69,8 @@ public class GoogleSheetParser {
                 .execute();
     }
 
-    public static JSONArray parseTop10Leaderboard() {
-        JSONArray leaderboard = new JSONArray();
+    public static JsonArray parseTop10Leaderboard() {
+        JsonArray leaderboard = new JsonArray();
 
         try {
             ValueRange response = getValues("BOTM");
@@ -88,17 +85,17 @@ public class GoogleSheetParser {
                     for (int i = startRow; i < values.size(); i++) {
                         List<Object> row = values.get(i);
                         if (row.size() >= headerIndexMap.size()) {
-                            JSONObject playerData = new JSONObject();
+                            JsonObject playerData = new JsonObject();
                             if (headerIndexMap.containsKey("Rank") && row.size() > headerIndexMap.get("Rank"))
-                                playerData.put("rank", String.valueOf(row.get(headerIndexMap.get("Rank"))));
+                                playerData.addProperty("rank", String.valueOf(row.get(headerIndexMap.get("Rank"))));
                             if (headerIndexMap.containsKey("Players") && row.size() > headerIndexMap.get("Players"))
-                                playerData.put("username", String.valueOf(row.get(headerIndexMap.get("Players"))));
+                                playerData.addProperty("username", String.valueOf(row.get(headerIndexMap.get("Players"))));
                             if (headerIndexMap.containsKey("Points") && row.size() > headerIndexMap.get("Points"))
-                                playerData.put("score", Integer.parseInt(String.valueOf(row.get(headerIndexMap.get("Points")))));
+                                playerData.addProperty("score", Integer.parseInt(String.valueOf(row.get(headerIndexMap.get("Points")))));
                             if (headerIndexMap.containsKey("KC") && row.size() > headerIndexMap.get("KC"))
-                                playerData.put("kc", Integer.parseInt(String.valueOf(row.get(headerIndexMap.get("KC")))));
+                                playerData.addProperty("kc", Integer.parseInt(String.valueOf(row.get(headerIndexMap.get("KC")))));
 
-                            leaderboard.put(playerData);
+                            leaderboard.add(playerData);
                         }
                     }
                 }
@@ -107,8 +104,12 @@ public class GoogleSheetParser {
             log.error("Error fetching Google Sheets data", e);
         }
 
-        if (leaderboard.length() > 10) {
-            leaderboard = new JSONArray(leaderboard.toList().subList(0, 10));
+        if (leaderboard.size() > 10) {
+            JsonArray top10 = new JsonArray();
+            for (int i = 0; i < 10; i++) {
+                top10.add(leaderboard.get(i));
+            }
+            leaderboard = top10;
         }
 
         return leaderboard;
@@ -165,8 +166,6 @@ public class GoogleSheetParser {
             List<List<Object>> values = response.getValues();
 
             if (values != null && !values.isEmpty()) {
-                // Parse key-value pairs from Config sheet
-                // Expected format: Key in column A, Value in column B
                 for (int i = 0; i < values.size(); i++) {
                     List<Object> row = values.get(i);
 
@@ -174,12 +173,10 @@ public class GoogleSheetParser {
                         String key = String.valueOf(row.get(0)).trim();
                         String value = String.valueOf(row.get(1)).trim();
 
-                        // Skip empty rows or header rows
                         if (key.isEmpty() || key.equalsIgnoreCase("key") || key.equalsIgnoreCase("config")) {
                             continue;
                         }
 
-                        // Look for specific config keys
                         if (key.equalsIgnoreCase("LOGIN_MESSAGE") ||
                                 key.equalsIgnoreCase("ANNOUNCEMENT_MESSAGE") ||
                                 key.equalsIgnoreCase("ROLL_CALL_ACTIVE") ||
@@ -256,7 +253,7 @@ public class GoogleSheetParser {
         }
     }
 
-    public void setLeaderboardCallback(Consumer<JSONArray> leaderboardCallback) {
+    public void setLeaderboardCallback(Consumer<JsonArray> leaderboardCallback) {
         this.leaderboardCallback = leaderboardCallback;
     }
 
@@ -271,11 +268,10 @@ public class GoogleSheetParser {
     private void pollLeaderboard() {
         while (isRunning.get()) {
             try {
-                JSONArray leaderboard = parseTop10Leaderboard();
+                JsonArray leaderboard = parseTop10Leaderboard();
                 if (leaderboardCallback != null) {
                     leaderboardCallback.accept(leaderboard);
                 }
-                // 7 minutes
                 Thread.sleep(420000);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
@@ -290,7 +286,6 @@ public class GoogleSheetParser {
                 if (huntScoreCallback != null && !scores.isEmpty()) {
                     huntScoreCallback.accept(scores);
                 }
-                // 7 minutes
                 Thread.sleep(420000);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
@@ -305,7 +300,6 @@ public class GoogleSheetParser {
                 if (configCallback != null && !configValues.isEmpty()) {
                     configCallback.accept(configValues);
                 }
-                // 7 minutes
                 Thread.sleep(420000);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();

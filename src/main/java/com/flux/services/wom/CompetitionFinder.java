@@ -1,7 +1,8 @@
 package com.flux.services.wom;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonElement;
 import lombok.extern.slf4j.Slf4j;
 import java.time.Instant;
 import java.util.EnumMap;
@@ -25,22 +26,22 @@ public class CompetitionFinder {
         results.put(EventType.BOTM, null);
 
         try {
-            JSONArray competitions = apiClient.fetchGroupCompetitions();
+            JsonArray competitions = apiClient.fetchGroupCompetitions();
             Instant now = Instant.now();
 
-            for (int i = 0; i < competitions.length(); i++) {
-                JSONObject comp = competitions.getJSONObject(i);
+            for (JsonElement element : competitions) {
+                JsonObject comp = element.getAsJsonObject();
 
-                Instant startsAt = Instant.parse(comp.getString("startsAt"));
-                Instant endsAt = Instant.parse(comp.getString("endsAt"));
+                Instant startsAt = Instant.parse(comp.get("startsAt").getAsString());
+                Instant endsAt = Instant.parse(comp.get("endsAt").getAsString());
 
                 // Skip if not currently active
                 if (now.isBefore(startsAt) || !now.isBefore(endsAt)) {
                     continue;
                 }
 
-                String title = comp.getString("title").toLowerCase();
-                int competitionId = comp.getInt("id");
+                String title = comp.get("title").getAsString().toLowerCase();
+                int competitionId = comp.get("id").getAsInt();
 
                 // Check for SOTW and BOTM
                 for (EventType type : new EventType[]{EventType.SOTW, EventType.BOTM}) {
@@ -53,34 +54,35 @@ public class CompetitionFinder {
                 }
             }
         } catch (Exception e) {
-            log.error("Error finding active competitions: " + e);
+            log.error("Error finding active competitions: ", e);
         }
 
         return results;
     }
 
+
     public CompetitionData findLastCompletedCompetition(EventType type) {
         // Hunt is handled differently
         if (type == EventType.HUNT) {
-            return null; 
+            return null;
         }
 
         try {
-            JSONArray competitions = apiClient.fetchGroupCompetitions();
+            JsonArray competitions = apiClient.fetchGroupCompetitions();
             Instant now = Instant.now();
 
-            JSONObject mostRecentCompleted = null;
+            JsonObject mostRecentCompleted = null;
             Instant mostRecentEndTime = null;
 
-            for (int i = 0; i < competitions.length(); i++) {
-                JSONObject comp = competitions.getJSONObject(i);
-                String title = comp.getString("title").toLowerCase();
+            for (JsonElement element : competitions) {
+                JsonObject comp = element.getAsJsonObject();
+                String title = comp.get("title").getAsString().toLowerCase();
 
                 if (!type.matchesTitle(title)) {
                     continue;
                 }
 
-                Instant endsAt = Instant.parse(comp.getString("endsAt"));
+                Instant endsAt = Instant.parse(comp.get("endsAt").getAsString());
 
                 // Skip if not yet ended
                 if (now.isBefore(endsAt)) {
@@ -95,65 +97,63 @@ public class CompetitionFinder {
             }
 
             if (mostRecentCompleted != null) {
-                int competitionId = mostRecentCompleted.getInt("id");
-                Instant startsAt = Instant.parse(mostRecentCompleted.getString("startsAt"));
-                Instant endsAt = Instant.parse(mostRecentCompleted.getString("endsAt"));
+                int competitionId = mostRecentCompleted.get("id").getAsInt();
+                Instant startsAt = Instant.parse(mostRecentCompleted.get("startsAt").getAsString());
+                Instant endsAt = Instant.parse(mostRecentCompleted.get("endsAt").getAsString());
 
                 return fetchCompetitionData(competitionId, type, startsAt, endsAt);
             }
         } catch (Exception e) {
-            log.error("Error finding last completed " + type.name() + ": " + e);
+            log.error("Error finding last completed " + type.name() + ": ", e);
         }
 
         return null;
     }
 
+
     // Get Hunt competition data by ID
     public CompetitionData findHuntCompetition(int competitionId) {
         try {
-            JSONObject details = apiClient.fetchCompetitionDetails(competitionId);
+            JsonObject details = apiClient.fetchCompetitionDetails(competitionId);
             if (details == null) {
                 return null;
             }
 
-            Instant startsAt = Instant.parse(details.getString("startsAt"));
-            Instant endsAt = Instant.parse(details.getString("endsAt"));
+            Instant startsAt = Instant.parse(details.get("startsAt").getAsString());
+            Instant endsAt = Instant.parse(details.get("endsAt").getAsString());
 
             HuntTeamData huntData = dataParser.parseHuntTeamData(details);
 
             return new CompetitionData(
                     competitionId,
-                    details.getString("title"),
+                    details.get("title").getAsString(),
                     startsAt,
                     endsAt,
                     null,
                     huntData
             );
         } catch (Exception e) {
-            log.error("Error finding Hunt competition: " + e);
+            log.error("Error finding Hunt competition: ", e);
         }
 
         return null;
     }
 
+
     private CompetitionData fetchCompetitionData(int competitionId, EventType type,
                                                  Instant startsAt, Instant endsAt) {
         try {
-            JSONObject details = apiClient.fetchCompetitionDetails(competitionId);
-            if (details == null) {
-                return null;
-            }
-
+            JsonObject details = apiClient.fetchCompetitionDetails(competitionId);
             return new CompetitionData(
                     competitionId,
-                    details.getString("title"),
+                    details.get("title").getAsString(),
                     startsAt,
                     endsAt,
                     type == EventType.SOTW ? dataParser.parseSotwLeaderboard(details) : null,
                     null
             );
         } catch (Exception e) {
-            log.error("Error fetching competition " + competitionId + ": " + e);
+            log.error("Error fetching competition " + competitionId + ": ", e);
         }
 
         return null;

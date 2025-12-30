@@ -2,11 +2,12 @@ package com.flux.cards;
 
 import com.flux.components.InverseCornerButton;
 import net.runelite.client.config.ConfigManager;
-import org.json.JSONArray;
-import org.json.JSONObject;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import javax.swing.*;
 import java.awt.*;
 import java.time.Duration;
@@ -304,35 +305,11 @@ public abstract class FluxCard extends JPanel implements Scrollable {
         }
 
         try {
-            JSONArray array = new JSONArray(raw);
-            for (int i = 0; i < array.length(); i++) {
-                JSONObject obj = array.getJSONObject(i);
-                String username = obj.getString("username");
-                int score = obj.getInt(scoreField);
-                leaderboard.put(username, score);
-            }
-        } catch (Exception e) {
-            handleAsyncError(e);
-            logger.error("Failed to parse leaderboard from config key: {}", configKey);
-        }
-
-        return leaderboard;
-    }
-
-    protected LinkedHashMap<String, Double> parseLeaderboardJsonDouble(String configKey, String scoreField, ConfigManager configManager) {
-        LinkedHashMap<String, Double> leaderboard = new LinkedHashMap<>();
-        String raw = configManager.getConfiguration("flux", configKey);
-
-        if (raw == null || raw.isEmpty()) {
-            return leaderboard;
-        }
-
-        try {
-            JSONArray array = new JSONArray(raw);
-            for (int i = 0; i < array.length(); i++) {
-                JSONObject obj = array.getJSONObject(i);
-                String username = obj.getString("username");
-                double score = obj.getDouble(scoreField);
+            JsonArray array = JsonParser.parseString(raw).getAsJsonArray();
+            for (int i = 0; i < array.size(); i++) {
+                JsonObject obj = array.get(i).getAsJsonObject();
+                String username = obj.get("username").getAsString();
+                int score = obj.get(scoreField).getAsInt();
                 leaderboard.put(username, score);
             }
         } catch (Exception e) {

@@ -1,7 +1,8 @@
 package com.flux.services.wom;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import java.util.*;
 import lombok.extern.slf4j.Slf4j;
 
@@ -12,19 +13,31 @@ public class CompetitionDataParser {
     private static final int TOP_PARTICIPANTS_COUNT = 10;
 
     // Parse SOTW leaderboard from WOM competition details.
-    public LinkedHashMap<String, Integer> parseSotwLeaderboard(JSONObject competitionDetails) {
+    public LinkedHashMap<String, Integer> parseSotwLeaderboard(JsonObject competitionDetails) {
         LinkedHashMap<String, Integer> leaderboard = new LinkedHashMap<>();
 
         try {
-            JSONArray participants = competitionDetails.getJSONArray("participations");
+            JsonArray participants = competitionDetails.has("participations")
+                    ? competitionDetails.getAsJsonArray("participations")
+                    : new JsonArray();
             List<ParticipantEntry> entries = new ArrayList<>();
 
-            for (int i = 0; i < participants.length(); i++) {
-                JSONObject participant = participants.getJSONObject(i);
-                String username = participant.getJSONObject("player").getString("username");
+            for (JsonElement element : participants) {
+                JsonObject participant = element.getAsJsonObject();
+                JsonObject player = participant.getAsJsonObject("player");
 
-                JSONObject progress = participant.optJSONObject("progress");
-                int xpGained = progress != null ? progress.optInt("gained", 0) : 0;
+                String username = player != null && player.has("username")
+                        ? player.get("username").getAsString()
+                        : "";
+
+                JsonObject progress = participant.has("progress")
+                        ? participant.getAsJsonObject("progress")
+                        : null;
+
+                int xpGained = (progress != null && progress.has("gained"))
+                        ? progress.get("gained").getAsInt()
+                        : 0;
+
 
                 entries.add(new ParticipantEntry(username, xpGained));
             }
@@ -43,9 +56,11 @@ public class CompetitionDataParser {
     }
 
     // Parses Hunt team data from competition JSON payload.
-    public HuntTeamData parseHuntTeamData(JSONObject competitionDetails) {
+    public HuntTeamData parseHuntTeamData(JsonObject competitionDetails) {
         try {
-            JSONArray participants = competitionDetails.getJSONArray("participations");
+            JsonArray participants = competitionDetails.has("participations")
+                    ? competitionDetails.getAsJsonArray("participations")
+                    : new JsonArray();
 
             // Extract team names
             TeamNames teamNames = extractTeamNames(participants);
@@ -54,13 +69,25 @@ public class CompetitionDataParser {
             List<HuntParticipant> team1Participants = new ArrayList<>();
             List<HuntParticipant> team2Participants = new ArrayList<>();
 
-            for (int i = 0; i < participants.length(); i++) {
-                JSONObject participant = participants.getJSONObject(i);
-                String username = participant.getJSONObject("player").getString("displayName");
-                String teamName = participant.optString("teamName", "");
+            for (JsonElement element : participants) {
+                JsonObject participant = element.getAsJsonObject();
 
-                JSONObject progress = participant.optJSONObject("progress");
-                double ehb = progress != null ? progress.optDouble("gained", 0.0) : 0.0;
+                JsonObject player = participant.getAsJsonObject("player");
+                String username = (player != null && player.has("displayName"))
+                        ? player.get("displayName").getAsString()
+                        : "";
+
+                String teamName = participant.has("teamName")
+                        ? participant.get("teamName").getAsString()
+                        : "";
+
+                JsonObject progress = participant.has("progress")
+                        ? participant.getAsJsonObject("progress")
+                        : null;
+
+                double ehb = (progress != null && progress.has("gained"))
+                        ? progress.get("gained").getAsDouble()
+                        : 0.0;
 
                 if (teamName.equals(teamNames.team1)) {
                     team1Participants.add(new HuntParticipant(username, ehb));
@@ -87,18 +114,21 @@ public class CompetitionDataParser {
             );
 
         } catch (Exception e) {
-            log.error("Error parsing Hunt team data: " + e);
+            log.error("Error parsing Hunt team data: ", e);
         }
 
         return null;
     }
 
-    private TeamNames extractTeamNames(JSONArray participants) {
+
+    private TeamNames extractTeamNames(JsonArray participants) {
         Set<String> teamNamesSet = new HashSet<>();
 
-        for (int i = 0; i < participants.length(); i++) {
-            JSONObject participant = participants.getJSONObject(i);
-            String teamName = participant.optString("teamName", "");
+        for (JsonElement element : participants) {
+            JsonObject participant = element.getAsJsonObject();
+            String teamName = participant.has("teamName")
+                    ? participant.get("teamName").getAsString()
+                    : "";
             if (!teamName.isEmpty()) {
                 teamNamesSet.add(teamName);
             }
@@ -113,6 +143,7 @@ public class CompetitionDataParser {
 
         return new TeamNames("Team 1", "Team 2");
     }
+
 
     private LinkedHashMap<String, Double> getTopParticipants(List<HuntParticipant> participants) {
         LinkedHashMap<String, Double> top10 = new LinkedHashMap<>();

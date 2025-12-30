@@ -11,9 +11,11 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import org.json.JSONArray;
-import org.json.JSONObject;
-import org.slf4j.Logger; import org.slf4j.LoggerFactory;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class HuntCard extends FluxCard {
     private final ConfigManager configManager;
@@ -112,7 +114,6 @@ public class HuntCard extends FluxCard {
         JTable table = new JTable(combinedTableModel);
         configureTable(table);
 
-        // Calculate height for 5 rows + header
         int scrollHeight = (TABLE_ROW_HEIGHT + TABLE_ROW_SPACING) * 5 +
                 table.getTableHeader().getPreferredSize().height + 4;
 
@@ -132,7 +133,6 @@ public class HuntCard extends FluxCard {
         table.setRowHeight(TABLE_ROW_HEIGHT);
         table.setIntercellSpacing(new Dimension(0, TABLE_ROW_SPACING));
 
-        // Use the same renderer as SOTW for consistent styling with animated borders
         TeamColoredLeaderboardRenderer renderer = new TeamColoredLeaderboardRenderer();
         renderer.setTable(table);
         table.getColumnModel().getColumn(0).setCellRenderer(renderer);
@@ -150,20 +150,17 @@ public class HuntCard extends FluxCard {
         });
     }
 
-    // Public API
     public boolean isEventActive() {
         return getConfigBoolean("huntActive", configManager);
     }
 
     public void refreshLeaderboard() {
-        // Combine both team leaderboards and show top 10
         String team1Name = getConfigValue("hunt_team_1_name", "Team 1", configManager);
         String team2Name = getConfigValue("hunt_team_2_name", "Team 2", configManager);
 
         Map<String, Double> team1Data = loadLeaderboardFromConfig("hunt_team_1_leaderboard");
         Map<String, Double> team2Data = loadLeaderboardFromConfig("hunt_team_2_leaderboard");
 
-        // Create combined list of players
         List<PlayerEntry> allPlayers = new ArrayList<>();
 
         for (Map.Entry<String, Double> entry : team1Data.entrySet()) {
@@ -174,13 +171,10 @@ public class HuntCard extends FluxCard {
             allPlayers.add(new PlayerEntry(entry.getKey(), team2Name, entry.getValue()));
         }
 
-        // Sort by EHB descending
         allPlayers.sort((a, b) -> Double.compare(b.ehb, a.ehb));
 
-        // Take top 10
         List<PlayerEntry> top10 = allPlayers.size() > 10 ? allPlayers.subList(0, 10) : allPlayers;
 
-        // Update table
         combinedTableModel.setRowCount(0);
         for (PlayerEntry player : top10) {
             combinedTableModel.addRow(new Object[]{
@@ -199,10 +193,10 @@ public class HuntCard extends FluxCard {
         if (raw == null || raw.isEmpty()) return leaderboard;
 
         try {
-            JSONArray array = new JSONArray(raw);
-            for (int i = 0; i < array.length(); i++) {
-                JSONObject obj = array.getJSONObject(i);
-                leaderboard.put(obj.getString("username"), obj.getDouble("ehb"));
+            JsonArray array = JsonParser.parseString(raw).getAsJsonArray();
+            for (int i = 0; i < array.size(); i++) {
+                JsonObject obj = array.get(i).getAsJsonObject();
+                leaderboard.put(obj.get("username").getAsString(), obj.get("ehb").getAsDouble());
             }
         } catch (Exception e) {
             handleAsyncError(e);
@@ -220,13 +214,11 @@ public class HuntCard extends FluxCard {
     }
 
     public void updateTeamLabels() {
-        // Team labels are now in the table and score section
         updateTeamScores();
         refreshLeaderboard();
     }
 
     public void updateTeamScores() {
-        // Team scores come from Google Sheets
         updateWrappedLabelText(scoreLabel, buildScoreText(), false);
         scoreLabel.revalidate();
         scoreLabel.repaint();
@@ -272,7 +264,6 @@ public class HuntCard extends FluxCard {
     }
 
     private void handleSheetScoreUpdate(Map<String, Integer> scores) {
-        // Google Sheets provides the team scores
         String team1Name = getConfigValue("hunt_team_1_name", "Team 1", configManager);
         String team2Name = getConfigValue("hunt_team_2_name", "Team 2", configManager);
 
@@ -330,7 +321,6 @@ public class HuntCard extends FluxCard {
     }
 
     private String getEventEndedMessage() {
-        // Winner is determined from Google Sheets scores
         String winner = getWinnerFromGoogleSheetScores();
 
         if (winner != null && !winner.isEmpty()) {
@@ -341,11 +331,9 @@ public class HuntCard extends FluxCard {
     }
 
     private String getWinnerFromGoogleSheetScores() {
-        // Get scores from Google Sheets (stored in config via handleSheetScoreUpdate)
         int team1Score = getConfigInt("hunt_team_1_score", 0, configManager);
         int team2Score = getConfigInt("hunt_team_2_score", 0, configManager);
 
-        // If both scores are 0, no event has occurred
         if (team1Score == 0 && team2Score == 0) {
             return null;
         }
@@ -353,7 +341,6 @@ public class HuntCard extends FluxCard {
         String team1Name = getConfigValue("hunt_team_1_name", "Team 1", configManager);
         String team2Name = getConfigValue("hunt_team_2_name", "Team 2", configManager);
 
-        // Determine winner based on Google Sheets scores
         if (team1Score > team2Score) {
             return team1Name;
         } else if (team2Score > team1Score) {
@@ -372,7 +359,6 @@ public class HuntCard extends FluxCard {
         super.shutdown();
     }
 
-    // Helper classes
     private static class PlayerEntry {
         final String username;
         final String teamName;
@@ -390,11 +376,8 @@ public class HuntCard extends FluxCard {
         public Component getTableCellRendererComponent(JTable table, Object value,
                                                        boolean isSelected, boolean hasFocus, int row, int column) {
 
-            // Get the base rendering from LeaderboardCellRenderer (includes animated borders and backgrounds)
             Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 
-            // Apply team colors to ALL rows (including top 3)
-            // Get player name from Player column (column 0)
             String playerName = "";
             if (row < table.getRowCount() && table.getColumnCount() > 0) {
                 Object nameValue = table.getValueAt(row, 0);
@@ -403,14 +386,12 @@ public class HuntCard extends FluxCard {
                 }
             }
 
-            // Determine which team this player is on
             Map<String, Double> team1Data = loadLeaderboardFromConfig("hunt_team_1_leaderboard");
             Map<String, Double> team2Data = loadLeaderboardFromConfig("hunt_team_2_leaderboard");
 
             Color team1Color = parseColor(getConfigValue("hunt_team_1_color", "#FF0000", configManager));
             Color team2Color = parseColor(getConfigValue("hunt_team_2_color", "#0000FF", configManager));
 
-            // Set text color based on team (overrides the default gold/silver/bronze from parent)
             if (team1Data.containsKey(playerName)) {
                 c.setForeground(team1Color);
             } else if (team2Data.containsKey(playerName)) {
@@ -419,7 +400,6 @@ public class HuntCard extends FluxCard {
                 c.setForeground(COLOR_WHITE);
             }
 
-            // Column alignment - EHB column (1) centered, Player column (0) left
             if (column == 1) {
                 setHorizontalAlignment(SwingConstants.CENTER);
             } else {

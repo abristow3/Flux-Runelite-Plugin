@@ -3,11 +3,12 @@ package com.flux.cards;
 import net.runelite.client.config.ConfigManager;
 import com.flux.services.GoogleSheetParser;
 import com.flux.components.LeaderboardCellRenderer;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-import org.json.JSONArray;
-import org.json.JSONObject;
 import java.awt.*;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -123,13 +124,13 @@ public class BotmCard extends FluxCard {
         }
 
         try {
-            JSONArray leaderboard = new JSONArray(leaderboardJson);
+            JsonArray leaderboard = JsonParser.parseString(leaderboardJson).getAsJsonArray();
             tableModel.setRowCount(0);
 
-            for (int i = 0; i < leaderboard.length(); i++) {
-                JSONObject entry = leaderboard.getJSONObject(i);
-                String username = entry.getString("username");
-                int score = entry.getInt("score");
+            for (int i = 0; i < leaderboard.size(); i++) {
+                JsonObject entry = leaderboard.get(i).getAsJsonObject();
+                String username = entry.get("username").getAsString();
+                int score = entry.get("score").getAsInt();
                 tableModel.addRow(new Object[]{username, score});
             }
         } catch (Exception e) {
