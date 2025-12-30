@@ -365,7 +365,8 @@ public class FluxPlugin extends Plugin {
 
         if (leaderboardJson != null && !leaderboardJson.isEmpty()) {
             try {
-                JsonArray leaderboardArray = JsonParser.parseString(leaderboardJson).getAsJsonArray();
+                JsonParser jsonParser = new JsonParser();
+                JsonArray leaderboardArray = jsonParser.parse(leaderboardJson).getAsJsonArray();
                 log.debug("Current SOTW Leaderboard:");
                 for (int i = 0; i < leaderboardArray.size(); i++) {
                     JsonObject entry = leaderboardArray.get(i).getAsJsonObject();

@@ -193,7 +193,8 @@ public class HuntCard extends FluxCard {
         if (raw == null || raw.isEmpty()) return leaderboard;
 
         try {
-            JsonArray array = JsonParser.parseString(raw).getAsJsonArray();
+            JsonParser jsonParser = new JsonParser();
+            JsonArray array = jsonParser.parse(raw).getAsJsonArray();
             for (int i = 0; i < array.size(); i++) {
                 JsonObject obj = array.get(i).getAsJsonObject();
                 leaderboard.put(obj.get("username").getAsString(), obj.get("ehb").getAsDouble());

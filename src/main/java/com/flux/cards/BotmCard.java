@@ -124,7 +124,8 @@ public class BotmCard extends FluxCard {
         }
 
         try {
-            JsonArray leaderboard = JsonParser.parseString(leaderboardJson).getAsJsonArray();
+            JsonParser jsonParser = new JsonParser();
+            JsonArray leaderboard = jsonParser.parse(leaderboardJson).getAsJsonArray();
             tableModel.setRowCount(0);
 
             for (int i = 0; i < leaderboard.size(); i++) {

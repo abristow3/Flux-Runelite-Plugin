@@ -305,7 +305,8 @@ public abstract class FluxCard extends JPanel implements Scrollable {
         }
 
         try {
-            JsonArray array = JsonParser.parseString(raw).getAsJsonArray();
+            JsonParser jsonParser = new JsonParser();
+            JsonArray array = jsonParser.parse(raw).getAsJsonArray();
             for (int i = 0; i < array.size(); i++) {
                 JsonObject obj = array.get(i).getAsJsonObject();
                 String username = obj.get("username").getAsString();

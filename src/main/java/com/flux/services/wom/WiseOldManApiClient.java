@@ -13,17 +13,18 @@ import java.net.URL;
 public class WiseOldManApiClient {
     private static final String BASE_API_URL = "https://api.wiseoldman.net/v2";
     private static final String GROUP_ID = "141";
+    private static final JsonParser jsonParser = new JsonParser();
 
     public JsonArray fetchGroupCompetitions() throws Exception {
         String urlString = BASE_API_URL + "/groups/" + GROUP_ID + "/competitions";
         String response = makeHttpRequest(urlString);
-        return JsonParser.parseString(response).getAsJsonArray();
+        return jsonParser.parse(response).getAsJsonArray();
     }
 
     public JsonObject fetchCompetitionDetails(int competitionId) throws Exception {
         String urlString = BASE_API_URL + "/competitions/" + competitionId;
         String response = makeHttpRequest(urlString);
-        return JsonParser.parseString(response).getAsJsonObject();
+        return jsonParser.parse(response).getAsJsonObject();
     }
 
     public String getCompetitionUrl(int competitionId) {
