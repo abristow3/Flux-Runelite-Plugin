@@ -1,22 +1,22 @@
 package com.flux.services;
 
-import com.google.api.client.http.HttpRequestInitializer;
-import com.google.api.client.http.javanet.NetHttpTransport;
-import com.google.api.client.json.jackson2.JacksonFactory;
-import com.google.api.services.sheets.v4.Sheets;
-import com.google.api.services.sheets.v4.model.ValueRange;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import net.runelite.client.config.ConfigManager;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
+import javax.inject.Inject;
+
 @Slf4j
 public class GoogleSheetParser {
-    private static final String APPLICATION_NAME = "Google Sheets API Java Quickstart";
     private static final String API_KEY = "AIzaSyBu-qDCAFvD_z00uohkfD_ub0sZj-H8s1E";
     private static final String SPREADSHEET_ID = "1qqkjx4YjuQ9FIBDgAGzSpmoKcDow3yEa9lYFmc-JeDA";
 
@@ -26,6 +26,9 @@ public class GoogleSheetParser {
     private Consumer<Map<String, String>> configCallback;
     private final AtomicBoolean isRunning = new AtomicBoolean(false);
     private SheetType sheetType;
+
+    @Inject
+    private OkHttpClient httpClient;
 
     public enum SheetType {
         BOTM,
@@ -51,30 +54,48 @@ public class GoogleSheetParser {
         this.sheetType = type;
     }
 
-    private static Sheets getSheets() {
-        NetHttpTransport transport = new NetHttpTransport.Builder().build();
-        JacksonFactory jsonFactory = JacksonFactory.getDefaultInstance();
-        HttpRequestInitializer httpRequestInitializer = request -> request
-                .setInterceptor(intercepted -> intercepted.getUrl().set("key", API_KEY));
-        return new Sheets.Builder(transport, jsonFactory, httpRequestInitializer)
-                .setApplicationName(APPLICATION_NAME)
+    private String makeSheetsApiRequest(String range) throws IOException {
+        String url = "https://sheets.googleapis.com/v4/spreadsheets/" + SPREADSHEET_ID + "/values/" + range + "?key=" + API_KEY;
+
+        Request request = new Request.Builder()
+                .url(url)
                 .build();
+
+        try (Response response = httpClient.newCall(request).execute()) {
+            if (!response.isSuccessful()) {
+                log.error("Request failed with status code: {}", response.code());
+                throw new IOException("Unexpected code " + response);
+            }
+
+            return response.body().string();
+        }
     }
 
-    public static ValueRange getValues(String range) throws IOException {
-        return getSheets()
-                .spreadsheets()
-                .values()
-                .get(SPREADSHEET_ID, range)
-                .execute();
+    public static JsonArray getValues(String range) throws IOException {
+        GoogleSheetParser googleSheetParser = new GoogleSheetParser(null, null);
+        String jsonResponse = googleSheetParser.makeSheetsApiRequest(range);
+
+        JsonObject jsonObject = new JsonParser().parse(jsonResponse).getAsJsonObject();
+        JsonArray values = jsonObject.getAsJsonArray("values");
+
+        return values;
     }
 
     public static JsonArray parseTop10Leaderboard() {
         JsonArray leaderboard = new JsonArray();
 
         try {
-            ValueRange response = getValues("BOTM");
-            List<List<Object>> values = response.getValues();
+            JsonArray jsonArray = getValues("BOTM");
+
+            List<List<Object>> values = new ArrayList<>();
+            for (int i = 0; i < jsonArray.size(); i++) {
+                JsonArray row = jsonArray.get(i).getAsJsonArray();
+                List<Object> rowValues = new ArrayList<>();
+                for (int j = 0; j < row.size(); j++) {
+                    rowValues.add(row.get(j));
+                }
+                values.add(rowValues);
+            }
 
             if (values != null && !values.isEmpty()) {
                 int startRow = findLeaderboardStartRow(values);
@@ -119,8 +140,16 @@ public class GoogleSheetParser {
         Map<String, Integer> scores = new HashMap<>();
 
         try {
-            ValueRange response = getValues("Hunt");
-            List<List<Object>> values = response.getValues();
+            JsonArray jsonArray = getValues("Hunt");
+            List<List<Object>> values = new ArrayList<>();
+            for (int i = 0; i < jsonArray.size(); i++) {
+                JsonArray row = jsonArray.get(i).getAsJsonArray();
+                List<Object> rowValues = new ArrayList<>();
+                for (int j = 0; j < row.size(); j++) {
+                    rowValues.add(row.get(j));
+                }
+                values.add(rowValues);
+            }
 
             if (values != null && !values.isEmpty()) {
                 int scoreStartRow = findCurrentScoreSection(values);
@@ -162,8 +191,16 @@ public class GoogleSheetParser {
         Map<String, String> configValues = new HashMap<>();
 
         try {
-            ValueRange response = getValues("Config");
-            List<List<Object>> values = response.getValues();
+            JsonArray jsonArray = getValues("Config");
+            List<List<Object>> values = new ArrayList<>();
+            for (int i = 0; i < jsonArray.size(); i++) {
+                JsonArray row = jsonArray.get(i).getAsJsonArray();
+                List<Object> rowValues = new ArrayList<>();
+                for (int j = 0; j < row.size(); j++) {
+                    rowValues.add(row.get(j));
+                }
+                values.add(rowValues);
+            }
 
             if (values != null && !values.isEmpty()) {
                 for (int i = 0; i < values.size(); i++) {
