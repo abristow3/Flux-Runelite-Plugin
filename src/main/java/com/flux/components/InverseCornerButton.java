@@ -6,7 +6,8 @@ import org.slf4j.LoggerFactory;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.Path2D;
-import java.net.URI;
+import net.runelite.client.util.LinkBrowser;
+
 
 public class InverseCornerButton extends JButton {
     private static final Logger logger = LoggerFactory.getLogger(InverseCornerButton.class);
@@ -173,16 +174,7 @@ public class InverseCornerButton extends JButton {
             return;
         }
 
-        try {
-            Desktop desktop = Desktop.getDesktop();
-            if (desktop.isSupported(Desktop.Action.BROWSE)) {
-                desktop.browse(new URI(url));
-            } else {
-                logger.warn("Desktop browsing not supported");
-            }
-        } catch (Exception e) {
-            logger.error("Error opening URL: {}", url, e);
-        }
+        LinkBrowser.browse(url);
     }
 
     @Override
