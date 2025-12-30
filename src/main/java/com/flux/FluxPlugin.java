@@ -66,7 +66,10 @@ public class FluxPlugin extends Plugin {
     protected void shutDown() {
         overlayManager.remove(overlay);
         clientToolbar.removeNavigation(uiNavigationButton);
-        stopServices();
+        panel.shutdown();
+        configParser.shutdown();
+        competitionScheduler.shutdown();
+        clanRankMonitor.shutdown();
     }
 
     private void initializePanel() {
@@ -102,18 +105,6 @@ public class FluxPlugin extends Plugin {
     private void startServices() {
         competitionScheduler.startScheduler();
         configParser.start();
-    }
-
-    private void stopServices() {
-        if (competitionScheduler != null) {
-            competitionScheduler.stopScheduler();
-        }
-        if (configParser != null) {
-            configParser.stop();
-        }
-        if (clanRankMonitor != null) {
-            clanRankMonitor.shutdown();
-        }
     }
 
     private void refreshAllCards() {

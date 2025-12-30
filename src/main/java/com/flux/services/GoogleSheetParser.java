@@ -26,6 +26,9 @@ public class GoogleSheetParser {
     private Consumer<Map<String, String>> configCallback;
     private final AtomicBoolean isRunning = new AtomicBoolean(false);
     private SheetType sheetType;
+    private Thread leaderboardThread;
+    private Thread huntScoreThread;
+    private Thread configThread;
 
     @Inject
     private OkHttpClient httpClient;
@@ -281,11 +284,14 @@ public class GoogleSheetParser {
     public void start() {
         if (isRunning.compareAndSet(false, true)) {
             if (sheetType == SheetType.HUNT) {
-                new Thread(this::pollHuntScores).start();
+                huntScoreThread = new Thread(this::pollHuntScores);
+                huntScoreThread.start();
             } else if (sheetType == SheetType.CONFIG) {
-                new Thread(this::pollConfigValues).start();
+                configThread = new Thread(this::pollConfigValues);
+                configThread.start();
             } else {
-                new Thread(this::pollLeaderboard).start();
+                leaderboardThread = new Thread(this::pollLeaderboard);
+                leaderboardThread.start();
             }
         }
     }
@@ -309,9 +315,10 @@ public class GoogleSheetParser {
                 if (leaderboardCallback != null) {
                     leaderboardCallback.accept(leaderboard);
                 }
-                Thread.sleep(420000);
+                Thread.sleep(420000);  // Sleep for 7 minutes
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
+                break; 
             }
         }
     }
@@ -326,6 +333,7 @@ public class GoogleSheetParser {
                 Thread.sleep(420000);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
+                break;
             }
         }
     }
@@ -340,11 +348,26 @@ public class GoogleSheetParser {
                 Thread.sleep(420000);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
+                break;
             }
         }
     }
 
     public void stop() {
         isRunning.set(false);
+    }
+
+    public void shutdown() {
+        stop();
+
+        if (leaderboardThread != null) {
+            leaderboardThread.interrupt();
+        }
+        if (huntScoreThread != null) {
+            huntScoreThread.interrupt();
+        }
+        if (configThread != null) {
+            configThread.interrupt();
+        }
     }
 }

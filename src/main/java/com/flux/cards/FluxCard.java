@@ -324,8 +324,16 @@ public abstract class FluxCard extends JPanel implements Scrollable {
     public void refresh() {
     }
 
+    public void cleanup() {
+            // stop all button timers
+            for (InverseCornerButton button : buttons.values()) {
+                button.cleanup();
+            }
+        }
+
     public void shutdown() {
         try {
+            cleanup();
             executor.shutdown();
             if (!executor.awaitTermination(2, TimeUnit.SECONDS)) {
                 executor.shutdownNow();

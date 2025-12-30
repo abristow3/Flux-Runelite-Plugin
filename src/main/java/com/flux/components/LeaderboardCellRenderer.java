@@ -16,9 +16,10 @@ public class LeaderboardCellRenderer extends DefaultTableCellRenderer {
     private final Color darkerGray = new Color(45, 45, 45);
 
     private float shinePos = 0f;
+    private Timer timer;
 
     public LeaderboardCellRenderer() {
-        Timer timer = new Timer(50, e -> {
+        timer = new Timer(50, e -> {
             shinePos += 0.01f;
             if (shinePos > 1f)
                 shinePos = 0f;
@@ -66,5 +67,15 @@ public class LeaderboardCellRenderer extends DefaultTableCellRenderer {
         setHorizontalAlignment(column == 1 ? SwingConstants.CENTER : SwingConstants.LEFT);
 
         return comp;
+    }
+
+    public void shutdown() {
+        if (timer != null) {
+            timer.stop();
+        }
+        
+        if (leaderboardTable != null) {
+            leaderboardTable = null;
+        }
     }
 }

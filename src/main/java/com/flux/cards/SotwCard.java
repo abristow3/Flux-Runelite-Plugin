@@ -11,7 +11,7 @@ import java.util.Map;
 
 public class SotwCard extends FluxCard {
     private final ConfigManager configManager;
-
+    private LeaderboardCellRenderer leaderboardCellRenderer;
     private DefaultTableModel tableModel;
     private JLabel eventTitle;
     private JLabel countdownLabel;
@@ -220,6 +220,11 @@ public class SotwCard extends FluxCard {
         if (countdownTimer != null) {
             countdownTimer.stop();
         }
+
+        if (leaderboardCellRenderer != null) {
+            leaderboardCellRenderer.shutdown(); // stop table timers
+        }
+        
         super.shutdown();
     }
 }

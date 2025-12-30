@@ -1,6 +1,8 @@
 package com.flux.services;
 
 import com.flux.services.wom.*;
+import com.flux.services.wom.CompetitionModels.CompetitionData;
+import com.flux.services.wom.CompetitionModels.EventType;
 import net.runelite.client.config.ConfigManager;
 import lombok.extern.slf4j.Slf4j;
 import java.time.Instant;
@@ -51,12 +53,18 @@ public class CompetitionScheduler {
         schedulerService.shutdown();
         try {
             if (!schedulerService.awaitTermination(5, TimeUnit.SECONDS)) {
+                log.warn("Executor did not terminate in time, forcing shutdown now");
                 schedulerService.shutdownNow();
             }
         } catch (InterruptedException e) {
+            log.error("Shutdown interrupted, forcing immediate shutdown", e);
             schedulerService.shutdownNow();
             Thread.currentThread().interrupt();
         }
+    }
+
+    public void shutdown() {
+        stopScheduler();
     }
 
     private void checkAndUpdateCompetitions() {

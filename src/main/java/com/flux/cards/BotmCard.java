@@ -15,6 +15,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public class BotmCard extends FluxCard {
     private final ConfigManager configManager;
     private final AtomicReference<String> lastLeaderboardJson = new AtomicReference<>("");
+    private LeaderboardCellRenderer leaderboardCellRenderer;
 
     private DefaultTableModel tableModel;
     private JLabel eventTitle;
@@ -252,6 +253,11 @@ public class BotmCard extends FluxCard {
         if (countdownTimer != null) {
             countdownTimer.stop();
         }
+
+        if (leaderboardCellRenderer != null) {
+            leaderboardCellRenderer.shutdown(); // stop table timers
+        }
+
         stopSheetPolling();
         super.shutdown();
     }

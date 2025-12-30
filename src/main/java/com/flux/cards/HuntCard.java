@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
 
 public class HuntCard extends FluxCard {
     private final ConfigManager configManager;
-
+    private LeaderboardCellRenderer leaderboardCellRenderer;
     private JLabel eventTitle;
     private JLabel countdownLabel;
     private JLabel scoreTitleLabel;
@@ -356,6 +356,11 @@ public class HuntCard extends FluxCard {
         if (countdownTimer != null) {
             countdownTimer.stop();
         }
+
+        if (leaderboardCellRenderer != null) {
+            leaderboardCellRenderer.shutdown(); // stop table timers
+        }
+
         stopSheetPolling();
         super.shutdown();
     }

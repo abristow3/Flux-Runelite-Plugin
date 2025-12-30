@@ -354,6 +354,13 @@ public class FluxPanel extends PluginPanel {
         }
     }
 
+    public void shutdown() {
+        glowTimer.stop();
+        botmCard.shutdown();
+        sotwCard.shutdown();
+        huntCard.shutdown();
+    }
+
     private static class EntryConfig {
         final String label;
         final String iconPath;
