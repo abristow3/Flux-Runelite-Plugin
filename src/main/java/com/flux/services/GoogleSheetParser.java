@@ -10,6 +10,9 @@ import okhttp3.Response;
 import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
@@ -19,7 +22,7 @@ import javax.inject.Inject;
 public class GoogleSheetParser {
     private static final String API_KEY = "AIzaSyBu-qDCAFvD_z00uohkfD_ub0sZj-H8s1E";
     private static final String SPREADSHEET_ID = "1qqkjx4YjuQ9FIBDgAGzSpmoKcDow3yEa9lYFmc-JeDA";
-
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
     private final ConfigManager configManager;
     private Consumer<JsonArray> leaderboardCallback;
     private Consumer<Map<String, Integer>> huntScoreCallback;
@@ -309,48 +312,48 @@ public class GoogleSheetParser {
     }
 
     private void pollLeaderboard() {
-        while (isRunning.get()) {
-            try {
-                JsonArray leaderboard = parseTop10Leaderboard();
-                if (leaderboardCallback != null) {
-                    leaderboardCallback.accept(leaderboard);
-                }
-                Thread.sleep(420000);  // Sleep for 7 minutes
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                break; 
+        Runnable leaderboardTask = () -> {
+            if (!isRunning.get()) {
+                return;
             }
-        }
+
+            JsonArray leaderboard = parseTop10Leaderboard();
+            if (leaderboardCallback != null) {
+                leaderboardCallback.accept(leaderboard);
+            }
+        };
+
+        scheduler.scheduleAtFixedRate(leaderboardTask, 0, 7, TimeUnit.MINUTES);
     }
 
     private void pollHuntScores() {
-        while (isRunning.get()) {
-            try {
-                Map<String, Integer> scores = parseHuntScores();
-                if (huntScoreCallback != null && !scores.isEmpty()) {
-                    huntScoreCallback.accept(scores);
-                }
-                Thread.sleep(420000);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                break;
+        Runnable huntScoresTask = () -> {
+            if (!isRunning.get()) {
+                return;
             }
-        }
+
+            Map<String, Integer> scores = parseHuntScores();
+            if (huntScoreCallback != null && !scores.isEmpty()) {
+                huntScoreCallback.accept(scores);
+            }
+        };
+
+        scheduler.scheduleAtFixedRate(huntScoresTask, 0, 7, TimeUnit.MINUTES);
     }
 
     private void pollConfigValues() {
-        while (isRunning.get()) {
-            try {
-                Map<String, String> configValues = parseConfigValues();
-                if (configCallback != null && !configValues.isEmpty()) {
-                    configCallback.accept(configValues);
-                }
-                Thread.sleep(420000);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                break;
+        Runnable configValuesTask = () -> {
+            if (!isRunning.get()) {
+                return;
             }
-        }
+
+            Map<String, String> configValues = parseConfigValues();
+            if (configCallback != null && !configValues.isEmpty()) {
+                configCallback.accept(configValues);
+            }
+        };
+
+        scheduler.scheduleAtFixedRate(configValuesTask, 0, 7, TimeUnit.MINUTES);
     }
 
     public void stop() {
@@ -359,6 +362,7 @@ public class GoogleSheetParser {
 
     public void shutdown() {
         stop();
+        scheduler.shutdownNow();
 
         if (leaderboardThread != null) {
             leaderboardThread.interrupt();
