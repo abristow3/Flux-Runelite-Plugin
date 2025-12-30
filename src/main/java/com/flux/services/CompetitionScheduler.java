@@ -49,22 +49,8 @@ public class CompetitionScheduler {
         );
     }
 
-    public void stopScheduler() {
-        schedulerService.shutdown();
-        try {
-            if (!schedulerService.awaitTermination(5, TimeUnit.SECONDS)) {
-                log.warn("Executor did not terminate in time, forcing shutdown now");
-                schedulerService.shutdownNow();
-            }
-        } catch (InterruptedException e) {
-            log.error("Shutdown interrupted, forcing immediate shutdown", e);
-            schedulerService.shutdownNow();
-            Thread.currentThread().interrupt();
-        }
-    }
-
     public void shutdown() {
-        stopScheduler();
+        schedulerService.shutdownNow();
     }
 
     private void checkAndUpdateCompetitions() {

@@ -332,16 +332,8 @@ public abstract class FluxCard extends JPanel implements Scrollable {
         }
 
     public void shutdown() {
-        try {
-            cleanup();
-            executor.shutdown();
-            if (!executor.awaitTermination(2, TimeUnit.SECONDS)) {
-                executor.shutdownNow();
-            }
-        } catch (InterruptedException e) {
-            executor.shutdownNow();
-            Thread.currentThread().interrupt();
-        }
+        cleanup();
+        executor.shutdownNow();
     }
 
     protected static class LinkButton {
