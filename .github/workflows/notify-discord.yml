@@ -1,0 +1,144 @@
+name: Notify Discord on Repository Events
+
+on:
+  issues:
+    types: [opened]
+  pull_request:
+    types: [closed]
+  issue_comment:
+    types: [created]
+  create:
+  push:   # NEW: trigger on commits to all branches
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify Discord
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        run: |
+          EVENT_NAME=${{ github.event_name }}
+          ACTOR=${{ github.actor }}
+          REPO_NAME=$(echo "${{ github.repository }}" | cut -d'/' -f2)
+
+          EVENT_PATH="$GITHUB_EVENT_PATH"
+          ACTOR_AVATAR=$(jq -r '.sender.avatar_url // ""' "$EVENT_PATH")
+
+          EMBED_TITLE=""
+          EMBED_DESCRIPTION=""
+          EMBED_URL=""
+          EMBED_COLOR=0
+
+          ########## PULL REQUEST CLOSED ##########
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            ACTION=$(jq -r '.action' "$EVENT_PATH")
+            TITLE=$(jq -r '.pull_request.title // "No title"' "$EVENT_PATH")
+            URL=$(jq -r '.pull_request.html_url // "No URL"' "$EVENT_PATH")
+            NUMBER=$(jq -r '.pull_request.number // "unknown"' "$EVENT_PATH")
+            BASE_BRANCH=$(jq -r '.pull_request.base.ref // "unknown"' "$EVENT_PATH")
+            BODY=$(jq -r '.pull_request.body // ""' "$EVENT_PATH")
+
+            if [ "$ACTION" = "closed" ] && [ "$BASE_BRANCH" = "main" ]; then
+              EMBED_TITLE="[${REPO_NAME}] Pull request closed: #${NUMBER} ${TITLE}"
+              EMBED_DESCRIPTION="$BODY"
+              EMBED_URL="$URL"
+              EMBED_COLOR=25600
+            fi
+          fi
+
+          ########## NEW ISSUE OPENED ##########
+          if [ "$EVENT_NAME" = "issues" ]; then
+            ACTION=$(jq -r '.action' "$EVENT_PATH")
+            TITLE=$(jq -r '.issue.title // "No title"' "$EVENT_PATH")
+            NUMBER=$(jq -r '.issue.number // "unknown"' "$EVENT_PATH")
+            URL=$(jq -r '.issue.html_url // "No URL"' "$EVENT_PATH")
+            BODY=$(jq -r '.issue.body // ""' "$EVENT_PATH")
+
+            if [ "$ACTION" = "opened" ]; then
+              EMBED_TITLE="[${REPO_NAME}] New issue #${NUMBER}: ${TITLE}"
+              EMBED_DESCRIPTION="$BODY"
+              EMBED_URL="$URL"
+              EMBED_COLOR=2263842
+            fi
+          fi
+
+          ########## NEW COMMENT ##########
+          if [ "$EVENT_NAME" = "issue_comment" ]; then
+            ACTION=$(jq -r '.action' "$EVENT_PATH")
+            COMMENT=$(jq -r '.comment.body // "No comment"' "$EVENT_PATH")
+            URL=$(jq -r '.comment.html_url // "No URL"' "$EVENT_PATH")
+            ISSUE_NUMBER=$(jq -r '.issue.number // "unknown"' "$EVENT_PATH")
+            ISSUE_TITLE=$(jq -r '.issue.title // "No title"' "$EVENT_PATH")
+            PR_URL=$(jq -r '.issue.pull_request.url // ""' "$EVENT_PATH")
+
+            if [ "$ACTION" = "created" ]; then
+              if [ -n "$PR_URL" ]; then
+                EMBED_TITLE="[${REPO_NAME}] New comment on pull request #${ISSUE_NUMBER}: ${ISSUE_TITLE}"
+              else
+                EMBED_TITLE="[${REPO_NAME}] New comment on issue #${ISSUE_NUMBER}: ${ISSUE_TITLE}"
+              fi
+              EMBED_DESCRIPTION="$COMMENT"
+              EMBED_URL="$URL"
+              EMBED_COLOR=16766720
+            fi
+          fi
+
+          ########## NEW BRANCH ##########
+          if [ "$EVENT_NAME" = "create" ]; then
+            TYPE=$(jq -r '.ref_type // "unknown"' "$EVENT_PATH")
+            NAME=$(jq -r '.ref // "unknown"' "$EVENT_PATH")
+            REPO_URL=$(jq -r '.repository.html_url // ""' "$EVENT_PATH")
+            BRANCH_URL="$REPO_URL/tree/$NAME"
+
+            if [ "$TYPE" = "branch" ]; then
+              EMBED_TITLE="[${REPO_NAME}] New branch created: ${NAME}"
+              EMBED_DESCRIPTION=""
+              EMBED_URL="$BRANCH_URL"
+              EMBED_COLOR=2263842
+            fi
+          fi
+
+          ########## NEW COMMITS PUSHED ##########
+          if [ "$EVENT_NAME" = "push" ]; then
+            BRANCH=$(jq -r '.ref' "$EVENT_PATH" | sed 's|refs/heads/||')
+            COMMITS_COUNT=$(jq '.commits | length' "$EVENT_PATH")
+
+            if [ "$COMMITS_COUNT" -gt 0 ]; then
+              COMMIT_MSG=$(jq -r '.commits[0].message // "No message"' "$EVENT_PATH")
+              COMMIT_URL=$(jq -r '.commits[0].url // ""' "$EVENT_PATH")
+              COMMIT_AUTHOR=$(jq -r '.commits[0].author.name // "Unknown"' "$EVENT_PATH")
+
+              EMBED_TITLE="[${REPO_NAME}] New commit pushed to ${BRANCH}"
+              EMBED_DESCRIPTION="**${COMMIT_AUTHOR}:** ${COMMIT_MSG}"
+              EMBED_URL="$COMMIT_URL"
+              EMBED_COLOR=3447003
+            fi
+          fi
+
+          ########## BUILD JSON SAFELY WITH jq ##########
+          payload=$(jq -n \
+            --arg actor "$ACTOR" \
+            --arg avatar "$ACTOR_AVATAR" \
+            --arg title "$EMBED_TITLE" \
+            --arg desc "$EMBED_DESCRIPTION" \
+            --arg url "$EMBED_URL" \
+            --argjson color "$EMBED_COLOR" \
+            '{
+              embeds: [{
+                author: { name: $actor, icon_url: $avatar },
+                title: $title,
+                description: $desc,
+                url: $url,
+                color: $color
+              }]
+            }'
+          )
+
+          echo "Final JSON payload:"
+          echo "$payload"
+
+          curl -H "Content-Type: application/json" \
+               -X POST \
+               -d "$payload" \
+               "$DISCORD_WEBHOOK"
