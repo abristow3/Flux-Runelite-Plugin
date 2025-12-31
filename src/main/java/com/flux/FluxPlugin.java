@@ -4,6 +4,10 @@ import com.flux.services.ClanRankMonitor;
 import com.flux.services.CompetitionScheduler;
 import com.flux.services.GoogleSheetParser;
 import com.flux.services.LoginMessageSender;
+import com.flux.services.wom.CompetitionConfigUpdater;
+import com.flux.services.wom.CompetitionDataParser;
+import com.flux.services.wom.CompetitionFinder;
+import com.flux.services.wom.WiseOldManApiClient;
 import com.google.inject.Provides;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -24,6 +28,7 @@ import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.ui.overlay.OverlayManager;
 import net.runelite.client.util.ImageUtil;
+import okhttp3.OkHttpClient;
 
 import java.awt.image.BufferedImage;
 
@@ -43,10 +48,10 @@ public class FluxPlugin extends Plugin {
     @Inject private OverlayManager overlayManager;
     @Inject private FluxOverlay overlay;
     @Inject private ClientToolbar clientToolbar;
+    @Inject private OkHttpClient okHttpClient;
 
     private FluxPanel panel;
     private NavigationButton uiNavigationButton;
-
     private CompetitionScheduler competitionScheduler;
     private GoogleSheetParser configParser;
     private ClanRankMonitor clanRankMonitor;
@@ -55,7 +60,6 @@ public class FluxPlugin extends Plugin {
     @Override
     protected void startUp() {
         overlayManager.add(overlay);
-
         initializePanel();
         initializeServices();
         startServices();
@@ -89,7 +93,18 @@ public class FluxPlugin extends Plugin {
     }
 
     private void initializeServices() {
-        competitionScheduler = new CompetitionScheduler(configManager);
+        WiseOldManApiClient apiClient = new WiseOldManApiClient(okHttpClient);
+        CompetitionDataParser dataParser = new CompetitionDataParser();
+        CompetitionFinder finder = new CompetitionFinder(apiClient, dataParser);
+        CompetitionConfigUpdater configUpdater = new CompetitionConfigUpdater(configManager);
+
+        competitionScheduler = new CompetitionScheduler(
+                configManager,
+                apiClient,
+                dataParser,
+                finder,
+                configUpdater
+        );
 
         configParser = new GoogleSheetParser(
                 configManager,

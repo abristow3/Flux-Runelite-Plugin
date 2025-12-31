@@ -14,9 +14,12 @@ public class WiseOldManApiClient {
     private static final String BASE_API_URL = "https://api.wiseoldman.net/v2";
     private static final String GROUP_ID = "141";
     private static final JsonParser jsonParser = new JsonParser();
+    private final OkHttpClient httpClient;
 
     @Inject
-    private OkHttpClient httpClient;
+    public WiseOldManApiClient(OkHttpClient httpClient) {
+        this.httpClient = httpClient;
+    }
 
     public JsonArray fetchGroupCompetitions() throws Exception {
         String urlString = BASE_API_URL + "/groups/" + GROUP_ID + "/competitions";
@@ -34,7 +37,7 @@ public class WiseOldManApiClient {
         return "https://wiseoldman.net/competitions/" + competitionId;
     }
 
-    private String makeHttpRequest(String urlString) throws IOException {
+    private String makeHttpRequest(String urlString) throws Exception {
         Request request = new Request.Builder()
                 .url(urlString)
                 .build();

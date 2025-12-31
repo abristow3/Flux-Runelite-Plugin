@@ -8,7 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.*;
-
+import com.google.inject.Inject;
 import static com.flux.services.wom.CompetitionModels.*;
 
 
@@ -27,17 +27,20 @@ public class CompetitionScheduler {
     private final CompetitionFinder finder;
     private final CompetitionConfigUpdater configUpdater;
 
-    public CompetitionScheduler(ConfigManager configManager) {
+    @Inject
+    public CompetitionScheduler(ConfigManager configManager,
+                                WiseOldManApiClient apiClient,
+                                CompetitionDataParser dataParser,
+                                CompetitionFinder finder,
+                                CompetitionConfigUpdater configUpdater) {
         this.configManager = configManager;
         this.schedulerService = Executors.newSingleThreadScheduledExecutor();
-
-        // service components
-        this.apiClient = new WiseOldManApiClient();
-        this.dataParser = new CompetitionDataParser();
-        this.finder = new CompetitionFinder(apiClient, dataParser);
-        this.configUpdater = new CompetitionConfigUpdater(configManager);
+        
+        this.apiClient = apiClient;
+        this.dataParser = dataParser;
+        this.finder = finder;
+        this.configUpdater = configUpdater;
     }
-
 
     // Starts the periodic wom comp check scheduler.
     public void startScheduler() {
