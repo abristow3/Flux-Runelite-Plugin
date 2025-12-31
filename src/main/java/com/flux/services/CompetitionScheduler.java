@@ -27,7 +27,6 @@ public class CompetitionScheduler {
     private final CompetitionFinder finder;
     private final CompetitionConfigUpdater configUpdater;
 
-    @Inject
     public CompetitionScheduler(ConfigManager configManager,
                                 WiseOldManApiClient apiClient,
                                 CompetitionDataParser dataParser,

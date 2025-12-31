@@ -16,7 +16,6 @@ public class WiseOldManApiClient {
     private static final JsonParser jsonParser = new JsonParser();
     private final OkHttpClient httpClient;
 
-    @Inject
     public WiseOldManApiClient(OkHttpClient httpClient) {
         this.httpClient = httpClient;
     }
