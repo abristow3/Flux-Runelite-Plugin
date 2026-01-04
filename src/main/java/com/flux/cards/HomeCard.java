@@ -79,11 +79,11 @@ public class HomeCard extends FluxCard {
         addVerticalSpace(SPACING_SMALL);
 
         LinkButton[] linkButtons = {
-                new LinkButton("Flux Clan Server", "/discord.png", "https://discord.gg/Sr4r6wXy"),
-                new LinkButton("Roll Call", "/discord.png", "https://discord.com/channels/414435426007384075/636902420403847168"),
-                new LinkButton("Name Changes", "/discord.png", "https://discord.com/channels/414435426007384075/415499145017557032"),
-                new LinkButton("Announcements", "/discord.png", "https://discord.com/channels/414435426007384075/1349697176183246868"),
-                new LinkButton("Events", "/discord.png", "https://discord.com/channels/414435426007384075/414458243499425792"),
+                new LinkButton("Flux Clan Server", "/discord.png", "https://discord.gg/pTxsfJMNRJ"),
+                new LinkButton("Roll Call", "/discord.png", "discord://discord.com/channels/414435426007384075/636902420403847168"),
+                new LinkButton("Name Changes", "/discord.png", "discord://discord.com/channels/414435426007384075/415499145017557032"),
+                new LinkButton("Announcements", "/discord.png", "discord://discord.com/channels/414435426007384075/1349697176183246868"),
+                new LinkButton("Events", "/discord.png", "discord://discord.com/channels/414435426007384075/414458243499425792"),
                 new LinkButton("Wise Old Man", "/wom.png", "https://wiseoldman.net/groups/141")
         };
         addLinkButtons(linkButtons);

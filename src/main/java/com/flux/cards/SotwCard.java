@@ -90,7 +90,7 @@ public class SotwCard extends FluxCard {
 
     private void addButtons() {
         LinkButton[] linkButtons = {
-                new LinkButton("SOTW", "/discord.png", "https://discord.com/channels/414435426007384075/416998364601909288"),
+                new LinkButton("SOTW", "/discord.png", "discord://discord.com/channels/414435426007384075/416998364601909288"),
                 new LinkButton("SOTW Wise Old Man", "/wom.png", getConfigValue("sotw_wom_link", "https://wiseoldman.net/groups/141/competitions"))
         };
         addLinkButtons(linkButtons);

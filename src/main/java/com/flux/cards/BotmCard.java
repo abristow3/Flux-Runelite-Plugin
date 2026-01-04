@@ -106,8 +106,8 @@ public class BotmCard extends FluxCard {
 
     private void addButtons() {
         LinkButton[] linkButtons = {
-                new LinkButton("BOTM", "/discord.png", "https://discord.com/channels/414435426007384075/1014523362711715860"),
-                new LinkButton("BOTM Drops", "/discord.png", "https://discord.com/channels/414435426007384075/1047792122914406420"),
+                new LinkButton("BOTM", "/discord.png", "discord://discord.com/channels/414435426007384075/1014523362711715860"),
+                new LinkButton("BOTM Drops", "/discord.png", "discord://discord.com/channels/414435426007384075/1047792122914406420"),
                 new LinkButton("BOTM Wise Old Man", "/wom.png", getConfigValue("botmWomUrl", "https://wiseoldman.net/groups/141/competitions"))
         };
         addLinkButtons(linkButtons);
