@@ -8,7 +8,9 @@ on:
   issue_comment:
     types: [created]
   create:
-  push:   # NEW: trigger on commits to all branches
+  push:   # <-- NEW: triggers on commits to all branches
+  release:
+    types: [published]   # <-- NEW: triggers on release publications
 
 jobs:
   notify:
@@ -104,6 +106,7 @@ jobs:
             BRANCH=$(jq -r '.ref' "$EVENT_PATH" | sed 's|refs/heads/||')
             COMMITS_COUNT=$(jq '.commits | length' "$EVENT_PATH")
 
+            # Only send if there are actual commits (not tag moves, branch deletions, etc.)
             if [ "$COMMITS_COUNT" -gt 0 ]; then
               COMMIT_MSG=$(jq -r '.commits[0].message // "No message"' "$EVENT_PATH")
               COMMIT_URL=$(jq -r '.commits[0].url // ""' "$EVENT_PATH")
@@ -116,29 +119,49 @@ jobs:
             fi
           fi
 
-          ########## BUILD JSON SAFELY WITH jq ##########
-          payload=$(jq -n \
-            --arg actor "$ACTOR" \
-            --arg avatar "$ACTOR_AVATAR" \
-            --arg title "$EMBED_TITLE" \
-            --arg desc "$EMBED_DESCRIPTION" \
-            --arg url "$EMBED_URL" \
-            --argjson color "$EMBED_COLOR" \
-            '{
-              embeds: [{
-                author: { name: $actor, icon_url: $avatar },
-                title: $title,
-                description: $desc,
-                url: $url,
-                color: $color
-              }]
-            }'
-          )
+          ########## NEW RELEASE PUBLISHED ##########
+          if [ "$EVENT_NAME" = "release" ]; then
+            ACTION=$(jq -r '.action' "$EVENT_PATH")
+            TAG_NAME=$(jq -r '.release.tag_name // "No tag"' "$EVENT_PATH")
+            URL=$(jq -r '.release.html_url // "No URL"' "$EVENT_PATH")
+            BODY=$(jq -r '.release.body // ""' "$EVENT_PATH")
 
-          echo "Final JSON payload:"
-          echo "$payload"
+            if [ "$ACTION" = "published" ]; then
+              EMBED_TITLE="[${REPO_NAME}] New release published: ${TAG_NAME}"
+              EMBED_DESCRIPTION="$BODY"
+              EMBED_URL="$URL"
+              EMBED_COLOR=65280  # Green color for releases
+            fi
+          fi
 
-          curl -H "Content-Type: application/json" \
-               -X POST \
-               -d "$payload" \
-               "$DISCORD_WEBHOOK"
+          ########## ONLY SEND IF EMBED IS NOT EMPTY ##########
+          if [ -n "$EMBED_TITLE" ] && [ -n "$EMBED_DESCRIPTION" ]; then
+            ########## BUILD JSON SAFELY WITH jq ##########
+            payload=$(jq -n \
+              --arg actor "$ACTOR" \
+              --arg avatar "$ACTOR_AVATAR" \
+              --arg title "$EMBED_TITLE" \
+              --arg desc "$EMBED_DESCRIPTION" \
+              --arg url "$EMBED_URL" \
+              --argjson color "$EMBED_COLOR" \
+              '{
+                embeds: [{
+                  author: { name: $actor, icon_url: $avatar },
+                  title: $title,
+                  description: $desc,
+                  url: $url,
+                  color: $color
+                }]
+              }'
+            )
+
+            echo "Final JSON payload:"
+            echo "$payload"
+
+            curl -H "Content-Type: application/json" \
+                 -X POST \
+                 -d "$payload" \
+                 "$DISCORD_WEBHOOK"
+          else
+            echo "No event to notify. Skipping Discord notification."
+          fi
