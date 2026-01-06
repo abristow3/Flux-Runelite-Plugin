@@ -10,6 +10,9 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyledDocument;
 import java.awt.*;
 
 public class HomeCard extends FluxCard {
@@ -24,7 +27,7 @@ public class HomeCard extends FluxCard {
     private final FluxConfig config;
     private final ConfigManager configManager;
     private DefaultTableModel tableModel;
-    private JTextArea announcementsArea;
+    private JTextPane announcementsPane;
 
     public HomeCard(FluxConfig config, ConfigManager configManager) {
         super();
@@ -57,21 +60,28 @@ public class HomeCard extends FluxCard {
             announcement = "No Announcements.";
         }
 
-        announcementsArea = new JTextArea(announcement);
-        announcementsArea.setLineWrap(true);
-        announcementsArea.setWrapStyleWord(true);
-        announcementsArea.setEditable(false);
-        announcementsArea.setOpaque(false);
-        announcementsArea.setForeground(COLOR_LIGHT_GRAY);
-        announcementsArea.setBorder(null);
-        announcementsArea.setFocusable(false);
+        announcementsPane = new JTextPane();
+        announcementsPane.setText(announcement);
+        announcementsPane.setEditable(false);
+        announcementsPane.setOpaque(false);
+        announcementsPane.setFocusable(false);
+        announcementsPane.setBorder(null);
+        announcementsPane.setForeground(COLOR_LIGHT_GRAY);
 
-        announcementsArea.setMaximumSize(
-                new Dimension(Integer.MAX_VALUE, announcementsArea.getPreferredSize().height)
+        // Center-align text
+        StyledDocument doc = announcementsPane.getStyledDocument();
+        SimpleAttributeSet center = new SimpleAttributeSet();
+        StyleConstants.setAlignment(center, StyleConstants.ALIGN_CENTER);
+        doc.setParagraphAttributes(0, doc.getLength(), center, false);
+
+        // text wrapping constraint
+        announcementsPane.setMaximumSize(
+                new Dimension(Integer.MAX_VALUE, announcementsPane.getPreferredSize().height)
         );
 
-        add(announcementsArea);
+        add(announcementsPane);
     }
+
 
     private void addEventsSection() {
         add(createSectionTitle("Events"));
@@ -197,12 +207,22 @@ public class HomeCard extends FluxCard {
             announcement = "No Announcements.";
         }
 
-        if (announcementsArea != null) {
-            announcementsArea.setText(announcement);
-            announcementsArea.revalidate();
-            announcementsArea.repaint();
+        if (announcementsPane != null) {
+            String finalAnnouncement = announcement;
+            SwingUtilities.invokeLater(() -> {
+                announcementsPane.setText(finalAnnouncement);
+
+                StyledDocument doc = announcementsPane.getStyledDocument();
+                SimpleAttributeSet center = new SimpleAttributeSet();
+                StyleConstants.setAlignment(center, StyleConstants.ALIGN_CENTER);
+                doc.setParagraphAttributes(0, doc.getLength(), center, false);
+
+                announcementsPane.revalidate();
+                announcementsPane.repaint();
+            });
         }
     }
+
 
     public void refreshButtonLinks() {
         updateButtonUrl("Wise Old Man", "wom_url", configManager);
