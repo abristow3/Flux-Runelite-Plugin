@@ -14,22 +14,17 @@ import java.awt.*;
 
 public class HomeCard extends FluxCard {
     private static final Logger logger = LoggerFactory.getLogger(HomeCard.class);
-
     private static final Font HEADER_FONT = new Font("SansSerif", Font.BOLD, 14);
-
     private static final Color TABLE_BG = new Color(30, 30, 30);
     private static final Color HEADER_BG = new Color(50, 50, 50);
     private static final Color GRID_COLOR = new Color(70, 70, 70);
-
     private static final int BOTM_ROW = 0;
     private static final int SOTW_ROW = 1;
     private static final int HUNT_ROW = 2;
-
     private final FluxConfig config;
     private final ConfigManager configManager;
-
     private DefaultTableModel tableModel;
-    private JLabel announcementsLabel;
+    private JTextArea announcementsArea;
 
     public HomeCard(FluxConfig config, ConfigManager configManager) {
         super();
@@ -58,12 +53,24 @@ public class HomeCard extends FluxCard {
         addVerticalSpace(SPACING_SMALL);
 
         String announcement = configManager.getConfiguration("flux", "plugin_announcement_message");
-        announcementsLabel = createWrappedLabel(
-                announcement != null ? announcement : "No Announcements.",
-                null,
-                COLOR_LIGHT_GRAY
+        if (announcement == null || announcement.trim().isEmpty()) {
+            announcement = "No Announcements.";
+        }
+
+        announcementsArea = new JTextArea(announcement);
+        announcementsArea.setLineWrap(true);
+        announcementsArea.setWrapStyleWord(true);
+        announcementsArea.setEditable(false);
+        announcementsArea.setOpaque(false);
+        announcementsArea.setForeground(COLOR_LIGHT_GRAY);
+        announcementsArea.setBorder(null);
+        announcementsArea.setFocusable(false);
+
+        announcementsArea.setMaximumSize(
+                new Dimension(Integer.MAX_VALUE, announcementsArea.getPreferredSize().height)
         );
-        add(announcementsLabel);
+
+        add(announcementsArea);
     }
 
     private void addEventsSection() {
@@ -186,7 +193,15 @@ public class HomeCard extends FluxCard {
 
     public void refreshPluginAnnouncement() {
         String announcement = configManager.getConfiguration("flux", "plugin_announcement_message");
-        announcementsLabel.setText(announcement);
+        if (announcement == null || announcement.trim().isEmpty()) {
+            announcement = "No Announcements.";
+        }
+
+        if (announcementsArea != null) {
+            announcementsArea.setText(announcement);
+            announcementsArea.revalidate();
+            announcementsArea.repaint();
+        }
     }
 
     public void refreshButtonLinks() {
