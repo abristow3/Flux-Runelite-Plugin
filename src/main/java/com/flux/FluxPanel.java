@@ -2,6 +2,7 @@ package com.flux;
 
 import java.awt.*;
 import java.util.*;
+import javax.inject.Inject;
 import javax.swing.*;
 import javax.swing.Timer;
 
@@ -13,8 +14,11 @@ import net.runelite.client.config.ConfigManager;
 import com.flux.cards.*;
 import net.runelite.client.ui.PluginPanel;
 import net.runelite.client.util.ImageUtil;
+import okhttp3.OkHttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import okhttp3.*;
+import javax.inject.Inject;
 
 public class FluxPanel extends PluginPanel {
     private static final Logger logger = LoggerFactory.getLogger(FluxPanel.class);
@@ -44,6 +48,9 @@ public class FluxPanel extends PluginPanel {
     private InverseCornerButton activeFooterButton;
     private boolean isAdminOrHigher = false;
     private boolean adminHubInitialized = false;
+
+    @Inject
+    private OkHttpClient okHttpClient;
 
     private final Timer glowTimer = new Timer(GLOW_CHECK_INTERVAL, e -> updateEventGlows());
 
@@ -178,7 +185,7 @@ public class FluxPanel extends PluginPanel {
                 return new EntryConfig(" SOTW", "/sotw.png", sotwCard, entry);
 
             case BOTM:
-                botmCard = new BotmCard(configManager);
+                botmCard = new BotmCard(configManager, okHttpClient);
                 return new EntryConfig(" BOTM", "/botm.png", botmCard, entry);
 
             case HUB:
@@ -186,7 +193,7 @@ public class FluxPanel extends PluginPanel {
                 return new EntryConfig(" Admin Hub", "/hub.png", adminHubCard, entry);
 
             case HUNT:
-                huntCard = new HuntCard(configManager);
+                huntCard = new HuntCard(configManager, okHttpClient);
                 return new EntryConfig(" The Hunt", "/hunt.png", huntCard, entry);
 
             default:

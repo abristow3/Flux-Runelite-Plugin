@@ -10,26 +10,24 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyledDocument;
 import java.awt.*;
 
 public class HomeCard extends FluxCard {
     private static final Logger logger = LoggerFactory.getLogger(HomeCard.class);
-
     private static final Font HEADER_FONT = new Font("SansSerif", Font.BOLD, 14);
-
     private static final Color TABLE_BG = new Color(30, 30, 30);
     private static final Color HEADER_BG = new Color(50, 50, 50);
     private static final Color GRID_COLOR = new Color(70, 70, 70);
-
     private static final int BOTM_ROW = 0;
     private static final int SOTW_ROW = 1;
     private static final int HUNT_ROW = 2;
-
     private final FluxConfig config;
     private final ConfigManager configManager;
-
     private DefaultTableModel tableModel;
-    private JLabel announcementsLabel;
+    private JTextPane announcementsPane;
 
     public HomeCard(FluxConfig config, ConfigManager configManager) {
         super();
@@ -58,13 +56,32 @@ public class HomeCard extends FluxCard {
         addVerticalSpace(SPACING_SMALL);
 
         String announcement = configManager.getConfiguration("flux", "plugin_announcement_message");
-        announcementsLabel = createWrappedLabel(
-                announcement != null ? announcement : "No Announcements.",
-                null,
-                COLOR_LIGHT_GRAY
+        if (announcement == null || announcement.trim().isEmpty()) {
+            announcement = "No Announcements.";
+        }
+
+        announcementsPane = new JTextPane();
+        announcementsPane.setText(announcement);
+        announcementsPane.setEditable(false);
+        announcementsPane.setOpaque(false);
+        announcementsPane.setFocusable(false);
+        announcementsPane.setBorder(null);
+        announcementsPane.setForeground(COLOR_LIGHT_GRAY);
+
+        // Center-align text
+        StyledDocument doc = announcementsPane.getStyledDocument();
+        SimpleAttributeSet center = new SimpleAttributeSet();
+        StyleConstants.setAlignment(center, StyleConstants.ALIGN_CENTER);
+        doc.setParagraphAttributes(0, doc.getLength(), center, false);
+
+        // text wrapping constraint
+        announcementsPane.setMaximumSize(
+                new Dimension(Integer.MAX_VALUE, announcementsPane.getPreferredSize().height)
         );
-        add(announcementsLabel);
+
+        add(announcementsPane);
     }
+
 
     private void addEventsSection() {
         add(createSectionTitle("Events"));
@@ -79,11 +96,11 @@ public class HomeCard extends FluxCard {
         addVerticalSpace(SPACING_SMALL);
 
         LinkButton[] linkButtons = {
-                new LinkButton("Flux Clan Server", "/discord.png", "https://discord.gg/Sr4r6wXy"),
-                new LinkButton("Roll Call", "/discord.png", "https://discord.com/channels/414435426007384075/636902420403847168"),
-                new LinkButton("Name Changes", "/discord.png", "https://discord.com/channels/414435426007384075/415499145017557032"),
-                new LinkButton("Announcements", "/discord.png", "https://discord.com/channels/414435426007384075/1349697176183246868"),
-                new LinkButton("Events", "/discord.png", "https://discord.com/channels/414435426007384075/414458243499425792"),
+                new LinkButton("Flux Clan Server", "/discord.png", "https://discord.gg/pTxsfJMNRJ"),
+                new LinkButton("Roll Call", "/discord.png", "discord://discord.com/channels/414435426007384075/636902420403847168"),
+                new LinkButton("Name Changes", "/discord.png", "discord://discord.com/channels/414435426007384075/415499145017557032"),
+                new LinkButton("Announcements", "/discord.png", "discord://discord.com/channels/414435426007384075/1349697176183246868"),
+                new LinkButton("Events", "/discord.png", "discord://discord.com/channels/414435426007384075/414458243499425792"),
                 new LinkButton("Wise Old Man", "/wom.png", "https://wiseoldman.net/groups/141")
         };
         addLinkButtons(linkButtons);
@@ -186,8 +203,26 @@ public class HomeCard extends FluxCard {
 
     public void refreshPluginAnnouncement() {
         String announcement = configManager.getConfiguration("flux", "plugin_announcement_message");
-        announcementsLabel.setText(announcement);
+        if (announcement == null || announcement.trim().isEmpty()) {
+            announcement = "No Announcements.";
+        }
+
+        if (announcementsPane != null) {
+            String finalAnnouncement = announcement;
+            SwingUtilities.invokeLater(() -> {
+                announcementsPane.setText(finalAnnouncement);
+
+                StyledDocument doc = announcementsPane.getStyledDocument();
+                SimpleAttributeSet center = new SimpleAttributeSet();
+                StyleConstants.setAlignment(center, StyleConstants.ALIGN_CENTER);
+                doc.setParagraphAttributes(0, doc.getLength(), center, false);
+
+                announcementsPane.revalidate();
+                announcementsPane.repaint();
+            });
+        }
     }
+
 
     public void refreshButtonLinks() {
         updateButtonUrl("Wise Old Man", "wom_url", configManager);

@@ -16,6 +16,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import okhttp3.OkHttpClient;
 
 public class HuntCard extends FluxCard {
     private final ConfigManager configManager;
@@ -29,10 +30,12 @@ public class HuntCard extends FluxCard {
     private GoogleSheetParser sheetParser;
     private boolean wasEventActive = false;
     private static final Logger logger = LoggerFactory.getLogger(HuntCard.class);
+    private final OkHttpClient httpClient;
 
-    public HuntCard(ConfigManager configManager) {
+    public HuntCard(ConfigManager configManager, OkHttpClient httpClient) {
         super();
         this.configManager = configManager;
+        this.httpClient = httpClient;
 
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         buildUI();
@@ -144,7 +147,7 @@ public class HuntCard extends FluxCard {
         String womUrl = getConfigValue("hunt_wom_url", "https://wiseoldman.net/competitions", configManager);
 
         addLinkButtons(new LinkButton[] {
-                new LinkButton("Hunt Signup", "/discord.png", "https://discord.com/channels/414435426007384075/414458243499425792"),
+                new LinkButton("Hunt Signup", "/discord.png", "discord://discord.com/channels/414435426007384075/414458243499425792"),
                 new LinkButton("The Hunt GDoc", "/hunt.png", gdocUrl),
                 new LinkButton("Hunt WOM", "/wom.png", womUrl)
         });
@@ -253,7 +256,7 @@ public class HuntCard extends FluxCard {
 
     private void startSheetPolling() {
         if (sheetParser == null) {
-            sheetParser = new GoogleSheetParser(configManager, GoogleSheetParser.SheetType.HUNT, this::handleSheetScoreUpdate);
+            sheetParser = new GoogleSheetParser(configManager, GoogleSheetParser.SheetType.HUNT, this::handleSheetScoreUpdate, httpClient);
         }
         sheetParser.start();
     }

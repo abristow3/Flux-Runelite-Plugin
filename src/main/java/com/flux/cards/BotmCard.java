@@ -6,6 +6,7 @@ import com.flux.components.LeaderboardCellRenderer;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import okhttp3.OkHttpClient;
 import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -24,10 +25,12 @@ public class BotmCard extends FluxCard {
     private GoogleSheetParser sheetParser;
     private boolean wasEventActive = false;
     private static final Logger logger = LoggerFactory.getLogger(BotmCard.class);
+    private final OkHttpClient httpClient;
 
-    public BotmCard(ConfigManager configManager) {
+    public BotmCard(ConfigManager configManager, OkHttpClient httpClient) {
         super();
         this.configManager = configManager;
+        this.httpClient = httpClient;
 
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         buildUI();
@@ -106,8 +109,8 @@ public class BotmCard extends FluxCard {
 
     private void addButtons() {
         LinkButton[] linkButtons = {
-                new LinkButton("BOTM", "/discord.png", "https://discord.com/channels/414435426007384075/1014523362711715860"),
-                new LinkButton("BOTM Drops", "/discord.png", "https://discord.com/channels/414435426007384075/1047792122914406420"),
+                new LinkButton("BOTM", "/discord.png", "discord://discord.com/channels/414435426007384075/1014523362711715860"),
+                new LinkButton("BOTM Drops", "/discord.png", "discord://discord.com/channels/414435426007384075/1047792122914406420"),
                 new LinkButton("BOTM Wise Old Man", "/wom.png", getConfigValue("botmWomUrl", "https://wiseoldman.net/groups/141/competitions"))
         };
         addLinkButtons(linkButtons);
@@ -190,7 +193,7 @@ public class BotmCard extends FluxCard {
                     configManager.setConfiguration("flux", "botmLeaderboard", newJson);
                     SwingUtilities.invokeLater(this::refreshLeaderboard);
                 }
-            });
+            }, httpClient);
         }
         sheetParser.start();
     }
