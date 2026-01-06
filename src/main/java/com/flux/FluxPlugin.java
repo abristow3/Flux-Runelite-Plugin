@@ -110,7 +110,8 @@ public class FluxPlugin extends Plugin {
                 configManager,
                 GoogleSheetParser.SheetType.CONFIG,
                 this::handleConfigUpdate,
-                true
+                true,
+                okHttpClient
         );
 
         clanRankMonitor = new ClanRankMonitor(client, this::handleRankChange);
