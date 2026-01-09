@@ -8,9 +8,9 @@ on:
   issue_comment:
     types: [created]
   create:
-  push:   # triggers on commits to all branches
+  push:
   release:
-    types: [published]   # triggers on release publications
+    types: [published]
 
 jobs:
   notify:
@@ -58,14 +58,21 @@ jobs:
             URL=$(jq -r '.issue.html_url // "No URL"' "$EVENT_PATH")
             BODY=$(jq -r '.issue.body // ""' "$EVENT_PATH")
 
-            # Build JSON array of label fields with color
-            LABEL_FIELDS=$(jq -c '[.issue.labels[] | {name: .name, value: ("Color: #" + .color), inline: true}]' "$EVENT_PATH")
+            # Build JSON array of label fields with just the label name
+            LABEL_FIELDS=$(jq -c '[.issue.labels[] | {name: .name, value: "\u200b", inline: true}]' "$EVENT_PATH")
+
+            # Use first label color for embed, fallback to default
+            FIRST_LABEL_COLOR=$(jq -r '.issue.labels[0].color // empty' "$EVENT_PATH")
+            if [ -n "$FIRST_LABEL_COLOR" ]; then
+              EMBED_COLOR=$((16#${FIRST_LABEL_COLOR}))
+            else
+              EMBED_COLOR=2263842
+            fi
 
             if [ "$ACTION" = "opened" ]; then
               EMBED_TITLE="[${REPO_NAME}] New issue #${NUMBER}: ${TITLE}"
               EMBED_DESCRIPTION="$BODY"
               EMBED_URL="$URL"
-              EMBED_COLOR=2263842  # Default embed color for issues
             fi
           fi
 
@@ -133,13 +140,12 @@ jobs:
               EMBED_TITLE="[${REPO_NAME}] New release published: ${TAG_NAME}"
               EMBED_DESCRIPTION="$BODY"
               EMBED_URL="$URL"
-              EMBED_COLOR=65280  # Green color for releases
+              EMBED_COLOR=65280
             fi
           fi
 
           ########## ONLY SEND IF EMBED IS NOT EMPTY ##########
           if [ -n "$EMBED_TITLE" ] && [ -n "$EMBED_DESCRIPTION" ]; then
-            ########## BUILD JSON SAFELY WITH jq ##########
             payload=$(jq -n \
               --arg actor "$ACTOR" \
               --arg avatar "$ACTOR_AVATAR" \
