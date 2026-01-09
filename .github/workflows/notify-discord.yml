@@ -57,18 +57,28 @@ jobs:
             NUMBER=$(jq -r '.issue.number // "unknown"' "$EVENT_PATH")
             URL=$(jq -r '.issue.html_url // "No URL"' "$EVENT_PATH")
             BODY=$(jq -r '.issue.body // ""' "$EVENT_PATH")
-
-            # Build JSON array of label fields with just the label name
-            LABEL_FIELDS=$(jq -c '[.issue.labels[] | {name: .name, value: "\u200b", inline: true}]' "$EVENT_PATH")
-
-            # Use first label color for embed, fallback to default
+          
+            # Build label string with colored dot emojis
+            LABELS=$(jq -r '[.issue.labels[].name] | map(
+              if .=="bug" then "🔴 bug"
+              elif .=="good first issue" then "🟢 good first issue"
+              elif .=="enhancement" then "🟣 enhancement"
+              elif .=="documentation" then "🔵 documentation"
+              elif .=="unit-tests" then "🟡 unit-tests"
+              else "⚪ "+. end) | join(", ")' "$EVENT_PATH")
+          
+            if [ -n "$LABELS" ]; then
+              BODY="$BODY\n\n**Labels:** $LABELS"
+            fi
+          
+            # Use first label color for embed if available
             FIRST_LABEL_COLOR=$(jq -r '.issue.labels[0].color // empty' "$EVENT_PATH")
             if [ -n "$FIRST_LABEL_COLOR" ]; then
               EMBED_COLOR=$((16#${FIRST_LABEL_COLOR}))
             else
               EMBED_COLOR=2263842
             fi
-
+          
             if [ "$ACTION" = "opened" ]; then
               EMBED_TITLE="[${REPO_NAME}] New issue #${NUMBER}: ${TITLE}"
               EMBED_DESCRIPTION="$BODY"
