@@ -67,8 +67,11 @@ jobs:
               elif .=="unit-tests" then "🟡 unit-tests"
               else "⚪ "+. end) | join(", ")' "$EVENT_PATH")
           
+            # Append labels with a real line break
             if [ -n "$LABELS" ]; then
-              BODY="$BODY\n\n**Labels:** $LABELS"
+              BODY="$BODY
+          
+          Labels: $LABELS"
             fi
           
             # Use first label color for embed if available
