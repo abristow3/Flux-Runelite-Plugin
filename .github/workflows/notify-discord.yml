@@ -8,9 +8,9 @@ on:
   issue_comment:
     types: [created]
   create:
-  push:   # <-- NEW: triggers on commits to all branches
+  push:   # triggers on commits to all branches
   release:
-    types: [published]   # <-- NEW: triggers on release publications
+    types: [published]   # triggers on release publications
 
 jobs:
   notify:
@@ -31,6 +31,7 @@ jobs:
           EMBED_DESCRIPTION=""
           EMBED_URL=""
           EMBED_COLOR=0
+          LABEL_FIELDS="[]"
 
           ########## PULL REQUEST CLOSED ##########
           if [ "$EVENT_NAME" = "pull_request" ]; then
@@ -57,11 +58,14 @@ jobs:
             URL=$(jq -r '.issue.html_url // "No URL"' "$EVENT_PATH")
             BODY=$(jq -r '.issue.body // ""' "$EVENT_PATH")
 
+            # Build JSON array of label fields with color
+            LABEL_FIELDS=$(jq -c '[.issue.labels[] | {name: .name, value: ("Color: #" + .color), inline: true}]' "$EVENT_PATH")
+
             if [ "$ACTION" = "opened" ]; then
               EMBED_TITLE="[${REPO_NAME}] New issue #${NUMBER}: ${TITLE}"
               EMBED_DESCRIPTION="$BODY"
               EMBED_URL="$URL"
-              EMBED_COLOR=2263842
+              EMBED_COLOR=2263842  # Default embed color for issues
             fi
           fi
 
@@ -106,7 +110,6 @@ jobs:
             BRANCH=$(jq -r '.ref' "$EVENT_PATH" | sed 's|refs/heads/||')
             COMMITS_COUNT=$(jq '.commits | length' "$EVENT_PATH")
 
-            # Only send if there are actual commits (not tag moves, branch deletions, etc.)
             if [ "$COMMITS_COUNT" -gt 0 ]; then
               COMMIT_MSG=$(jq -r '.commits[0].message // "No message"' "$EVENT_PATH")
               COMMIT_URL=$(jq -r '.commits[0].url // ""' "$EVENT_PATH")
@@ -144,13 +147,15 @@ jobs:
               --arg desc "$EMBED_DESCRIPTION" \
               --arg url "$EMBED_URL" \
               --argjson color "$EMBED_COLOR" \
+              --argjson labels "$LABEL_FIELDS" \
               '{
                 embeds: [{
                   author: { name: $actor, icon_url: $avatar },
                   title: $title,
                   description: $desc,
                   url: $url,
-                  color: $color
+                  color: $color,
+                  fields: $labels
                 }]
               }'
             )
