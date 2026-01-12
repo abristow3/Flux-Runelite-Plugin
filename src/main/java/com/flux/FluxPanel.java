@@ -372,6 +372,7 @@ public class FluxPanel extends PluginPanel {
         botmCard.shutdown();
         sotwCard.shutdown();
         huntCard.shutdown();
+        competitionScheduler.stop();
     }
 
     private static class EntryConfig {

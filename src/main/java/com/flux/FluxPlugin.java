@@ -72,7 +72,6 @@ public class FluxPlugin extends Plugin {
         clientToolbar.removeNavigation(uiNavigationButton);
         panel.shutdown();
         configParser.shutdown();
-        competitionScheduler.stop();
         clanRankMonitor.shutdown();
     }
 
