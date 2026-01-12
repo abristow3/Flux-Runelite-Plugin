@@ -16,19 +16,15 @@ import com.flux.cards.*;
 import net.runelite.client.ui.PluginPanel;
 import net.runelite.client.util.ImageUtil;
 import okhttp3.OkHttpClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import okhttp3.*;
 
 public class FluxPanel extends PluginPanel {
-    private static final Logger logger = LoggerFactory.getLogger(FluxPanel.class);
-
     private static final int GLOW_CHECK_INTERVAL = 500;
     private static final int SCROLL_UNIT_INCREMENT = 16;
 
-    private FluxConfig config;
-    private ConfigManager configManager;
-    private CompetitionScheduler competitionScheduler;
+    private final FluxConfig config;
+    private final ConfigManager configManager;
+    private final CompetitionScheduler competitionScheduler;
 
     private final JPanel headerPanel = new JPanel();
     private final JPanel centerPanel = new JPanel();
