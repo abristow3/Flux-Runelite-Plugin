@@ -96,10 +96,16 @@ public class SotwCard extends FluxCard {
         addLinkButtons(linkButtons);
     }
 
-    // Public API
     public void refreshLeaderboard() {
+        if (tableModel == null) return;
+
         tableModel.setRowCount(0);
-        LinkedHashMap<String, Integer> leaderboard = parseLeaderboardJson("sotwLeaderboard", "xp", configManager);
+        LinkedHashMap<String, Integer> leaderboard = new LinkedHashMap<>();
+        try {
+            leaderboard = parseLeaderboardJson("sotwLeaderboard", "xp", configManager);
+        } catch (Exception e) {
+            logger.warn("Failed to parse leaderboard JSON", e);
+        }
 
         for (Map.Entry<String, Integer> entry : leaderboard.entrySet()) {
             String username = entry.getKey();
@@ -145,7 +151,6 @@ public class SotwCard extends FluxCard {
         return getConfigValue(key, defaultValue, configManager);
     }
 
-    // Private helpers
     private void startCountdownTimer() {
         if (countdownTimer != null) {
             countdownTimer.stop();
@@ -170,15 +175,23 @@ public class SotwCard extends FluxCard {
     }
 
     private void updateCountdownLabel() {
+        if (countdownLabel == null) return;
+
         if (!isEventActive()) {
             updateWrappedLabelText(countdownLabel, getEventEndedMessage(), false);
             return;
         }
 
-        String message = formatCountdownMessage("sotw_start_time", "sotw_end_time", configManager);
+        String message = "Event status unavailable.";
+        try {
+            if (configManager != null) {
+                message = formatCountdownMessage("sotw_start_time", "sotw_end_time", configManager);
+            }
+        } catch (Exception e) {
+            logger.warn("Failed to format countdown message", e);
+        }
 
-        // Override end message with winner info if available
-        if (message.equals("Event has ended.")) {
+        if ("Event has ended.".equals(message)) {
             message = getEventEndedMessageWithWinner();
         }
 
@@ -197,14 +210,25 @@ public class SotwCard extends FluxCard {
     }
 
     private String getEventEndedMessageWithWinner() {
-        String winner = configManager.getConfiguration("flux", "sotw_winner");
+        if (configManager == null) return "The event has ended.";
 
-        // Try to get winner from leaderboard if not in config
-        if ((winner == null || winner.isEmpty()) && tableModel.getRowCount() > 0) {
+        String winner = "";
+        try {
+            winner = configManager.getConfiguration("flux", "sotw_winner");
+        } catch (Exception e) {
+            logger.warn("Failed to get sotw_winner from config", e);
+        }
+
+        // fallback to tableModel
+        if ((winner == null || winner.isEmpty()) && tableModel != null && tableModel.getRowCount() > 0) {
             Object winnerObj = tableModel.getValueAt(0, 0);
             if (winnerObj != null) {
                 winner = winnerObj.toString();
-                configManager.setConfiguration("flux", "sotw_winner", winner);
+                try {
+                    configManager.setConfiguration("flux", "sotw_winner", winner);
+                } catch (Exception e) {
+                    logger.warn("Failed to save sotw_winner to config", e);
+                }
             }
         }
 
@@ -222,7 +246,7 @@ public class SotwCard extends FluxCard {
         }
 
         if (leaderboardCellRenderer != null) {
-            leaderboardCellRenderer.shutdown(); // stop table timers
+            leaderboardCellRenderer.shutdown();
         }
         
         super.shutdown();
