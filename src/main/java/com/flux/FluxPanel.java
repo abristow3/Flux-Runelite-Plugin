@@ -19,7 +19,6 @@ import okhttp3.OkHttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import okhttp3.*;
-import javax.inject.Inject;
 
 public class FluxPanel extends PluginPanel {
     private static final Logger logger = LoggerFactory.getLogger(FluxPanel.class);
@@ -73,17 +72,13 @@ public class FluxPanel extends PluginPanel {
     @Override
     public void onActivate()
     {
-        System.out.println("PANEL OPENED");
         competitionScheduler.start();
-
     }
 
     @Override
     public void onDeactivate()
     {
-        System.out.println("PANEL CLOSED");
         competitionScheduler.stop();
-
     }
 
     private void setupLayout() {
