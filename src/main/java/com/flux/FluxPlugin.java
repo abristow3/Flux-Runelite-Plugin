@@ -9,9 +9,6 @@ import com.flux.services.wom.CompetitionDataParser;
 import com.flux.services.wom.CompetitionFinder;
 import com.flux.services.wom.WiseOldManApiClient;
 import com.google.inject.Provides;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 
@@ -83,7 +80,7 @@ public class FluxPlugin extends Plugin {
         uiNavigationButton = NavigationButton.builder()
                 .tooltip("Flux")
                 .icon(icon)
-                .priority(5)
+                .priority(config.menuPriority())
                 .panel(panel)
                 .build();
 
