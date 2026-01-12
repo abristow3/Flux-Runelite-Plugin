@@ -9,9 +9,6 @@ import com.flux.services.wom.CompetitionDataParser;
 import com.flux.services.wom.CompetitionFinder;
 import com.flux.services.wom.WiseOldManApiClient;
 import com.google.inject.Provides;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 
@@ -60,9 +57,9 @@ public class FluxPlugin extends Plugin {
     @Override
     protected void startUp() {
         overlayManager.add(overlay);
-        initializePanel();
         initializeServices();
-        startServices();
+        initializePanel();
+        configParser.start();
         refreshAllCards();
     }
 
@@ -72,20 +69,18 @@ public class FluxPlugin extends Plugin {
         clientToolbar.removeNavigation(uiNavigationButton);
         panel.shutdown();
         configParser.shutdown();
-        competitionScheduler.shutdown();
         clanRankMonitor.shutdown();
     }
 
     private void initializePanel() {
         final BufferedImage icon = ImageUtil.loadImageResource(getClass(), "/flux-icon-tiny.png");
 
-        panel = new FluxPanel();
-        panel.init(config, configManager);
+        panel = new FluxPanel(competitionScheduler, config, configManager);
 
         uiNavigationButton = NavigationButton.builder()
                 .tooltip("Flux")
                 .icon(icon)
-                .priority(5)
+                .priority(config.menuPriority())
                 .panel(panel)
                 .build();
 
@@ -101,7 +96,6 @@ public class FluxPlugin extends Plugin {
         competitionScheduler = new CompetitionScheduler(
                 configManager,
                 apiClient,
-                dataParser,
                 finder,
                 configUpdater
         );
@@ -116,11 +110,6 @@ public class FluxPlugin extends Plugin {
 
         clanRankMonitor = new ClanRankMonitor(client, this::handleRankChange);
         loginMessageSender = new LoginMessageSender(chatMessageManager, configManager);
-    }
-
-    private void startServices() {
-        competitionScheduler.startScheduler();
-        configParser.start();
     }
 
     private void refreshAllCards() {
@@ -310,7 +299,6 @@ public class FluxPlugin extends Plugin {
         }
 
         if (key.equals("sotw_leaderboard") || key.equals("sotwLeaderboard")) {
-            logLeaderboard();
             if (panel != null) {
                 panel.refreshAllCards();
             }
@@ -324,14 +312,6 @@ public class FluxPlugin extends Plugin {
                 if (panel.getHomeCard() != null) {
                     panel.getHomeCard().refreshHuntStatus();
                 }
-            }
-        }
-        if (key.equals("huntActive")) {
-            if (panel != null && panel.getHuntCard() != null) {
-                panel.getHuntCard().checkEventStateChanged();
-            }
-            if (panel != null && panel.getHomeCard() != null) {
-                panel.getHomeCard().refreshHuntStatus();
             }
         }
 
@@ -363,26 +343,6 @@ public class FluxPlugin extends Plugin {
         if (key.equals("hunt_wom_url") || key.equals("hunt_gdoc_url")) {
             if (panel != null && panel.getHuntCard() != null) {
                 panel.getHuntCard().refreshButtonLinks();
-            }
-        }
-    }
-
-    private void logLeaderboard() {
-        String leaderboardJson = configManager.getConfiguration(CONFIG_GROUP, "sotwLeaderboard", String.class);
-
-        if (leaderboardJson != null && !leaderboardJson.isEmpty()) {
-            try {
-                JsonParser jsonParser = new JsonParser();
-                JsonArray leaderboardArray = jsonParser.parse(leaderboardJson).getAsJsonArray();
-                log.debug("Current SOTW Leaderboard:");
-                for (int i = 0; i < leaderboardArray.size(); i++) {
-                    JsonObject entry = leaderboardArray.get(i).getAsJsonObject();
-                    String username = entry.get("username").getAsString();
-                    int xp = entry.get("xp").getAsInt();
-                    log.debug(" - {} {} XP", username, xp);
-                }
-            } catch (Exception e) {
-                log.error("Error parsing leaderboard JSON", e);
             }
         }
     }

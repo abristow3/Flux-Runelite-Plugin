@@ -2,6 +2,7 @@ package com.flux;
 
 import com.flux.constants.EntrySelect;
 import net.runelite.client.config.*;
+
 import java.awt.*;
 import java.awt.event.KeyEvent;
 
@@ -11,6 +12,10 @@ public interface FluxConfig extends Config {
     String overlaySection = "Overlay section";
 
     // ========== OVERLAY SECTION - VISIBLE ==========
+    @ConfigItem(keyName = "menuPriority", name = "Sidebar Priority", description = "Adjust the runelite sidebar priority. Lower priority => higher on sidebar. Restart the client to take effect")
+    default int menuPriority() {
+        return 5;
+    }
 
     @ConfigItem(position = 1, keyName = "overlay", name = "Display Overlay", description = "Displays the overlay on your game screen.", section = overlaySection)
     default boolean overlay() {
@@ -28,8 +33,7 @@ public interface FluxConfig extends Config {
     }
 
     @ConfigItem(position = 4, keyName = "disclaimer", name = "Colors below must be different", description = "The Password Color and the Date & Time Color must be different.", section = overlaySection)
-    default void disclaimer() {
-    }
+    default void disclaimer() {}
 
     @ConfigItem(position = 5, keyName = "passColor", name = "Password Color", description = "The color of the Event Password.", section = overlaySection)
     default Color passColor() {

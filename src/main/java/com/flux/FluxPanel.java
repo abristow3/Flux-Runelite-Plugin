@@ -10,24 +10,21 @@ import com.flux.components.InverseCornerButton;
 import com.flux.components.combobox.ComboBoxIconEntry;
 import com.flux.components.combobox.ComboBoxIconListRenderer;
 import com.flux.constants.EntrySelect;
+import com.flux.services.CompetitionScheduler;
 import net.runelite.client.config.ConfigManager;
 import com.flux.cards.*;
 import net.runelite.client.ui.PluginPanel;
 import net.runelite.client.util.ImageUtil;
 import okhttp3.OkHttpClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import okhttp3.*;
-import javax.inject.Inject;
 
 public class FluxPanel extends PluginPanel {
-    private static final Logger logger = LoggerFactory.getLogger(FluxPanel.class);
-
     private static final int GLOW_CHECK_INTERVAL = 500;
     private static final int SCROLL_UNIT_INCREMENT = 16;
 
-    private FluxConfig config;
-    private ConfigManager configManager;
+    private final FluxConfig config;
+    private final ConfigManager configManager;
+    private final CompetitionScheduler competitionScheduler;
 
     private final JPanel headerPanel = new JPanel();
     private final JPanel centerPanel = new JPanel();
@@ -54,21 +51,30 @@ public class FluxPanel extends PluginPanel {
 
     private final Timer glowTimer = new Timer(GLOW_CHECK_INTERVAL, e -> updateEventGlows());
 
-    public FluxPanel() {
+    public FluxPanel(CompetitionScheduler competitionScheduler, FluxConfig config, ConfigManager configManager) {
         super(false);
-        setupLayout();
-        glowTimer.start();
-    }
-
-    public void init(FluxConfig config, ConfigManager configManager) {
+        this.competitionScheduler = competitionScheduler;
         this.config = config;
         this.configManager = configManager;
 
+        setupLayout();
+        glowTimer.start();
         initializeCards();
         setupHeader();
         setupFooter();
-
         selectFirstEntry();
+    }
+
+    @Override
+    public void onActivate()
+    {
+        competitionScheduler.start();
+    }
+
+    @Override
+    public void onDeactivate()
+    {
+        competitionScheduler.stop();
     }
 
     private void setupLayout() {
@@ -366,6 +372,7 @@ public class FluxPanel extends PluginPanel {
         botmCard.shutdown();
         sotwCard.shutdown();
         huntCard.shutdown();
+        competitionScheduler.stop();
     }
 
     private static class EntryConfig {
