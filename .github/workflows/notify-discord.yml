@@ -2,7 +2,7 @@ name: Notify Discord on Repository Events
 
 on:
   issues:
-    types: [opened]
+    types: [opened, closed]
   pull_request:
     types: [closed]
   issue_comment:
