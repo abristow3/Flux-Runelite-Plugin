@@ -50,7 +50,7 @@ jobs:
             fi
           fi
 
-          ########## NEW ISSUE OPENED ##########
+          ########## ISSUE EVENTS ##########
           if [ "$EVENT_NAME" = "issues" ]; then
             ACTION=$(jq -r '.action' "$EVENT_PATH")
             TITLE=$(jq -r '.issue.title // "No title"' "$EVENT_PATH")
@@ -67,7 +67,6 @@ jobs:
               elif .=="unit-tests" then "🟡 unit-tests"
               else "⚪ "+. end) | join(", ")' "$EVENT_PATH")
           
-            # Append labels with a real line break
             if [ -n "$LABELS" ]; then
               BODY="$BODY
           
@@ -86,6 +85,11 @@ jobs:
               EMBED_TITLE="[${REPO_NAME}] New issue #${NUMBER}: ${TITLE}"
               EMBED_DESCRIPTION="$BODY"
               EMBED_URL="$URL"
+            elif [ "$ACTION" = "closed" ]; then
+              EMBED_TITLE="[${REPO_NAME}] Issue closed #${NUMBER}: ${TITLE}"
+              EMBED_DESCRIPTION="$BODY"
+              EMBED_URL="$URL"
+              EMBED_COLOR=8421504   # gray for closed
             fi
           fi
 
