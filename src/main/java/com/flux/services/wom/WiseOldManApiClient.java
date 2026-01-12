@@ -23,6 +23,7 @@ public class WiseOldManApiClient {
     }
 
     public JsonArray fetchGroupCompetitions() throws Exception {
+        System.out.println("WOM PING!");
         String urlString = BASE_API_URL + "/groups/" + GROUP_ID + "/competitions";
         String response = makeHttpRequest(urlString);
         return jsonParser.parse(response).getAsJsonArray();

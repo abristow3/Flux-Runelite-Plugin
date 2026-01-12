@@ -5,54 +5,55 @@ import com.flux.services.wom.CompetitionModels.CompetitionData;
 import com.flux.services.wom.CompetitionModels.EventType;
 import net.runelite.client.config.ConfigManager;
 import lombok.extern.slf4j.Slf4j;
+
 import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.*;
-import com.google.inject.Inject;
-import static com.flux.services.wom.CompetitionModels.*;
 
 
 //Scheduler made for checking and updating comp data from wom API.
 @Slf4j
 public class CompetitionScheduler {
-    private static final int CHECK_INTERVAL_MINUTES = 7;
     // TODO in future release make configurable, next hunt is 8 months away
     private static final String DEFAULT_HUNT_COMPETITION_ID = "100262";
+    private volatile boolean active = false;
+    long initialDelaySeconds = 3;
+    long periodMinutes = 7;
 
     private final ConfigManager configManager;
-    private final ScheduledExecutorService schedulerService;
-
+    private volatile ScheduledExecutorService schedulerService;
     private final WiseOldManApiClient apiClient;
-    private final CompetitionDataParser dataParser;
     private final CompetitionFinder finder;
     private final CompetitionConfigUpdater configUpdater;
 
     public CompetitionScheduler(ConfigManager configManager,
                                 WiseOldManApiClient apiClient,
-                                CompetitionDataParser dataParser,
                                 CompetitionFinder finder,
                                 CompetitionConfigUpdater configUpdater) {
         this.configManager = configManager;
-        this.schedulerService = Executors.newSingleThreadScheduledExecutor();
-        
         this.apiClient = apiClient;
-        this.dataParser = dataParser;
         this.finder = finder;
         this.configUpdater = configUpdater;
     }
 
     // Starts the periodic wom comp check scheduler.
-    public void startScheduler() {
-        schedulerService.scheduleAtFixedRate(
-                this::checkAndUpdateCompetitions,
-                0,
-                CHECK_INTERVAL_MINUTES,
-                TimeUnit.MINUTES
-        );
+    public synchronized void start() {
+        if (schedulerService != null && !schedulerService.isShutdown()) return;
+
+        active = true;
+        schedulerService = Executors.newSingleThreadScheduledExecutor();
+        schedulerService.scheduleAtFixedRate(() -> {
+            if (!active) return;
+            checkAndUpdateCompetitions();
+        }, initialDelaySeconds, periodMinutes * 60, TimeUnit.SECONDS);
     }
 
-    public void shutdown() {
-        schedulerService.shutdownNow();
+    public synchronized void stop() {
+        active = false;
+        if (schedulerService != null) {
+            schedulerService.shutdown();
+            schedulerService = null;
+        }
     }
 
     private void checkAndUpdateCompetitions() {

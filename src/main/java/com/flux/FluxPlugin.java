@@ -60,9 +60,9 @@ public class FluxPlugin extends Plugin {
     @Override
     protected void startUp() {
         overlayManager.add(overlay);
-        initializePanel();
         initializeServices();
-        startServices();
+        initializePanel();
+        configParser.start();
         refreshAllCards();
     }
 
@@ -72,15 +72,14 @@ public class FluxPlugin extends Plugin {
         clientToolbar.removeNavigation(uiNavigationButton);
         panel.shutdown();
         configParser.shutdown();
-        competitionScheduler.shutdown();
+        competitionScheduler.stop();
         clanRankMonitor.shutdown();
     }
 
     private void initializePanel() {
         final BufferedImage icon = ImageUtil.loadImageResource(getClass(), "/flux-icon-tiny.png");
 
-        panel = new FluxPanel();
-        panel.init(config, configManager);
+        panel = new FluxPanel(competitionScheduler, config, configManager);
 
         uiNavigationButton = NavigationButton.builder()
                 .tooltip("Flux")
@@ -101,7 +100,6 @@ public class FluxPlugin extends Plugin {
         competitionScheduler = new CompetitionScheduler(
                 configManager,
                 apiClient,
-                dataParser,
                 finder,
                 configUpdater
         );
@@ -116,11 +114,6 @@ public class FluxPlugin extends Plugin {
 
         clanRankMonitor = new ClanRankMonitor(client, this::handleRankChange);
         loginMessageSender = new LoginMessageSender(chatMessageManager, configManager);
-    }
-
-    private void startServices() {
-        competitionScheduler.startScheduler();
-        configParser.start();
     }
 
     private void refreshAllCards() {
