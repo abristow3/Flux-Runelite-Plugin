@@ -302,7 +302,6 @@ public class FluxPlugin extends Plugin {
         }
 
         if (key.equals("sotw_leaderboard") || key.equals("sotwLeaderboard")) {
-            logLeaderboard();
             if (panel != null) {
                 panel.refreshAllCards();
             }
@@ -316,14 +315,6 @@ public class FluxPlugin extends Plugin {
                 if (panel.getHomeCard() != null) {
                     panel.getHomeCard().refreshHuntStatus();
                 }
-            }
-        }
-        if (key.equals("huntActive")) {
-            if (panel != null && panel.getHuntCard() != null) {
-                panel.getHuntCard().checkEventStateChanged();
-            }
-            if (panel != null && panel.getHomeCard() != null) {
-                panel.getHomeCard().refreshHuntStatus();
             }
         }
 
@@ -355,26 +346,6 @@ public class FluxPlugin extends Plugin {
         if (key.equals("hunt_wom_url") || key.equals("hunt_gdoc_url")) {
             if (panel != null && panel.getHuntCard() != null) {
                 panel.getHuntCard().refreshButtonLinks();
-            }
-        }
-    }
-
-    private void logLeaderboard() {
-        String leaderboardJson = configManager.getConfiguration(CONFIG_GROUP, "sotwLeaderboard", String.class);
-
-        if (leaderboardJson != null && !leaderboardJson.isEmpty()) {
-            try {
-                JsonParser jsonParser = new JsonParser();
-                JsonArray leaderboardArray = jsonParser.parse(leaderboardJson).getAsJsonArray();
-                log.debug("Current SOTW Leaderboard:");
-                for (int i = 0; i < leaderboardArray.size(); i++) {
-                    JsonObject entry = leaderboardArray.get(i).getAsJsonObject();
-                    String username = entry.get("username").getAsString();
-                    int xp = entry.get("xp").getAsInt();
-                    log.debug(" - {} {} XP", username, xp);
-                }
-            } catch (Exception e) {
-                log.error("Error parsing leaderboard JSON", e);
             }
         }
     }
