@@ -219,6 +219,9 @@ public abstract class FluxCard extends JPanel implements Scrollable {
         long days = duration.toDays();
         long hours = duration.toHours() % 24;
         long minutes = duration.toMinutes() % 60;
+        String dayLabel;
+        if (days == 1){dayLabel = "day";}
+        else {dayLabel = "days";}
         return String.format("%d days, %d hours, %d minutes", days, hours, minutes);
     }
 
