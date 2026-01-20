@@ -45,7 +45,10 @@ public interface FluxConfig extends Config {
         return Color.WHITE;
     }
 
-    // ========== OVERLAY SECTION - HIDDEN ==========
+    @ConfigItem(position = 8, keyName = "loginColor", name = "Login Message Color", description = "The color of the Login Message.", section = overlaySection)
+    default Color loginColor() {return new Color(180, 0, 0); } //Custom dark red.
+
+// ========== OVERLAY SECTION - HIDDEN ==========
 
     @ConfigItem(position = 7, keyName = "botm_password", name = "BOTM Password", description = "Adds the BOTM event password to the overlay.", section = overlaySection, hidden = true)
     default String botmPass() {

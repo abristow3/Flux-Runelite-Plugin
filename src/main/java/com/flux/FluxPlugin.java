@@ -25,8 +25,11 @@ import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.ui.overlay.OverlayManager;
 import net.runelite.client.util.ImageUtil;
+import net.runelite.api.ChatMessageType;
+import net.runelite.client.chat.QueuedMessage;
 import okhttp3.OkHttpClient;
 
+import java.awt.*;
 import java.awt.image.BufferedImage;
 
 @Slf4j
@@ -243,12 +246,33 @@ public class FluxPlugin extends Plugin {
         GameState state = event.getGameState();
 
         if (state == GameState.LOGGED_IN) {
-            loginMessageSender.sendLoginMessage();
+            sendColoredLoginMessage();
             clanRankMonitor.startMonitoring();
         } else if (state == GameState.LOGIN_SCREEN) {
             loginMessageSender.reset();
             clanRankMonitor.stopMonitoring();
         }
+    }
+
+    private void sendColoredLoginMessage()
+    {
+        String msg = configManager.getConfiguration(CONFIG_GROUP, "clan_login_message");
+        if (msg == null || msg.isEmpty()) {
+            return;
+        }
+
+        // Get the color from config
+        Color c = config.loginColor();
+        String hex = String.format("%06x", c.getRGB() & 0xFFFFFF);
+
+        String coloured = "<col=" + hex + ">" + msg + "</col>";
+
+        chatMessageManager.queue(
+                QueuedMessage.builder()
+                        .type(ChatMessageType.GAMEMESSAGE)
+                        .runeLiteFormattedMessage(coloured)
+                        .build()
+        );
     }
 
     @Subscribe
