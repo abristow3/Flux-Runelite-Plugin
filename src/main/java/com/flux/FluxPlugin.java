@@ -112,8 +112,8 @@ public class FluxPlugin extends Plugin {
         );
 
         clanRankMonitor = new ClanRankMonitor(client, this::handleRankChange);
-        loginMessageSender = new LoginMessageSender(chatMessageManager, configManager);
-    }
+        loginMessageSender = new LoginMessageSender(chatMessageManager, configManager, config.loginColor());
+            }
 
     private void refreshAllCards() {
         if (panel != null) {

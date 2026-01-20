@@ -42,7 +42,6 @@ public class FluxPanel extends PluginPanel {
     private AdminHubCard adminHubCard;
     private HuntCard huntCard;
 
-
     private InverseCornerButton activeFooterButton;
     private boolean isAdminOrHigher = false;
     private boolean adminHubInitialized = false;

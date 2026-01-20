@@ -22,13 +22,13 @@ repositories {
 
 dependencies {
     compileOnly(group: 'net.runelite', name: 'client', version: runeLiteVersion) {
-        exclude group: 'org.lwjgl'
+        //exclude group: 'org.lwjgl'
     }
     compileOnly 'org.projectlombok:lombok:1.18.30'
     annotationProcessor 'org.projectlombok:lombok:1.18.30'
     testImplementation 'junit:junit:4.12'
     testImplementation(group: 'net.runelite', name: 'client', version: runeLiteVersion) {
-        exclude group: 'org.lwjgl'
+        //exclude group: 'org.lwjgl'
     }
     testImplementation group: 'net.runelite', name: 'jshell', version: runeLiteVersion
 }
