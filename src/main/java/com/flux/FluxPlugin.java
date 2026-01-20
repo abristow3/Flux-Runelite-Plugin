@@ -29,7 +29,7 @@ import net.runelite.api.ChatMessageType;
 import net.runelite.client.chat.QueuedMessage;
 import okhttp3.OkHttpClient;
 
-import java.awt.*;
+import java.awt.Color;
 import java.awt.image.BufferedImage;
 
 @Slf4j
