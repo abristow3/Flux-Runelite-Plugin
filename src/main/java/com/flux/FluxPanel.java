@@ -1,6 +1,6 @@
 package com.flux;
 
-import java.awt.*;
+import java.awt.Color;
 import java.util.*;
 import javax.inject.Inject;
 import javax.swing.*;
