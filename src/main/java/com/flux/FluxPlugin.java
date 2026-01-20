@@ -9,7 +9,9 @@ import com.flux.services.wom.CompetitionDataParser;
 import com.flux.services.wom.CompetitionFinder;
 import com.flux.services.wom.WiseOldManApiClient;
 import com.google.inject.Provides;
+
 import javax.inject.Inject;
+
 import lombok.extern.slf4j.Slf4j;
 
 import net.runelite.api.Client;
@@ -38,14 +40,14 @@ import java.awt.image.BufferedImage;
 public class FluxPlugin extends Plugin {
     public static final String CONFIG_GROUP = "flux";
 
-    @Inject private Client client;
-    @Inject private ChatMessageManager chatMessageManager;
-    @Inject private FluxConfig config;
-    @Inject private ConfigManager configManager;
-    @Inject private OverlayManager overlayManager;
-    @Inject private FluxOverlay overlay;
-    @Inject private ClientToolbar clientToolbar;
-    @Inject private OkHttpClient okHttpClient;
+    private final Client client;
+    private final ChatMessageManager chatMessageManager;
+    private final FluxConfig config;
+    private final ConfigManager configManager;
+    private final OverlayManager overlayManager;
+    private final FluxOverlay overlay;
+    private final ClientToolbar clientToolbar;
+    private final OkHttpClient okHttpClient;
 
     private FluxPanel panel;
     private NavigationButton uiNavigationButton;
@@ -53,6 +55,25 @@ public class FluxPlugin extends Plugin {
     private GoogleSheetParser configParser;
     private ClanRankMonitor clanRankMonitor;
     private LoginMessageSender loginMessageSender;
+
+    @Inject
+    public FluxPlugin(Client client,
+                      ChatMessageManager chatMessageManager,
+                      FluxConfig config,
+                      ConfigManager configManager,
+                      OverlayManager overlayManager,
+                      FluxOverlay overlay,
+                      ClientToolbar clientToolbar,
+                      OkHttpClient okHttpClient) {
+        this.client = client;
+        this.chatMessageManager = chatMessageManager;
+        this.config = config;
+        this.configManager = configManager;
+        this.overlayManager = overlayManager;
+        this.overlay = overlay;
+        this.clientToolbar = clientToolbar;
+        this.okHttpClient = okHttpClient;
+    }
 
     @Override
     protected void startUp() {
@@ -177,7 +198,7 @@ public class FluxPlugin extends Plugin {
         if (rollCallActive != null && !rollCallActive.isEmpty()) {
             boolean isActive = rollCallActive.equalsIgnoreCase("TRUE");
             String currentStatus = configManager.getConfiguration(CONFIG_GROUP, "rollCallActive");
-            boolean currentActive = currentStatus != null && Boolean.parseBoolean(currentStatus);
+            boolean currentActive = Boolean.parseBoolean(currentStatus);
 
             if (isActive != currentActive) {
                 log.debug("Updating ROLL_CALL_ACTIVE: {}", isActive);
@@ -252,6 +273,7 @@ public class FluxPlugin extends Plugin {
     }
 
     @Subscribe
+    //TODO: please for the love of god fix this giant list of if statements. Case statement can be used. @alex
     public void onConfigChanged(ConfigChanged event) {
         if (!event.getGroup().equals(CONFIG_GROUP)) {
             return;

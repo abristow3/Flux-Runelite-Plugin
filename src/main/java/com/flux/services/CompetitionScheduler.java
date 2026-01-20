@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.time.Instant;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.*;
 
 
@@ -77,9 +78,9 @@ public class CompetitionScheduler {
             if (data != null) {
                 updateEvent(type, data, true);
             } else {
-                CompetitionData lastCompleted = finder.findLastCompletedCompetition(type);
-                if (lastCompleted != null) {
-                    updateEvent(type, lastCompleted, false);
+                Optional<CompetitionData> lastCompleted = finder.findLastCompletedCompetition(type);
+                if (lastCompleted.isPresent()) {
+                    updateEvent(type, lastCompleted.get(), false);
                 } else {
                     configUpdater.setEventInactive(type);
                 }
@@ -88,23 +89,18 @@ public class CompetitionScheduler {
     }
 
     private void checkHunt() {
-        try {
-            int huntCompId = getHuntCompetitionId();
-            CompetitionData huntData = finder.findHuntCompetition(huntCompId);
-            if (huntData == null) {
-                log.error("Failed to fetch Hunt competition details");
-                return;
-            }
-
-            Instant now = Instant.now();
-            boolean isActive = huntData.isActive(now);
-
-            // Always update config with Hunt data, even if not active
-            updateEvent(EventType.HUNT, huntData, isActive);
-        } catch (Exception e) {
-            log.error("Error checking Hunt competition", e);
-            e.printStackTrace();
+        int huntCompId = getHuntCompetitionId();
+        Optional<CompetitionData> huntData = finder.findHuntCompetition(huntCompId);
+        if (huntData.isEmpty()) {
+            log.error("Failed to fetch Hunt competition details");
+            return;
         }
+
+        Instant now = Instant.now();
+        boolean isActive = huntData.get().isActive(now);
+
+        // Always update config with Hunt data, even if not active
+        updateEvent(EventType.HUNT, huntData.get(), isActive);
     }
 
     private void updateEvent(EventType type, CompetitionData data, boolean isActive) {
