@@ -246,33 +246,11 @@ public class FluxPlugin extends Plugin {
         GameState state = event.getGameState();
 
         if (state == GameState.LOGGED_IN) {
-            sendColoredLoginMessage();
+            loginMessageSender.sendLoginMessage();
             clanRankMonitor.startMonitoring();
         } else if (state == GameState.LOGIN_SCREEN) {
-            loginMessageSender.reset();
             clanRankMonitor.stopMonitoring();
         }
-    }
-
-    private void sendColoredLoginMessage()
-    {
-        String msg = configManager.getConfiguration(CONFIG_GROUP, "clan_login_message");
-        if (msg == null || msg.isEmpty()) {
-            return;
-        }
-
-        // Get the color from config
-        Color c = config.loginColor();
-        String hex = String.format("%06x", c.getRGB() & 0xFFFFFF);
-
-        String coloured = "<col=" + hex + ">" + msg + "</col>";
-
-        chatMessageManager.queue(
-                QueuedMessage.builder()
-                        .type(ChatMessageType.GAMEMESSAGE)
-                        .runeLiteFormattedMessage(coloured)
-                        .build()
-        );
     }
 
     @Subscribe
