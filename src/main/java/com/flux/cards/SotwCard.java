@@ -192,51 +192,14 @@ public class SotwCard extends FluxCard {
         }
 
         if ("Event has ended.".equals(message)) {
-            message = getEventEndedMessageWithWinner();
+            message = getEventEndedMessage();
         }
 
         updateWrappedLabelText(countdownLabel, message, false);
     }
 
     private String getEventEndedMessage() {
-        LinkedHashMap<String, Integer> leaderboard = parseLeaderboardJson("sotwLeaderboard", "xp", configManager);
-
-        if (leaderboard.isEmpty()) {
-            return "The event has ended.";
-        }
-
-        String winner = leaderboard.keySet().iterator().next();
-        return "The SOTW Event has ended! Congratulations to the winner: " + winner;
-    }
-
-    private String getEventEndedMessageWithWinner() {
-        if (configManager == null) return "The event has ended.";
-
-        String winner = "";
-        try {
-            winner = configManager.getConfiguration("flux", "sotw_winner");
-        } catch (Exception e) {
-            logger.warn("Failed to get sotw_winner from config", e);
-        }
-
-        // fallback to tableModel
-        if ((winner == null || winner.isEmpty()) && tableModel != null && tableModel.getRowCount() > 0) {
-            Object winnerObj = tableModel.getValueAt(0, 0);
-            if (winnerObj != null) {
-                winner = winnerObj.toString();
-                try {
-                    configManager.setConfiguration("flux", "sotw_winner", winner);
-                } catch (Exception e) {
-                    logger.warn("Failed to save sotw_winner to config", e);
-                }
-            }
-        }
-
-        if (winner == null || winner.isEmpty()) {
-            return "The event has ended.";
-        }
-
-        return "Event has ended.<br>Congratulations to the winner: " + winner;
+        return "The SOTW Event has ended!";
     }
 
     @Override
