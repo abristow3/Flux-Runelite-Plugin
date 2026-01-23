@@ -1,5 +1,8 @@
 package com.flux.services.wom;
 
+import com.flux.services.wom.CompetitionModels.CompetitionData;
+import com.flux.services.wom.CompetitionModels.EventType;
+import com.flux.services.wom.CompetitionModels.HuntTeamData;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonElement;
@@ -9,7 +12,6 @@ import java.util.EnumMap;
 import java.util.Map;
 import java.util.Optional;
 
-import static com.flux.services.wom.CompetitionModels.*;
 
 @Slf4j
 public class CompetitionFinder {
@@ -107,7 +109,8 @@ public class CompetitionFinder {
     // Get Hunt competition data by ID
     public Optional<CompetitionData> findHuntCompetition(int competitionId) {
         JsonObject details = apiClient.fetchCompetitionDetails(competitionId);
-        if (details == null || details.getAsString().isEmpty()) {
+
+        if (details == null || details.entrySet().isEmpty()) {
             return Optional.empty();
         }
 
@@ -127,10 +130,10 @@ public class CompetitionFinder {
     }
 
 
-    private Optional<CompetitionData> fetchCompetitionData(int competitionId, EventType type,
-                                                 Instant startsAt, Instant endsAt) {
+    private Optional<CompetitionData> fetchCompetitionData(int competitionId,EventType type,Instant startsAt,Instant endsAt) {
         JsonObject details = apiClient.fetchCompetitionDetails(competitionId);
-        if(details.isJsonNull()) {
+
+        if (details == null || details.isJsonNull()) {
             return Optional.empty();
         }
 
@@ -143,4 +146,5 @@ public class CompetitionFinder {
                 null
         ));
     }
+
 }

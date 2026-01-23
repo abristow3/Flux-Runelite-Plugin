@@ -40,14 +40,14 @@ import java.awt.image.BufferedImage;
 public class FluxPlugin extends Plugin {
     public static final String CONFIG_GROUP = "flux";
 
-    private final Client client;
-    private final ChatMessageManager chatMessageManager;
-    private final FluxConfig config;
-    private final ConfigManager configManager;
-    private final OverlayManager overlayManager;
-    private final FluxOverlay overlay;
-    private final ClientToolbar clientToolbar;
-    private final OkHttpClient okHttpClient;
+    @Inject private Client client;
+    @Inject private ChatMessageManager chatMessageManager;
+    @Inject private FluxConfig config;
+    @Inject private ConfigManager configManager;
+    @Inject private OverlayManager overlayManager;
+    @Inject private FluxOverlay overlay;
+    @Inject private ClientToolbar clientToolbar;
+    @Inject private OkHttpClient okHttpClient;
 
     private FluxPanel panel;
     private NavigationButton uiNavigationButton;
@@ -56,27 +56,9 @@ public class FluxPlugin extends Plugin {
     private ClanRankMonitor clanRankMonitor;
     private LoginMessageSender loginMessageSender;
 
-    @Inject
-    public FluxPlugin(Client client,
-                      ChatMessageManager chatMessageManager,
-                      FluxConfig config,
-                      ConfigManager configManager,
-                      OverlayManager overlayManager,
-                      FluxOverlay overlay,
-                      ClientToolbar clientToolbar,
-                      OkHttpClient okHttpClient) {
-        this.client = client;
-        this.chatMessageManager = chatMessageManager;
-        this.config = config;
-        this.configManager = configManager;
-        this.overlayManager = overlayManager;
-        this.overlay = overlay;
-        this.clientToolbar = clientToolbar;
-        this.okHttpClient = okHttpClient;
-    }
-
     @Override
     protected void startUp() {
+        log.info("STARTING FLUX PLGUIN");
         overlayManager.add(overlay);
         initializeServices();
         initializePanel();
