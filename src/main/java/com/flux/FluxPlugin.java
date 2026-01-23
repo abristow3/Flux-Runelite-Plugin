@@ -27,11 +27,7 @@ import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.ui.overlay.OverlayManager;
 import net.runelite.client.util.ImageUtil;
-import net.runelite.api.ChatMessageType;
-import net.runelite.client.chat.QueuedMessage;
 import okhttp3.OkHttpClient;
-
-import java.awt.Color;
 import java.awt.image.BufferedImage;
 
 @Slf4j
@@ -61,7 +57,6 @@ public class FluxPlugin extends Plugin {
 
     @Override
     protected void startUp() {
-        log.info("STARTING FLUX PLGUIN");
         overlayManager.add(overlay);
         initializeServices();
         initializePanel();
