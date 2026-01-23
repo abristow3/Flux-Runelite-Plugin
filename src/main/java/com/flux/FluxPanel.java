@@ -9,7 +9,7 @@ import javax.swing.Timer;
 import com.flux.components.InverseCornerButton;
 import com.flux.components.combobox.ComboBoxIconEntry;
 import com.flux.components.combobox.ComboBoxIconListRenderer;
-import com.flux.constants.EntrySelect;
+import com.flux.components.combobox.EntrySelect;
 import com.flux.services.CompetitionScheduler;
 import net.runelite.client.config.ConfigManager;
 import com.flux.cards.*;

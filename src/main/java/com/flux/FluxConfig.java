@@ -1,6 +1,6 @@
 package com.flux;
 
-import com.flux.constants.EntrySelect;
+import com.flux.components.combobox.EntrySelect;
 import net.runelite.client.config.*;
 
 import java.awt.*;
