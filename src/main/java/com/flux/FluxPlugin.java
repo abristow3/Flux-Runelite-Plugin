@@ -27,8 +27,11 @@ import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.ui.overlay.OverlayManager;
 import net.runelite.client.util.ImageUtil;
+import net.runelite.api.ChatMessageType;
+import net.runelite.client.chat.QueuedMessage;
 import okhttp3.OkHttpClient;
 
+import java.awt.Color;
 import java.awt.image.BufferedImage;
 
 @Slf4j
@@ -112,8 +115,8 @@ public class FluxPlugin extends Plugin {
         );
 
         clanRankMonitor = new ClanRankMonitor(client, this::handleRankChange);
-        loginMessageSender = new LoginMessageSender(chatMessageManager, configManager);
-    }
+        loginMessageSender = new LoginMessageSender(chatMessageManager, configManager, config.loginColor());
+            }
 
     private void refreshAllCards() {
         if (panel != null) {
@@ -249,7 +252,6 @@ public class FluxPlugin extends Plugin {
             loginMessageSender.sendLoginMessage();
             clanRankMonitor.startMonitoring();
         } else if (state == GameState.LOGIN_SCREEN) {
-            loginMessageSender.reset();
             clanRankMonitor.stopMonitoring();
         }
     }

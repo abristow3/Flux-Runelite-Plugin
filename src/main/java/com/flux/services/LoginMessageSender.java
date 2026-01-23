@@ -5,20 +5,22 @@ import net.runelite.client.chat.ChatMessageManager;
 import net.runelite.client.chat.QueuedMessage;
 import net.runelite.client.config.ConfigManager;
 import lombok.extern.slf4j.Slf4j;
+import java.awt.Color;
 
 @Slf4j
 public class LoginMessageSender {
     private static final String CONFIG_GROUP = "flux";
     private static final String CONFIG_KEY = "clan_login_message";
-    private static final String MESSAGE_COLOR = "ff9600";
 
     private final ChatMessageManager chatMessageManager;
     private final ConfigManager configManager;
+    private final Color color;
     private boolean hasSentMessage = false;
 
-    public LoginMessageSender(ChatMessageManager chatMessageManager, ConfigManager configManager) {
+    public LoginMessageSender(ChatMessageManager chatMessageManager, ConfigManager configManager, Color color) {
         this.chatMessageManager = chatMessageManager;
         this.configManager = configManager;
+        this.color = color;
     }
 
     public void sendLoginMessage() {
@@ -32,10 +34,12 @@ public class LoginMessageSender {
             return;
         }
 
+        String hex = String.format("%06x", color.getRGB() & 0xFFFFFF);
+
         chatMessageManager.queue(
                 QueuedMessage.builder()
                         .type(ChatMessageType.GAMEMESSAGE)
-                        .runeLiteFormattedMessage("<col=" + MESSAGE_COLOR + ">" + loginMessage + "</col>")
+                        .runeLiteFormattedMessage("<col=" + hex + ">" + loginMessage + "</col>")
                         .build()
         );
 

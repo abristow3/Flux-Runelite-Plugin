@@ -230,24 +230,11 @@ public class BotmCard extends FluxCard {
 
     private void updateCountdownLabel() {
         if (!isEventActive()) {
-            updateWrappedLabelText(countdownLabel, "No active BOTM event.", false);
+            updateWrappedLabelText(countdownLabel, "The BOTM event has ended!", false);
             return;
         }
 
         String message = formatCountdownMessage("botm_start_time", "botm_end_time", configManager);
-
-        // Override end message with winner info if available
-        if (message.equals("Event has ended.")) {
-            String winner = configManager.getConfiguration("flux", "botmWinner");
-            message = (winner != null && !winner.isEmpty())
-                    ? "BOTM has ended.<br>Winner: " + winner
-                    : "The event has ended.";
-        } else if (message.equals("Timing unavailable.")) {
-            message = "BOTM timing unavailable.";
-        } else if (message.equals("Timing error.")) {
-            message = "BOTM timing error.";
-        }
-
         updateWrappedLabelText(countdownLabel, message, false);
     }
 
