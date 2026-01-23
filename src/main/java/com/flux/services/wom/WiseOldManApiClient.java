@@ -13,43 +13,46 @@ import java.io.IOException;
 
 @Slf4j
 public class WiseOldManApiClient {
-    private static final String BASE_API_URL = "https://api.wiseoldman.net/v2";
-    private static final String GROUP_ID = "141";
-    private static final JsonParser jsonParser = new JsonParser();
+    private final String BASE_API_URL = "https://api.wiseoldman.net/v2";
+    private final String GROUP_ID = "141";
+    private final JsonParser jsonParser = new JsonParser();
     private final OkHttpClient httpClient;
+    private static final String EMPTY_STRING = "";
 
     public WiseOldManApiClient(OkHttpClient httpClient) {
         this.httpClient = httpClient;
     }
 
-    public JsonArray fetchGroupCompetitions() throws Exception {
+    public JsonArray fetchGroupCompetitions() {
         String urlString = BASE_API_URL + "/groups/" + GROUP_ID + "/competitions";
         String response = makeHttpRequest(urlString);
         return jsonParser.parse(response).getAsJsonArray();
     }
 
-    public JsonObject fetchCompetitionDetails(int competitionId) throws Exception {
-        String urlString = BASE_API_URL + "/competitions/" + competitionId;
+    public JsonObject fetchCompetitionDetails(int competitionId)  {
+        String urlString = getCompetitionUrl(competitionId);
         String response = makeHttpRequest(urlString);
         return jsonParser.parse(response).getAsJsonObject();
     }
 
     public String getCompetitionUrl(int competitionId) {
-        return "https://wiseoldman.net/competitions/" + competitionId;
+        return BASE_API_URL + "/competitions/" + competitionId;
     }
 
-    private String makeHttpRequest(String urlString) throws Exception {
+    private String makeHttpRequest(String urlString) {
         Request request = new Request.Builder()
                 .url(urlString)
                 .build();
 
         try (Response response = httpClient.newCall(request).execute()) {
-            if (!response.isSuccessful()) {
-                log.error("Request failed with status code: {}", response.code());
-                throw new IOException("Unexpected code " + response);
+            if (response.isSuccessful() && response.body() != null) {
+                return response.body().string();
             }
-
-            return response.body().string();
+            log.info("Wise old man request failed response: {}", response);
+            return EMPTY_STRING;
+        } catch (IOException e) {
+            log.error("Request failed: {}", e.getMessage());
+            return EMPTY_STRING;
         }
     }
 }

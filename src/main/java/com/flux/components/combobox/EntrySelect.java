@@ -1,4 +1,4 @@
-package com.flux.constants;
+package com.flux.components.combobox;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

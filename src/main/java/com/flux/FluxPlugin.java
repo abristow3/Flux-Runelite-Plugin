@@ -9,7 +9,9 @@ import com.flux.services.wom.CompetitionDataParser;
 import com.flux.services.wom.CompetitionFinder;
 import com.flux.services.wom.WiseOldManApiClient;
 import com.google.inject.Provides;
+
 import javax.inject.Inject;
+
 import lombok.extern.slf4j.Slf4j;
 
 import net.runelite.api.Client;
@@ -25,11 +27,7 @@ import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.ui.overlay.OverlayManager;
 import net.runelite.client.util.ImageUtil;
-import net.runelite.api.ChatMessageType;
-import net.runelite.client.chat.QueuedMessage;
 import okhttp3.OkHttpClient;
-
-import java.awt.Color;
 import java.awt.image.BufferedImage;
 
 @Slf4j
@@ -180,7 +178,7 @@ public class FluxPlugin extends Plugin {
         if (rollCallActive != null && !rollCallActive.isEmpty()) {
             boolean isActive = rollCallActive.equalsIgnoreCase("TRUE");
             String currentStatus = configManager.getConfiguration(CONFIG_GROUP, "rollCallActive");
-            boolean currentActive = currentStatus != null && Boolean.parseBoolean(currentStatus);
+            boolean currentActive = Boolean.parseBoolean(currentStatus);
 
             if (isActive != currentActive) {
                 log.debug("Updating ROLL_CALL_ACTIVE: {}", isActive);
@@ -254,6 +252,7 @@ public class FluxPlugin extends Plugin {
     }
 
     @Subscribe
+    //TODO: please for the love of god fix this giant list of if statements. Case statement can be used. @alex
     public void onConfigChanged(ConfigChanged event) {
         if (!event.getGroup().equals(CONFIG_GROUP)) {
             return;
