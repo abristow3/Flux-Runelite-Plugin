@@ -4,6 +4,8 @@ import com.flux.services.ClanRankMonitor;
 import com.flux.services.CompetitionScheduler;
 import com.flux.services.GoogleSheetParser;
 import com.flux.services.LoginMessageSender;
+import com.flux.services.HuntAutoScreenshot;
+import com.flux.services.HuntListSyncService;
 import com.flux.services.wom.CompetitionConfigUpdater;
 import com.flux.services.wom.CompetitionDataParser;
 import com.flux.services.wom.CompetitionFinder;
@@ -27,9 +29,11 @@ import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.ui.overlay.OverlayManager;
 import net.runelite.client.util.ImageUtil;
+import net.runelite.client.util.ImageCapture;
 import okhttp3.OkHttpClient;
 import java.awt.image.BufferedImage;
-import java.util.Map;
+import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 
 @Slf4j
 @PluginDescriptor(
@@ -48,6 +52,11 @@ public class FluxPlugin extends Plugin {
     @Inject private FluxOverlay overlay;
     @Inject private ClientToolbar clientToolbar;
     @Inject private OkHttpClient okHttpClient;
+    @Inject private net.runelite.client.eventbus.EventBus eventBus;
+    @Inject private net.runelite.client.util.ImageCapture imageCapture;
+    @Inject private net.runelite.client.ui.DrawManager drawManager;
+    @Inject private net.runelite.client.game.ItemManager itemManager;
+    @Inject private net.runelite.client.callback.ClientThread clientThread;
 
     private FluxPanel panel;
     private NavigationButton uiNavigationButton;
@@ -55,6 +64,9 @@ public class FluxPlugin extends Plugin {
     private GoogleSheetParser configParser;
     private ClanRankMonitor clanRankMonitor;
     private LoginMessageSender loginMessageSender;
+    private HuntListSyncService huntListSyncService;
+    private HuntAutoScreenshot huntAutoScreenshot;
+    private boolean huntScreenshotWarningShown = false;
 
     @Override
     protected void startUp() {
@@ -72,6 +84,7 @@ public class FluxPlugin extends Plugin {
         panel.shutdown();
         configParser.shutdown();
         clanRankMonitor.shutdown();
+        huntAutoScreenshot.stopMonitoring();
     }
 
     private void initializePanel() {
@@ -112,7 +125,27 @@ public class FluxPlugin extends Plugin {
 
         clanRankMonitor = new ClanRankMonitor(client, this::handleRankChange);
         loginMessageSender = new LoginMessageSender(chatMessageManager, configManager, config.loginColor());
+        
+        // Initialize Hunt list sync service
+        huntListSyncService = new HuntListSyncService(okHttpClient);
+        
+        // Perform initial sync from Google Sheets in background
+        new Thread(() -> {
+            try {
+                log.info("Performing initial Hunt lists sync from Google Sheets...");
+                boolean success = huntListSyncService.syncFromGoogleSheets();
+                if (success) {
+                    log.info("Initial sync completed successfully!");
+                } else {
+                    log.error("Initial sync failed!");
+                }
+            } catch (Exception e) {
+                log.error("Error during initial Hunt lists sync", e);
             }
+        }).start();
+        
+        huntAutoScreenshot = new HuntAutoScreenshot(client, configManager, imageCapture, drawManager, itemManager, okHttpClient, huntListSyncService, clientThread, eventBus);
+    }
 
     private void refreshAllCards() {
         if (panel != null) {
@@ -142,17 +175,6 @@ public class FluxPlugin extends Plugin {
         updateRollCallStatus(configValues);
         updateHuntTeamColors(configValues);
         updateBotmPass(configValues);
-        updateDiscordInviteLink(configValues);
-    }
-
-    private void updateDiscordInviteLink(Map<String, String> configValues) {
-        String inviteUrl = configValues.get("DISCORD_INVITE_URL");
-        if (inviteUrl != null && !inviteUrl.isEmpty()) {
-            String currentInviteUrl = configManager.getConfiguration(CONFIG_GROUP, "discord_invite_url");
-            if (!inviteUrl.equals(currentInviteUrl)) {
-                configManager.setConfiguration(CONFIG_GROUP, "discord_invite_url", inviteUrl);
-            }
-        }
     }
 
     private void updateLoginMessage(java.util.Map<String, String> configValues) {
@@ -161,6 +183,7 @@ public class FluxPlugin extends Plugin {
             String currentValue = configManager.getConfiguration(CONFIG_GROUP, "clan_login_message");
             if (!loginMsg.equals(currentValue)) {
                 configManager.setConfiguration(CONFIG_GROUP, "clan_login_message", loginMsg);
+                log.debug("Updated LOGIN_MESSAGE: {}", loginMsg);
             }
         }
     }
@@ -171,6 +194,7 @@ public class FluxPlugin extends Plugin {
             String currentAnnouncement = configManager.getConfiguration(CONFIG_GROUP, "plugin_announcement_message");
 
             if (!announcement.equals(currentAnnouncement)) {
+                log.debug("Updating ANNOUNCEMENT_MESSAGE: {}", announcement);
                 configManager.setConfiguration(CONFIG_GROUP, "plugin_announcement_message", announcement);
 
                 if (panel != null && panel.getHomeCard() != null) {
@@ -191,6 +215,7 @@ public class FluxPlugin extends Plugin {
             boolean currentActive = Boolean.parseBoolean(currentStatus);
 
             if (isActive != currentActive) {
+                log.debug("Updating ROLL_CALL_ACTIVE: {}", isActive);
                 configManager.setConfiguration(CONFIG_GROUP, "rollCallActive", String.valueOf(isActive));
 
                 if (panel != null) {
@@ -214,6 +239,7 @@ public class FluxPlugin extends Plugin {
             String currentTeam1Color = configManager.getConfiguration(CONFIG_GROUP, "hunt_team_1_color");
             if (!team1Color.equals(currentTeam1Color)) {
                 configManager.setConfiguration(CONFIG_GROUP, "hunt_team_1_color", team1Color);
+                log.debug("Updated TEAM_1_COLOR: {}", team1Color);
             }
         }
 
@@ -223,6 +249,7 @@ public class FluxPlugin extends Plugin {
             String currentTeam2Color = configManager.getConfiguration(CONFIG_GROUP, "hunt_team_2_color");
             if (!team2Color.equals(currentTeam2Color)) {
                 configManager.setConfiguration(CONFIG_GROUP, "hunt_team_2_color", team2Color);
+                log.debug("Updated TEAM_2_COLOR: {}", team2Color);
             }
         }
 
@@ -238,6 +265,7 @@ public class FluxPlugin extends Plugin {
             String currentValue = configManager.getConfiguration(CONFIG_GROUP, "botm_password");
             if (!botmPass.equals(currentValue)) {
                 configManager.setConfiguration(CONFIG_GROUP, "botm_password", botmPass);
+                log.debug("Updated BOTM_PASS: {}", botmPass);
             }
         } else {
             log.warn("BOTM_PASS is missing or empty in the Google Sheet values.");
@@ -252,25 +280,26 @@ public class FluxPlugin extends Plugin {
         if (state == GameState.LOGGED_IN) {
             loginMessageSender.sendLoginMessage();
             clanRankMonitor.startMonitoring();
+            
+            // Start hunt auto-screenshot if enabled
+            if (config.huntAutoScreenshot()) {
+                huntAutoScreenshot.startMonitoring();
+            }
         } else if (state == GameState.LOGIN_SCREEN) {
             clanRankMonitor.stopMonitoring();
+            huntAutoScreenshot.stopMonitoring();
         }
     }
 
     @Subscribe
     //TODO: please for the love of god fix this giant list of if statements. Case statement can be used. @alex
-    //TODO: @anthony, I promise but only if you cleanup the config file.
     public void onConfigChanged(ConfigChanged event) {
         if (!event.getGroup().equals(CONFIG_GROUP)) {
             return;
         }
 
         String key = event.getKey();
-        if (key.equals("discord_invite_url")) {
-            if (panel != null && panel.getHomeCard() != null) {
-                panel.getHomeCard().refreshButtonLinks();
-            }
-        }
+        log.debug("CONFIG CHANGE EVENT KEY: {}", key);
 
         if (key.equals("plugin_announcement_message")) {
             if (panel != null && panel.getHomeCard() != null) {
@@ -280,6 +309,7 @@ public class FluxPlugin extends Plugin {
         }
 
         if (key.equals("rollCallActive")) {
+            log.debug("Roll Call Status Changed");
             if (panel != null && panel.getHomeCard() != null) {
                 panel.getHomeCard().isRollCallActive();
             }
@@ -356,10 +386,62 @@ public class FluxPlugin extends Plugin {
                 panel.getHuntCard().refreshButtonLinks();
             }
         }
+
+        if (key.equals("hunt_auto_screenshot")) {
+            boolean enabled = Boolean.parseBoolean(event.getNewValue());
+            if (enabled) {
+                // Show warning dialog if not shown before
+                if (!huntScreenshotWarningShown) {
+                    SwingUtilities.invokeLater(() -> {
+                        int result = JOptionPane.showConfirmDialog(
+                            null,
+                            "Caution! This will automatically screenshot and upload to the Hunt discord server.\n" +
+                            "Any private messages on screen will NOT be hidden.\n\n" +
+                            "Do you want to continue?",
+                            "Hunt Auto-Screenshot Warning",
+                            JOptionPane.YES_NO_OPTION,
+                            JOptionPane.WARNING_MESSAGE
+                        );
+                        
+                        if (result == JOptionPane.YES_OPTION) {
+                            huntScreenshotWarningShown = true;
+                            
+                            // Refresh from Google Sheets on background thread
+                            new Thread(() -> {
+                                huntAutoScreenshot.forceRefreshCache();
+                                huntAutoScreenshot.startMonitoring();
+                                log.info("Hunt auto-screenshot enabled - lists refreshed from Google Sheets");
+                            }, "HuntRefresh").start();
+                        } else {
+                            // User declined, disable the setting
+                            configManager.setConfiguration(CONFIG_GROUP, "hunt_auto_screenshot", false);
+                            log.debug("Hunt auto-screenshot declined by user");
+                        }
+                    });
+                } else {
+                    // Warning already shown, refresh and enable on background thread
+                    new Thread(() -> {
+                        huntAutoScreenshot.forceRefreshCache();
+                        huntAutoScreenshot.startMonitoring();
+                        log.info("Hunt auto-screenshot enabled - lists refreshed from Google Sheets");
+                    }, "HuntRefresh").start();
+                }
+            } else {
+                huntAutoScreenshot.stopMonitoring();
+                log.debug("Hunt auto-screenshot disabled");
+            }
+        }
     }
 
     @Provides
     FluxConfig provideConfig(ConfigManager configManager) {
         return configManager.getConfig(FluxConfig.class);
+    }
+    
+    /**
+     * Get the Hunt List Sync Service for syncing monster/item/whitelist/blacklist
+     */
+    public HuntListSyncService getHuntListSyncService() {
+        return huntListSyncService;
     }
 }

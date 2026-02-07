@@ -29,15 +29,14 @@ public class WiseOldManApiClient {
         return jsonParser.parse(response).getAsJsonArray();
     }
 
-    public JsonObject fetchCompetitionDetails(int competitionId) {
-        String urlString = BASE_API_URL + "/competitions/" + competitionId;
+    public JsonObject fetchCompetitionDetails(int competitionId)  {
+        String urlString = getCompetitionUrl(competitionId);
         String response = makeHttpRequest(urlString);
         return jsonParser.parse(response).getAsJsonObject();
     }
 
     public String getCompetitionUrl(int competitionId) {
-        // Non-API URL for button links
-        return "https://wiseoldman.net/competitions/" + competitionId;
+        return BASE_API_URL + "/competitions/" + competitionId;
     }
 
     private String makeHttpRequest(String urlString) {
