@@ -285,4 +285,9 @@ public interface FluxConfig extends Config {
     default String huntPasswords() {
         return "";
     }
+
+    @ConfigItem(position = 66, keyName = "discord_invite_url", name = "Discord Invite URL", description = "Discord server invite perma-link", section = overlaySection, hidden = true)
+    default String discordInviteUrl() {
+        return "https://discord.gg/pTxsfJMNRJ";
+    }
 }

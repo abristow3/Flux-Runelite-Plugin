@@ -29,6 +29,7 @@ import net.runelite.client.ui.overlay.OverlayManager;
 import net.runelite.client.util.ImageUtil;
 import okhttp3.OkHttpClient;
 import java.awt.image.BufferedImage;
+import java.util.Map;
 
 @Slf4j
 @PluginDescriptor(
@@ -141,6 +142,17 @@ public class FluxPlugin extends Plugin {
         updateRollCallStatus(configValues);
         updateHuntTeamColors(configValues);
         updateBotmPass(configValues);
+        updateDiscordInviteLink(configValues);
+    }
+
+    private void updateDiscordInviteLink(Map<String, String> configValues) {
+        String inviteUrl = configValues.get("DISCORD_INVITE_URL");
+        if (inviteUrl != null && !inviteUrl.isEmpty()) {
+            String currentInviteUrl = configManager.getConfiguration(CONFIG_GROUP, "discord_invite_url");
+            if (!inviteUrl.equals(currentInviteUrl)) {
+                configManager.setConfiguration(CONFIG_GROUP, "discord_invite_url", inviteUrl);
+            }
+        }
     }
 
     private void updateLoginMessage(java.util.Map<String, String> configValues) {
@@ -149,7 +161,6 @@ public class FluxPlugin extends Plugin {
             String currentValue = configManager.getConfiguration(CONFIG_GROUP, "clan_login_message");
             if (!loginMsg.equals(currentValue)) {
                 configManager.setConfiguration(CONFIG_GROUP, "clan_login_message", loginMsg);
-                log.debug("Updated LOGIN_MESSAGE: {}", loginMsg);
             }
         }
     }
@@ -160,7 +171,6 @@ public class FluxPlugin extends Plugin {
             String currentAnnouncement = configManager.getConfiguration(CONFIG_GROUP, "plugin_announcement_message");
 
             if (!announcement.equals(currentAnnouncement)) {
-                log.debug("Updating ANNOUNCEMENT_MESSAGE: {}", announcement);
                 configManager.setConfiguration(CONFIG_GROUP, "plugin_announcement_message", announcement);
 
                 if (panel != null && panel.getHomeCard() != null) {
@@ -181,7 +191,6 @@ public class FluxPlugin extends Plugin {
             boolean currentActive = Boolean.parseBoolean(currentStatus);
 
             if (isActive != currentActive) {
-                log.debug("Updating ROLL_CALL_ACTIVE: {}", isActive);
                 configManager.setConfiguration(CONFIG_GROUP, "rollCallActive", String.valueOf(isActive));
 
                 if (panel != null) {
@@ -205,7 +214,6 @@ public class FluxPlugin extends Plugin {
             String currentTeam1Color = configManager.getConfiguration(CONFIG_GROUP, "hunt_team_1_color");
             if (!team1Color.equals(currentTeam1Color)) {
                 configManager.setConfiguration(CONFIG_GROUP, "hunt_team_1_color", team1Color);
-                log.debug("Updated TEAM_1_COLOR: {}", team1Color);
             }
         }
 
@@ -215,7 +223,6 @@ public class FluxPlugin extends Plugin {
             String currentTeam2Color = configManager.getConfiguration(CONFIG_GROUP, "hunt_team_2_color");
             if (!team2Color.equals(currentTeam2Color)) {
                 configManager.setConfiguration(CONFIG_GROUP, "hunt_team_2_color", team2Color);
-                log.debug("Updated TEAM_2_COLOR: {}", team2Color);
             }
         }
 
@@ -231,7 +238,6 @@ public class FluxPlugin extends Plugin {
             String currentValue = configManager.getConfiguration(CONFIG_GROUP, "botm_password");
             if (!botmPass.equals(currentValue)) {
                 configManager.setConfiguration(CONFIG_GROUP, "botm_password", botmPass);
-                log.debug("Updated BOTM_PASS: {}", botmPass);
             }
         } else {
             log.warn("BOTM_PASS is missing or empty in the Google Sheet values.");
@@ -253,13 +259,18 @@ public class FluxPlugin extends Plugin {
 
     @Subscribe
     //TODO: please for the love of god fix this giant list of if statements. Case statement can be used. @alex
+    //TODO: @anthony, I promise but only if you cleanup the config file.
     public void onConfigChanged(ConfigChanged event) {
         if (!event.getGroup().equals(CONFIG_GROUP)) {
             return;
         }
 
         String key = event.getKey();
-        log.debug("CONFIG CHANGE EVENT KEY: {}", key);
+        if (key.equals("discord_invite_url")) {
+            if (panel != null && panel.getHomeCard() != null) {
+                panel.getHomeCard().refreshButtonLinks();
+            }
+        }
 
         if (key.equals("plugin_announcement_message")) {
             if (panel != null && panel.getHomeCard() != null) {
@@ -269,7 +280,6 @@ public class FluxPlugin extends Plugin {
         }
 
         if (key.equals("rollCallActive")) {
-            log.debug("Roll Call Status Changed");
             if (panel != null && panel.getHomeCard() != null) {
                 panel.getHomeCard().isRollCallActive();
             }

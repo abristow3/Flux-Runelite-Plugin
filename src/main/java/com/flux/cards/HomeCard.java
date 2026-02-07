@@ -226,6 +226,7 @@ public class HomeCard extends FluxCard {
 
     public void refreshButtonLinks() {
         updateButtonUrl("Wise Old Man", "wom_url", configManager);
+        updateButtonUrl("Flux Clan Server", "discord_invite_url", configManager);
     }
 
     public void refreshHuntStatus() {
