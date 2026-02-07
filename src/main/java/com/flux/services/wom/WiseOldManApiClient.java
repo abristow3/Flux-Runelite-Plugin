@@ -29,7 +29,7 @@ public class WiseOldManApiClient {
         return jsonParser.parse(response).getAsJsonArray();
     }
 
-    public JsonObject fetchCompetitionDetails(int competitionId){
+    public JsonObject fetchCompetitionDetails(int competitionId) {
         String urlString = BASE_API_URL + "/competitions/" + competitionId;
         String response = makeHttpRequest(urlString);
         return jsonParser.parse(response).getAsJsonObject();
