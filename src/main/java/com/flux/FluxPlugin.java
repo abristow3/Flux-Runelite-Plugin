@@ -17,9 +17,11 @@ import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 
 import net.runelite.api.Client;
+import net.runelite.api.ChatMessageType;
 import net.runelite.api.GameState;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.client.chat.ChatMessageManager;
+import net.runelite.client.chat.QueuedMessage;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
@@ -301,6 +303,48 @@ public class FluxPlugin extends Plugin {
         String key = event.getKey();
         log.debug("CONFIG CHANGE EVENT KEY: {}", key);
 
+        // Handle Hunt Sync Checkbox
+        if (key.equals("hunt_sync_trigger")) {
+            boolean checked = Boolean.parseBoolean(event.getNewValue());
+            
+            if (checked) {
+                // Check if manual sync is allowed (dual cooldown check)
+                if (huntListSyncService != null && huntAutoScreenshot != null) {
+                    if (!huntListSyncService.canManualSync()) {
+                        long secondsRemaining = huntListSyncService.getSecondsUntilManualSync();
+                        
+                        if (secondsRemaining == -1) {
+                            sendChatMessage("Sync already in progress. Please wait...", ChatMessageType.GAMEMESSAGE);
+                        } else {
+                            sendChatMessage("Sync on cooldown. Wait " + secondsRemaining + " seconds.", ChatMessageType.GAMEMESSAGE);
+                        }
+                        return;
+                    }
+                    
+                    // Sync is allowed, proceed
+                    new Thread(() -> {
+                        try {
+                            log.info("Manual Hunt sync triggered from checkbox...");
+                            boolean syncSuccess = huntAutoScreenshot.forceRefreshCache();
+                            
+                            if (syncSuccess) {
+                                log.info("Sync completed successfully. 5-second cooldown active.");
+                                sendChatMessage("Hunt configuration synced successfully!", ChatMessageType.CONSOLE); // Green text
+                            } else {
+                                log.warn("Sync failed or was blocked.");
+                                sendChatMessage("Hunt sync failed. Check logs for details.", ChatMessageType.GAMEMESSAGE);
+                            }
+                            
+                        } catch (Exception e) {
+                            log.error("Error during sync", e);
+                            sendChatMessage("Hunt sync error occurred.", ChatMessageType.GAMEMESSAGE);
+                        }
+                    }, "HuntSyncCheckbox").start();
+                }
+            }
+            return;
+        }
+
         if (key.equals("plugin_announcement_message")) {
             if (panel != null && panel.getHomeCard() != null) {
                 panel.getHomeCard().refreshPluginAnnouncement();
@@ -405,13 +449,8 @@ public class FluxPlugin extends Plugin {
                         
                         if (result == JOptionPane.YES_OPTION) {
                             huntScreenshotWarningShown = true;
-                            
-                            // Refresh from Google Sheets on background thread
-                            new Thread(() -> {
-                                huntAutoScreenshot.forceRefreshCache();
-                                huntAutoScreenshot.startMonitoring();
-                                log.info("Hunt auto-screenshot enabled - lists refreshed from Google Sheets");
-                            }, "HuntRefresh").start();
+                            huntAutoScreenshot.startMonitoring();
+                            log.info("Hunt auto-screenshot enabled");
                         } else {
                             // User declined, disable the setting
                             configManager.setConfiguration(CONFIG_GROUP, "hunt_auto_screenshot", false);
@@ -419,12 +458,9 @@ public class FluxPlugin extends Plugin {
                         }
                     });
                 } else {
-                    // Warning already shown, refresh and enable on background thread
-                    new Thread(() -> {
-                        huntAutoScreenshot.forceRefreshCache();
-                        huntAutoScreenshot.startMonitoring();
-                        log.info("Hunt auto-screenshot enabled - lists refreshed from Google Sheets");
-                    }, "HuntRefresh").start();
+                    // Warning already shown, just enable
+                    huntAutoScreenshot.startMonitoring();
+                    log.info("Hunt auto-screenshot enabled");
                 }
             } else {
                 huntAutoScreenshot.stopMonitoring();
@@ -443,5 +479,28 @@ public class FluxPlugin extends Plugin {
      */
     public HuntListSyncService getHuntListSyncService() {
         return huntListSyncService;
+    }
+    
+    /**
+     * Send a message to in-game chat with optional color
+     */
+    private void sendChatMessage(String message, ChatMessageType type) {
+        if (type == ChatMessageType.CONSOLE) {
+            // Green text for success messages
+            chatMessageManager.queue(
+                QueuedMessage.builder()
+                    .type(ChatMessageType.CONSOLE)
+                    .runeLiteFormattedMessage(message)
+                    .build()
+            );
+        } else {
+            // Regular game message
+            chatMessageManager.queue(
+                QueuedMessage.builder()
+                    .type(ChatMessageType.GAMEMESSAGE)
+                    .runeLiteFormattedMessage(message)
+                    .build()
+            );
+        }
     }
 }

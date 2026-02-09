@@ -24,6 +24,7 @@ public class HuntListSyncService {
     private static final String SPREADSHEET_ID = "1SKkaWCZXDkzJxvSykQoV9tD2a4KX5pMh29VkRAgFX6E";
     private static final String SHEET_NAME = "Hunt";
     private static final long SYNC_COOLDOWN_MS = 60000; // 60 seconds
+    private static final long MANUAL_SYNC_COOLDOWN_MS = 5000; // 5 seconds for manual sync button
     
     private final OkHttpClient httpClient;
     
@@ -35,7 +36,9 @@ public class HuntListSyncService {
     private String discordWebhook = "";
     
     private long lastSyncTime = 0;
+    private long lastManualSyncTime = 0;
     private boolean hasInitialSync = false;
+    private volatile boolean syncInProgress = false;
     
     @Inject
     public HuntListSyncService(OkHttpClient httpClient) {
@@ -52,9 +55,19 @@ public class HuntListSyncService {
     
     /**
      * Force sync all lists from Google Sheets, bypassing cooldown
+     * Sets manual sync timestamp for button cooldown
      * @return true if sync was successful, false if failed
      */
     public boolean forceSyncFromGoogleSheets() {
+        // Check if sync already in progress
+        if (syncInProgress) {
+            log.warn("Sync already in progress, please wait...");
+            return false;
+        }
+        
+        // Update manual sync time
+        lastManualSyncTime = System.currentTimeMillis();
+        
         return syncFromGoogleSheets(true);
     }
     
@@ -72,6 +85,9 @@ public class HuntListSyncService {
             log.warn("Sync on cooldown. Try again in {} seconds.", remainingSeconds);
             return false;
         }
+        
+        // Set sync in progress flag
+        syncInProgress = true;
         
         try {
             log.info("Syncing Hunt lists from Google Sheets...");
@@ -101,6 +117,9 @@ public class HuntListSyncService {
         } catch (Exception e) {
             log.error("Failed to sync from Google Sheets", e);
             return false;
+        } finally {
+            // Always clear sync in progress flag
+            syncInProgress = false;
         }
     }
     
@@ -344,10 +363,44 @@ public class HuntListSyncService {
     }
     
     /**
-     * Check if sync is currently on cooldown
+     * Check if manual sync from button is allowed
+     * Requires both time-based cooldown AND previous sync to be complete
+     * @return true if manual sync is allowed
      */
-    public boolean isOnCooldown() {
-        return getSecondsUntilNextSync() > 0;
+    public boolean canManualSync() {
+        long currentTime = System.currentTimeMillis();
+        long timeSinceLastManualSync = currentTime - lastManualSyncTime;
+        
+        // Check 1: Time-based cooldown (5 seconds)
+        if (timeSinceLastManualSync < MANUAL_SYNC_COOLDOWN_MS) {
+            return false;
+        }
+        
+        // Check 2: No sync currently in progress
+        if (syncInProgress) {
+            return false;
+        }
+        
+        return true;
+    }
+    
+    /**
+     * Get seconds remaining until manual sync is available
+     * Returns 0 if sync is available
+     */
+    public long getSecondsUntilManualSync() {
+        if (syncInProgress) {
+            return -1; // Special value indicating sync in progress
+        }
+        
+        long currentTime = System.currentTimeMillis();
+        long timeSinceLastManualSync = currentTime - lastManualSyncTime;
+        
+        if (timeSinceLastManualSync >= MANUAL_SYNC_COOLDOWN_MS) {
+            return 0;
+        }
+        
+        return (MANUAL_SYNC_COOLDOWN_MS - timeSinceLastManualSync) / 1000;
     }
     
     // Getters for debugging/display

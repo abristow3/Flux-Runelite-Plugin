@@ -111,7 +111,7 @@ public class HuntAutoScreenshot {
     /**
      * Force refresh cache immediately (used when plugin is toggled)
      */
-    public void forceRefreshCache() {
+    public boolean forceRefreshCache() {
         log.info("Force refreshing Hunt lists from Google Sheets (bypassing cooldown)...");
         
         // Force sync from Google Sheets (bypasses cooldown)
@@ -121,8 +121,10 @@ public class HuntAutoScreenshot {
             // Then update our cache with fresh data
             refreshCache();
             log.info("Hunt lists force refreshed successfully");
+            return true;
         } else {
             log.error("Failed to force refresh Hunt lists from Google Sheets");
+            return false;
         }
     }
     
@@ -271,15 +273,18 @@ public class HuntAutoScreenshot {
     
     /**
      * Check if monster is monitored using cached lists (fast, in-memory check)
+     * Uses exact match (case-insensitive)
      */
     private boolean isMonitoredMonster(String monsterName) {
         if (monsterName == null || monsterName.isEmpty()) {
             return false;
         }
         
+        String lowerMonsterName = monsterName.toLowerCase();
+        
         for (String monster : cachedMonsterList) {
-            if (monsterName.toLowerCase().contains(monster.toLowerCase()) ||
-                monster.toLowerCase().contains(monsterName.toLowerCase())) {
+            // Exact match only (case-insensitive)
+            if (lowerMonsterName.equals(monster.toLowerCase())) {
                 return true;
             }
         }
@@ -289,6 +294,7 @@ public class HuntAutoScreenshot {
     
     /**
      * Check if item is monitored using cached lists (fast, in-memory check)
+     * Uses partial match (case-insensitive)
      */
     private boolean isMonitoredItem(String itemName) {
         if (itemName == null || itemName.isEmpty()) {
@@ -296,6 +302,7 @@ public class HuntAutoScreenshot {
         }
         
         for (String item : cachedItemList) {
+            // Partial match (case-insensitive)
             if (itemName.toLowerCase().contains(item.toLowerCase()) ||
                 item.toLowerCase().contains(itemName.toLowerCase())) {
                 return true;
