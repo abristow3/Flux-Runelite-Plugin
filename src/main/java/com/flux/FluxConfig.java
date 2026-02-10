@@ -238,7 +238,7 @@ public interface FluxConfig extends Config {
 
     @ConfigItem(position = 56, keyName = "hunt_gdoc_url", name = "The Hunt GDoc", description = "The Hunt GDoc URL.", section = overlaySection, hidden = true)
     default String huntGdocUrl() {
-        return "https://docs.google.com/spreadsheets/d/e/2PACX-1vSLCxscAVFZY9wuDqmeBPu4UZio2I39DHDGy_8DXrvHqYKmZc8NgsC4DWv_olXOTjGQktcBnU88Fmf4/pubhtml?gid=0&single=true";
+        return "https://docs.google.com/spreadsheets/d/1qqkjx4YjuQ9FIBDgAGzSpmoKcDow3yEa9lYFmc-JeDA/edit?gid=1839295430#gid=1839295430";
     }
 
     @ConfigItem(position = 57, keyName = "hunt_team_1_name", name = "Hunt Team 1 Name", description = "Name of Hunt Team 1.", section = overlaySection, hidden = true)
@@ -286,8 +286,68 @@ public interface FluxConfig extends Config {
         return "";
     }
 
-    @ConfigItem(position = 66, keyName = "discord_invite_url", name = "Discord Invite URL", description = "Discord server invite perma-link", section = overlaySection, hidden = true)
-    default String discordInviteUrl() {
-        return "https://discord.gg/pTxsfJMNRJ";
+    // ========== HUNT AUTO-SCREENSHOT CONFIGURATION ==========
+    
+    @ConfigSection(
+        name = "Hunt Configuration",
+        description = "Configure automatic screenshot and Discord upload settings for The Hunt event",
+        position = 66,
+        closedByDefault = true
+    )
+    String huntConfigSection = "huntConfigSection";
+
+    @ConfigItem(
+        position = 67, 
+        keyName = "hunt_auto_screenshot", 
+        name = "Auto-Screenshot Drops", 
+        description = "Automatically take screenshots of drops from Google Sheets lists.",
+        section = huntConfigSection
+    )
+    default boolean huntAutoScreenshot() {
+        return false;
+    }
+
+    @ConfigItem(
+        position = 68, 
+        keyName = "hunt_auto_post_discord", 
+        name = "Auto-Post to Discord", 
+        description = "Automatically upload screenshots to Discord webhook (webhook URL from Google Sheets).",
+        section = huntConfigSection
+    )
+    default boolean huntAutoPostDiscord() {
+        return true;
+    }
+
+    @ConfigItem(
+        position = 69, 
+        keyName = "hunt_screenshot_save_local", 
+        name = "Save Local Copy", 
+        description = "Save screenshots to your local computer in Uploaded/ folder after successful Discord upload.",
+        section = huntConfigSection
+    )
+    default boolean huntScreenshotSaveLocal() {
+        return true;
+    }
+
+    @ConfigItem(
+        position = 70, 
+        keyName = "hunt_screenshot_notifications", 
+        name = "Screenshot Notifications", 
+        description = "Show in-game chat messages when screenshots are uploaded or fail.",
+        section = huntConfigSection
+    )
+    default boolean huntScreenshotNotifications() {
+        return true;
+    }
+    
+    @ConfigItem(
+        position = 71,
+        keyName = "hunt_sync_trigger",
+        name = "Sync Hunt Config",
+        description = "Toggle to sync Monster List, Item List, Whitelist, Blacklist, and Discord Webhook from Google Sheets. Auto-unticks after sync.",
+        section = huntConfigSection
+    )
+    default boolean huntSyncTrigger() {
+        return false;
     }
 }
