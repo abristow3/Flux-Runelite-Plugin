@@ -238,7 +238,7 @@ public interface FluxConfig extends Config {
 
     @ConfigItem(position = 56, keyName = "hunt_gdoc_url", name = "The Hunt GDoc", description = "The Hunt GDoc URL.", section = overlaySection, hidden = true)
     default String huntGdocUrl() {
-        return "https://docs.google.com/spreadsheets/d/e/2PACX-1vSLCxscAVFZY9wuDqmeBPu4UZio2I39DHDGy_8DXrvHqYKmZc8NgsC4DWv_olXOTjGQktcBnU88Fmf4/pubhtml?gid=0&single=true";
+        return "https://docs.google.com/spreadsheets/d/1qqkjx4YjuQ9FIBDgAGzSpmoKcDow3yEa9lYFmc-JeDA/edit?gid=1839295430#gid=1839295430";
     }
 
     @ConfigItem(position = 57, keyName = "hunt_team_1_name", name = "Hunt Team 1 Name", description = "Name of Hunt Team 1.", section = overlaySection, hidden = true)

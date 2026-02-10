@@ -2,6 +2,7 @@ package com.flux.services;
 
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.*;
+import net.runelite.api.events.ChatMessage;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.eventbus.Subscribe;
@@ -51,6 +52,9 @@ public class HuntAutoScreenshot {
     
     private boolean isRegistered = false;
     private final ScheduledExecutorService retryExecutor = Executors.newSingleThreadScheduledExecutor();
+    
+    // Track last killed monster for pet drops
+    private String lastKilledMonster = null;
     
     // Cached lists to avoid recreating HashSets on every loot event
     private Set<String> cachedMonsterList = new HashSet<>();
@@ -182,7 +186,15 @@ public class HuntAutoScreenshot {
         
         // Step 1: Check if the source (monster/activity) is in the cached Monster List
         String source = lootReceived.getName();
-        if (!isMonitoredMonster(source)) {
+        boolean isMonitoredMonsterKill = isMonitoredMonster(source);
+        
+        // Track this kill for potential pet drops
+        if (isMonitoredMonsterKill) {
+            lastKilledMonster = source;
+            log.debug("Tracked kill: {}", source);
+        }
+        
+        if (!isMonitoredMonsterKill) {
             log.debug("Loot from non-monitored source: {}", source);
             log.debug("Current monster list: {}", cachedMonsterList);
             return;
@@ -244,6 +256,49 @@ public class HuntAutoScreenshot {
                 sb.append(items.get(i));
             }
             return sb.toString();
+        }
+    }
+    
+    @Subscribe
+    public void onChatMessage(ChatMessage chatMessage) {
+        // Only check for pet drops in chat
+        if (!isAutoScreenshotEnabled()) {
+            return;
+        }
+        
+        String message = chatMessage.getMessage();
+        ChatMessageType type = chatMessage.getType();
+        
+        if (type == ChatMessageType.GAMEMESSAGE || type == ChatMessageType.SPAM) {
+            checkForPetDrop(message);
+        }
+    }
+    
+    private void checkForPetDrop(String message) {
+        // Check for all pet drop messages
+        boolean isPetDrop = message.contains("You have a funny feeling like you're being followed") ||
+                           message.contains("You feel something weird sneaking into your backpack") ||
+                           message.contains("You have a funny feeling like you would have been followed");
+        
+        if (!isPetDrop) {
+            return;
+        }
+        
+        // Check if we recently killed a monitored monster
+        if (lastKilledMonster != null) {
+            log.info("Pet drop detected from monitored monster: {}", lastKilledMonster);
+            
+            // Determine if player got the pet or if collection log was full
+            String petStatus = message.contains("would have been followed") ? 
+                "Pet (Collection Log Full)" : "Pet";
+            
+            takeScreenshot("pet_from_" + sanitizeFileName(lastKilledMonster), 
+                          petStatus, lastKilledMonster);
+            
+            // Clear tracked kill after pet drop
+            lastKilledMonster = null;
+        } else {
+            log.debug("Pet drop detected but no recent monitored monster kill");
         }
     }
     
@@ -312,10 +367,6 @@ public class HuntAutoScreenshot {
         return false;
     }
     
-    private boolean shouldScreenshotPets() {
-        String petsSetting = configManager.getConfiguration(CONFIG_GROUP, "hunt_screenshot_pets");
-        return petsSetting != null && Boolean.parseBoolean(petsSetting);
-    }
     
     private void takeScreenshot(String prefix, String itemName, String monsterName) {
         // Request screenshot from draw manager (must be on client thread)

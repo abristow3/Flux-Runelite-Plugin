@@ -21,7 +21,7 @@ import java.util.Set;
 @Singleton
 public class HuntListSyncService {
     private static final String API_KEY = "AIzaSyBu-qDCAFvD_z00uohkfD_ub0sZj-H8s1E";
-    private static final String SPREADSHEET_ID = "1SKkaWCZXDkzJxvSykQoV9tD2a4KX5pMh29VkRAgFX6E";
+    private static final String SPREADSHEET_ID = "1qqkjx4YjuQ9FIBDgAGzSpmoKcDow3yEa9lYFmc-JeDA";
     private static final String SHEET_NAME = "Hunt";
     private static final long SYNC_COOLDOWN_MS = 60000; // 60 seconds
     private static final long MANUAL_SYNC_COOLDOWN_MS = 5000; // 5 seconds for manual sync button
@@ -204,14 +204,14 @@ public class HuntListSyncService {
             monsterCol, itemCol, whitelistCol, blacklistCol);
         
         // Check for webhook in cell B4 (row index 3, column index 1)
-        // A4 should contain key "DISCORD_HUNT_SCREENIE_CHANNEL_ID"
+        // A4 should contain key "DISCORD_WEBHOOK_URL"
         if (rows.size() >= 4) {
             JsonArray row4 = rows.get(3).getAsJsonArray(); // Row 4 (0-indexed as 3)
             
             // Check if A4 has the key
             if (row4.size() >= 1) {
                 String keyCell = row4.get(0).getAsString().trim();
-                if (keyCell.equals("DISCORD_HUNT_SCREENIE_CHANNEL_ID")) {
+                if (keyCell.equals("DISCORD_WEBHOOK_URL")) {
                     // Get value from B4
                     if (row4.size() >= 2) {
                         String webhookUrl = row4.get(1).getAsString().trim();
@@ -271,7 +271,7 @@ public class HuntListSyncService {
         if (!discordWebhook.isEmpty()) {
             log.info("Discord webhook loaded from Google Sheets (B4)");
         } else {
-            log.warn("No Discord webhook found in B4! Expected key 'DISCORD_HUNT_SCREENIE_CHANNEL_ID' in A4");
+            log.warn("No Discord webhook found in B4! Expected key 'DISCORD_WEBHOOK_URL' in A4");
         }
     }
     
