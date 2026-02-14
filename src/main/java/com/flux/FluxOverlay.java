@@ -4,118 +4,100 @@ import net.runelite.client.config.ConfigManager;
 import net.runelite.client.ui.overlay.OverlayMenuEntry;
 import net.runelite.client.ui.overlay.OverlayPanel;
 import net.runelite.client.ui.overlay.OverlayPosition;
+import net.runelite.client.ui.overlay.components.LayoutableRenderableEntity;
 import net.runelite.client.ui.overlay.components.LineComponent;
+
 import javax.inject.Inject;
-import java.awt.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics2D;
+import java.util.List;
+
 
 import static net.runelite.api.MenuAction.RUNELITE_OVERLAY_CONFIG;
 import static net.runelite.client.ui.overlay.OverlayManager.OPTION_CONFIGURE;
 
 public class FluxOverlay extends OverlayPanel {
-    private final ConfigManager configManager;
-    private final FluxConfig config;
+	private final ConfigManager configManager;
+	private final FluxConfig config;
 
-    @Inject
-    private FluxOverlay(ConfigManager configManager, FluxConfig config) {
-        this.configManager = configManager;
-        this.config = config;
+	@Inject
+	private FluxOverlay(ConfigManager configManager, FluxConfig config) {
+		this.configManager = configManager;
+		this.config = config;
 
-        setPosition(OverlayPosition.TOP_CENTER);
-        getMenuEntries().add(new OverlayMenuEntry(RUNELITE_OVERLAY_CONFIG, OPTION_CONFIGURE, "Clan Events overlay"));
-    }
+		setPosition(OverlayPosition.TOP_CENTER);
+		getMenuEntries().add(new OverlayMenuEntry(RUNELITE_OVERLAY_CONFIG, OPTION_CONFIGURE, "Clan Events overlay"));
+	}
 
-    @Override
-    public Dimension render(Graphics2D graphics) {
-        panelComponent.getChildren().clear();
+	@Override
+	public Dimension render(Graphics2D graphics) {
+		if (!config.overlay()) {
+			return null;
+		}
 
-        boolean overlayEnabled = config.overlay();
-        if (!overlayEnabled) {
-            return null;
-        }
+		boolean botmActive = getBooleanConfig("botmActive");
+		boolean huntActive = getBooleanConfig("huntActive");
 
-        boolean botmActive = getBooleanConfig("botmActive", false);
-        boolean huntActive = getBooleanConfig("huntActive", false);
+		String eventPass = config.eventPass();
+		String botmPass = config.botmPass();
+		String huntPass = config.combinedHuntPassword();
+		String overlayString = "";
 
-        String eventPass = config.eventPass();
-        String botmPass = config.botmPass();
-        String huntPasswords = getStringConfig("hunt_passwords", "");
+		Color passColor = config.passColor();
+		Color timeColor = config.timeColor();
 
-        StringBuilder textBuilder = new StringBuilder();
+		if (passColor.toString().equals(timeColor.toString())) {
+			passColor = Color.green;
+			timeColor = Color.WHITE;
+		}
 
-        if (eventPass != null && !eventPass.isEmpty()) {
-            textBuilder.append(eventPass);
-        }
+		if (!isNullOrEmpty(eventPass)) {
+			overlayString = overlayString + eventPass + " | ";
+		}
 
-        if (botmActive && botmPass != null && !botmPass.isEmpty()) {
-            if (textBuilder.length() > 0) {
-                textBuilder.append(" | ");
-            }
-            textBuilder.append("BOTM: ").append(botmPass);
-        }
+		if (botmActive && !isNullOrEmpty(botmPass)) {
+			overlayString = overlayString + botmPass + " | ";
+			;
+		}
 
-        if (huntActive && huntPasswords != null && !huntPasswords.isEmpty()) {
-            if (textBuilder.length() > 0) {
-                textBuilder.append(" | ");
-            }
-            textBuilder.append("Hunt: ").append(huntPasswords);
-        }
+		if (huntActive && !isNullOrEmpty(huntPass)) {
+			overlayString = overlayString + huntPass;
+		}
 
-        String text = textBuilder.toString().trim();
+		if (config.overlay()) {
+			panelComponent.getChildren().add(LineComponent.builder().left(overlayString).leftColor(passColor).build());
 
-        if (text.isEmpty()) {
-            return null;
-        }
+			if (config.dtm()) {
+				overlayString = overlayString + " " + localToGMT();
+				List<LayoutableRenderableEntity> elem = panelComponent.getChildren();
+				((LineComponent) elem.get(0)).setRight(localToGMT());
+				((LineComponent) elem.get(0)).setRightColor(timeColor);
+			}
+			panelComponent.setPreferredSize(new Dimension(graphics.getFontMetrics().stringWidth(overlayString) + 10, 0));
+		}
+		return super.render(graphics);
+	}
 
-        Color passColor = config.passColor();
-        Color timeColor = config.timeColor();
+	private boolean getBooleanConfig(String key) {
+		String value = configManager.getConfiguration("flux", key);
+		if (value == null || value.isEmpty()) {
+			return false;
+		}
+		return Boolean.parseBoolean(value);
+	}
 
-        if (passColor.equals(timeColor)) {
-            passColor = Color.GREEN;
-            timeColor = Color.WHITE;
-        }
+	public static String localToGMT() {
+		Date date = new Date();
+		SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+		sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+		return sdf.format(date) + " UTC";
+	}
 
-        panelComponent.getChildren().add(LineComponent.builder()
-                .left(text)
-                .leftColor(passColor)
-                .build());
-
-        if (config.dtm()) {
-            String time = localToGMT();
-            LineComponent line = (LineComponent) panelComponent.getChildren().get(0);
-            line.setRight(time);
-            line.setRightColor(timeColor);
-
-            int widthLeft = graphics.getFontMetrics().stringWidth(text);
-            int widthRight = graphics.getFontMetrics().stringWidth(time);
-            panelComponent.setPreferredSize(new Dimension(widthLeft + widthRight + 20, 0));
-        } else {
-            int widthLeft = graphics.getFontMetrics().stringWidth(text);
-            panelComponent.setPreferredSize(new Dimension(widthLeft + 10, 0));
-        }
-
-        return super.render(graphics);
-    }
-
-    private boolean getBooleanConfig(String key, boolean defaultValue) {
-        String value = configManager.getConfiguration("flux", key);
-        if (value == null || value.isEmpty()) {
-            return defaultValue;
-        }
-        return Boolean.parseBoolean(value);
-    }
-
-    private String getStringConfig(String key, String defaultValue) {
-        String value = configManager.getConfiguration("flux", key);
-        return (value != null && !value.isEmpty()) ? value : defaultValue;
-    }
-
-    public static String localToGMT() {
-        Date date = new Date();
-        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
-        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
-        return sdf.format(date) + " UTC";
-    }
+	private static boolean isNullOrEmpty(String s) {
+		return s == null || s.isEmpty();
+	}
 }
