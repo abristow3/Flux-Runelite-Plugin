@@ -351,7 +351,7 @@ public class FluxPlugin extends Plugin {
             }
         }
 
-        if (key.equals("hunt_wom_url") || key.equals("hunt_gdoc_url")) {
+        if (key.equals("hunt_wom_url") || key.equals("hunt_gdoc_url") || key.equals("hunt_signup_discord_channel_url")) {
             if (panel != null && panel.getHuntCard() != null) {
                 panel.getHuntCard().refreshButtonLinks();
             }

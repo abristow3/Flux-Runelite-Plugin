@@ -145,9 +145,10 @@ public class HuntCard extends FluxCard {
     private void addButtons() {
         String gdocUrl = getConfigValue("hunt_gdoc_url", "https://docs.google.com/spreadsheets/d/e/2PACX-1vSLCxscAVFZY9wuDqmeBPu4UZio2I39DHDGy_8DXrvHqYKmZc8NgsC4DWv_olXOTjGQktcBnU88Fmf4/pubhtml?gid=0&single=true", configManager);
         String womUrl = getConfigValue("hunt_wom_url", "https://wiseoldman.net/competitions", configManager);
+        String huntSignupChannelUrl = getConfigValue("hunt_signup_discord_channel_url", "https://discord.com/channels/414435426007384075/414458243499425792", configManager);
 
-        addLinkButtons(new LinkButton[] {
-                new LinkButton("Hunt Signup", "/discord.png", "discord://discord.com/channels/414435426007384075/414458243499425792"),
+        addLinkButtons(new LinkButton[]{
+                new LinkButton("Hunt Signup", "/discord.png", huntSignupChannelUrl),
                 new LinkButton("The Hunt GDoc", "/hunt.png", gdocUrl),
                 new LinkButton("Hunt WOM", "/wom.png", womUrl)
         });
@@ -229,15 +230,9 @@ public class HuntCard extends FluxCard {
     }
 
     public void refreshButtonLinks() {
-        updateButtonUrl("The Hunt GDoc", "hunt_gdoc_url");
-        updateButtonUrl("Hunt WOM", "hunt_wom_url");
-    }
-
-    private void updateButtonUrl(String buttonLabel, String configKey) {
-        String url = getConfigValue(configKey, "", configManager);
-        if (buttons.containsKey(buttonLabel) && !url.isEmpty()) {
-            buttons.get(buttonLabel).setUrl(url);
-        }
+        updateButtonUrl("The Hunt GDoc", "hunt_gdoc_url", configManager);
+        updateButtonUrl("Hunt WOM", "hunt_wom_url", configManager);
+        updateButtonUrl("Hunt Signup", "hunt_signup_discord_channel_url", configManager);
     }
 
     public void checkEventStateChanged() {
