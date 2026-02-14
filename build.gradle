@@ -40,9 +40,7 @@ tasks.withType(JavaCompile).configureEach {
 tasks.register('run', JavaExec) {
     classpath = sourceSets.test.runtimeClasspath
     mainClass = "com.flux.FluxPluginTest"
-
     jvmArgs "-ea"
-    args "--developer-mode", "--debug"
 }
 
 tasks.register('shadowJar', Jar) {

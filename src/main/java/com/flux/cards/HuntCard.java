@@ -145,7 +145,7 @@ public class HuntCard extends FluxCard {
     private void addButtons() {
         String gdocUrl = getConfigValue("hunt_gdoc_url", "https://docs.google.com/spreadsheets/d/e/2PACX-1vSLCxscAVFZY9wuDqmeBPu4UZio2I39DHDGy_8DXrvHqYKmZc8NgsC4DWv_olXOTjGQktcBnU88Fmf4/pubhtml?gid=0&single=true", configManager);
         String womUrl = getConfigValue("hunt_wom_url", "https://wiseoldman.net/competitions", configManager);
-        String huntSignupChannelUrl = getConfigValue("hunt_signup_discord_channel_url", "https://discord.com/channels/414435426007384075/414458243499425792", configManager);
+        String huntSignupChannelUrl = getConfigValue("hunt_signup_discord_channel_url", "discord://discord.com/channels/414435426007384075/414458243499425792", configManager);
 
         addLinkButtons(new LinkButton[]{
                 new LinkButton("Hunt Signup", "/discord.png", huntSignupChannelUrl),

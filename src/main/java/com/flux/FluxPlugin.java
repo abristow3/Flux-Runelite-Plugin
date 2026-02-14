@@ -143,6 +143,7 @@ public class FluxPlugin extends Plugin {
         updateHuntTeamColors(configValues);
         updateBotmPass(configValues);
         updateDiscordInviteLink(configValues);
+		updateHuntSignupDiscordChannelUrl(configValues);
     }
 
     private void updateDiscordInviteLink(Map<String, String> configValues) {
@@ -154,6 +155,16 @@ public class FluxPlugin extends Plugin {
             }
         }
     }
+
+	private void updateHuntSignupDiscordChannelUrl(Map<String, String> configValues) {
+		String signupUrl = configValues.get("HUNT_SIGNUP_DISCORD_CHANNEL_URL");
+		if (signupUrl != null && !signupUrl.isEmpty()) {
+			String currentInviteUrl = configManager.getConfiguration(CONFIG_GROUP, "hunt_signup_discord_channel_url");
+			if (!signupUrl.equals(currentInviteUrl)) {
+				configManager.setConfiguration(CONFIG_GROUP, "hunt_signup_discord_channel_url", signupUrl);
+			}
+		}
+	}
 
     private void updateLoginMessage(java.util.Map<String, String> configValues) {
         String loginMsg = configValues.get("LOGIN_MESSAGE");
