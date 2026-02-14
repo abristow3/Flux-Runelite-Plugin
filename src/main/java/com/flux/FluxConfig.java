@@ -290,4 +290,9 @@ public interface FluxConfig extends Config {
     default String discordInviteUrl() {
         return "https://discord.gg/pTxsfJMNRJ";
     }
+
+    @ConfigItem(position = 67, keyName = "hunt_signup_discord_channel_url", name = "Hunt Signup Channel URL", description = "Discord channel to signup for the Hunt event.", section = overlaySection, hidden = true)
+    default String huntSignupDiscordChannelUrl() {
+        return "discord://discord.com/channels/414435426007384075/414458243499425792";
+    }
 }
