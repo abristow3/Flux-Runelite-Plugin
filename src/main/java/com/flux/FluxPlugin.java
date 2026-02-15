@@ -145,6 +145,7 @@ public class FluxPlugin extends Plugin {
         updateDiscordInviteLink(configValues);
 		updateHuntSignupDiscordChannelUrl(configValues);
 		updateHuntPass(configValues);
+        updateHuntGdocUrl(configValues);
     }
 
     private void updateDiscordInviteLink(Map<String, String> configValues) {
@@ -166,6 +167,16 @@ public class FluxPlugin extends Plugin {
 			}
 		}
 	}
+
+    private void updateHuntGdocUrl(Map<String, String> configValues) {
+        String gdocUrl = configValues.get("HUNT_GDOC_URL");
+        if (gdocUrl != null && !gdocUrl.isEmpty()) {
+            String currentGdocUrl = configManager.getConfiguration(CONFIG_GROUP, "hunt_gdoc_url");
+            if (!gdocUrl.equals(currentGdocUrl)) {
+                configManager.setConfiguration(CONFIG_GROUP, "hunt_gdoc_url", gdocUrl);
+            }
+        }
+    }
 
     private void updateLoginMessage(java.util.Map<String, String> configValues) {
         String loginMsg = configValues.get("LOGIN_MESSAGE");
@@ -274,11 +285,9 @@ public class FluxPlugin extends Plugin {
 		}
 	}
 
-
 	private static boolean isNullOrEmpty(String s) {
 		return s == null || s.isEmpty();
 	}
-
 
 	@Subscribe
     public void onGameStateChanged(GameStateChanged event) {
