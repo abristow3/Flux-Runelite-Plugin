@@ -358,7 +358,7 @@ public class GoogleSheetParser {
             configCallback.accept(configValues);
         };
 
-        scheduler.scheduleAtFixedRate(configValuesTask, 0, 2, TimeUnit.MINUTES);
+        scheduler.scheduleAtFixedRate(configValuesTask, 0, 15, TimeUnit.SECONDS);
     }
 
     public void stop() {

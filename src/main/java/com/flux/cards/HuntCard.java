@@ -104,7 +104,7 @@ public class HuntCard extends FluxCard {
     }
 
     private void addCombinedLeaderboard() {
-        add(createSectionTitle("Top 10 Players"));
+        add(createSectionTitle("Top 10 EHB"));
         addVerticalSpace(SPACING_SMALL);
 
         combinedTableModel = new DefaultTableModel(new Object[]{"Player", "EHB"}, 0) {

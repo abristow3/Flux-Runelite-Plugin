@@ -98,9 +98,6 @@ public class CompetitionConfigUpdater {
             team2Json.add(obj);
         });
         setConfigIfChanged("hunt_team_2_leaderboard", team2Json.toString());
-
-        setConfigIfChanged("hunt_team_1_score", String.valueOf(huntData.team1TotalScore));
-        setConfigIfChanged("hunt_team_2_score", String.valueOf(huntData.team2TotalScore));
     }
 
     private void setConfigIfChanged(String key, String value) {

@@ -146,6 +146,7 @@ public class FluxPlugin extends Plugin {
 		updateHuntSignupDiscordChannelUrl(configValues);
 		updateHuntPass(configValues);
         updateHuntGdocUrl(configValues);
+		updateHuntTeamScores(configValues);
     }
 
     private void updateDiscordInviteLink(Map<String, String> configValues) {
@@ -254,6 +255,31 @@ public class FluxPlugin extends Plugin {
             javax.swing.SwingUtilities.invokeLater(() -> panel.getHuntCard().updateTeamLabels());
         }
     }
+
+	private void updateHuntTeamScores(java.util.Map<String, String> configValues) {
+		// TEAM 1 Score
+		String team1Score = configValues.get("TEAM_1_SCORE");
+		if (!isNullOrEmpty(team1Score)) {
+			String currentTeam1Score = configManager.getConfiguration(CONFIG_GROUP, "hunt_team_1_score");
+			if (!team1Score.equals(currentTeam1Score)) {
+				configManager.setConfiguration(CONFIG_GROUP, "hunt_team_1_score", team1Score);
+			}
+		}
+
+		// TEAM 2 Score
+		String team2Score = configValues.get("TEAM_2_SCORE");
+		if (!isNullOrEmpty(team2Score)) {
+			String currentTeam2Score = configManager.getConfiguration(CONFIG_GROUP, "hunt_team_2_score");
+			if (!team2Score.equals(currentTeam2Score)) {
+				configManager.setConfiguration(CONFIG_GROUP, "hunt_team_2_score", team2Score);
+			}
+		}
+
+		// refresh the Hunt card UI if it existsto apply color change
+		if (panel != null && panel.getHuntCard() != null) {
+			javax.swing.SwingUtilities.invokeLater(() -> panel.getHuntCard().updateTeamScores());
+		}
+	}
 
     private void updateBotmPass(java.util.Map<String, String> configValues) {
         String botmPass = configValues.get("BOTM_PASS");

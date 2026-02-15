@@ -19,7 +19,7 @@ public class CompetitionScheduler {
     private static final String DEFAULT_HUNT_COMPETITION_ID = "100262";
     private volatile boolean active = false;
     long initialDelaySeconds = 3;
-    long periodMinutes = 7;
+    long periodMinutes = 3;
 
     private final ConfigManager configManager;
     private volatile ScheduledExecutorService schedulerService;
