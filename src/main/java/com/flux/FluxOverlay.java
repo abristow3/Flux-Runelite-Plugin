@@ -84,7 +84,7 @@ public class FluxOverlay extends OverlayPanel {
 
 	private boolean getBooleanConfig(String key) {
 		String value = configManager.getConfiguration("flux", key);
-		if (value == null || value.isEmpty()) {
+		if (isNullOrEmpty(value)) {
 			return false;
 		}
 		return Boolean.parseBoolean(value);

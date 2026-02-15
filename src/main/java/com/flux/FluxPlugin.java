@@ -150,7 +150,7 @@ public class FluxPlugin extends Plugin {
 
     private void updateDiscordInviteLink(Map<String, String> configValues) {
         String inviteUrl = configValues.get("DISCORD_INVITE_URL");
-        if (inviteUrl != null && !inviteUrl.isEmpty()) {
+        if (!isNullOrEmpty(inviteUrl)) {
             String currentInviteUrl = configManager.getConfiguration(CONFIG_GROUP, "discord_invite_url");
             if (!inviteUrl.equals(currentInviteUrl)) {
                 configManager.setConfiguration(CONFIG_GROUP, "discord_invite_url", inviteUrl);
@@ -160,7 +160,7 @@ public class FluxPlugin extends Plugin {
 
 	private void updateHuntSignupDiscordChannelUrl(Map<String, String> configValues) {
 		String signupUrl = configValues.get("HUNT_SIGNUP_DISCORD_CHANNEL_URL");
-		if (signupUrl != null && !signupUrl.isEmpty()) {
+		if (!isNullOrEmpty(signupUrl)) {
 			String currentInviteUrl = configManager.getConfiguration(CONFIG_GROUP, "hunt_signup_discord_channel_url");
 			if (!signupUrl.equals(currentInviteUrl)) {
 				configManager.setConfiguration(CONFIG_GROUP, "hunt_signup_discord_channel_url", signupUrl);
@@ -170,7 +170,7 @@ public class FluxPlugin extends Plugin {
 
     private void updateHuntGdocUrl(Map<String, String> configValues) {
         String gdocUrl = configValues.get("HUNT_GDOC_URL");
-        if (gdocUrl != null && !gdocUrl.isEmpty()) {
+        if (!isNullOrEmpty(gdocUrl)) {
             String currentGdocUrl = configManager.getConfiguration(CONFIG_GROUP, "hunt_gdoc_url");
             if (!gdocUrl.equals(currentGdocUrl)) {
                 configManager.setConfiguration(CONFIG_GROUP, "hunt_gdoc_url", gdocUrl);
@@ -180,7 +180,7 @@ public class FluxPlugin extends Plugin {
 
     private void updateLoginMessage(java.util.Map<String, String> configValues) {
         String loginMsg = configValues.get("LOGIN_MESSAGE");
-        if (loginMsg != null && !loginMsg.isEmpty()) {
+        if (!isNullOrEmpty(loginMsg)) {
             String currentValue = configManager.getConfiguration(CONFIG_GROUP, "clan_login_message");
             if (!loginMsg.equals(currentValue)) {
                 configManager.setConfiguration(CONFIG_GROUP, "clan_login_message", loginMsg);
@@ -190,7 +190,7 @@ public class FluxPlugin extends Plugin {
 
     private void updateAnnouncementMessage(java.util.Map<String, String> configValues) {
         String announcement = configValues.get("ANNOUNCEMENT_MESSAGE");
-        if (announcement != null && !announcement.isEmpty()) {
+        if (!isNullOrEmpty(announcement)) {
             String currentAnnouncement = configManager.getConfiguration(CONFIG_GROUP, "plugin_announcement_message");
 
             if (!announcement.equals(currentAnnouncement)) {
@@ -208,7 +208,7 @@ public class FluxPlugin extends Plugin {
 
     private void updateRollCallStatus(java.util.Map<String, String> configValues) {
         String rollCallActive = configValues.get("ROLL_CALL_ACTIVE");
-        if (rollCallActive != null && !rollCallActive.isEmpty()) {
+        if (!isNullOrEmpty(rollCallActive)) {
             boolean isActive = rollCallActive.equalsIgnoreCase("TRUE");
             String currentStatus = configManager.getConfiguration(CONFIG_GROUP, "rollCallActive");
             boolean currentActive = Boolean.parseBoolean(currentStatus);
@@ -233,7 +233,7 @@ public class FluxPlugin extends Plugin {
     private void updateHuntTeamColors(java.util.Map<String, String> configValues) {
         // TEAM 1 COLOR
         String team1Color = configValues.get("TEAM_1_COLOR");
-        if (team1Color != null && !team1Color.isEmpty()) {
+        if (!isNullOrEmpty(team1Color)) {
             String currentTeam1Color = configManager.getConfiguration(CONFIG_GROUP, "hunt_team_1_color");
             if (!team1Color.equals(currentTeam1Color)) {
                 configManager.setConfiguration(CONFIG_GROUP, "hunt_team_1_color", team1Color);
@@ -242,7 +242,7 @@ public class FluxPlugin extends Plugin {
 
         // TEAM 2 COLOR
         String team2Color = configValues.get("TEAM_2_COLOR");
-        if (team2Color != null && !team2Color.isEmpty()) {
+        if (!isNullOrEmpty(team2Color)) {
             String currentTeam2Color = configManager.getConfiguration(CONFIG_GROUP, "hunt_team_2_color");
             if (!team2Color.equals(currentTeam2Color)) {
                 configManager.setConfiguration(CONFIG_GROUP, "hunt_team_2_color", team2Color);
@@ -257,7 +257,7 @@ public class FluxPlugin extends Plugin {
 
     private void updateBotmPass(java.util.Map<String, String> configValues) {
         String botmPass = configValues.get("BOTM_PASS");
-        if (botmPass != null && !botmPass.isEmpty()) {
+        if (!isNullOrEmpty(botmPass)) {
             String currentValue = configManager.getConfiguration(CONFIG_GROUP, "botm_password");
             if (!botmPass.equals(currentValue)) {
                 configManager.setConfiguration(CONFIG_GROUP, "botm_password", botmPass);
