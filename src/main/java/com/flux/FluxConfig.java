@@ -295,4 +295,24 @@ public interface FluxConfig extends Config {
     default String huntSignupDiscordChannelUrl() {
         return "discord://discord.com/channels/414435426007384075/414458243499425792";
     }
+
+	@ConfigItem(position = 68, keyName = "hunt_master_password", name = "Hunt Master Password", description = "The main event password for the Hunt", section = overlaySection, hidden = true)
+	default String huntMasterPassword() {
+		return "";
+	}
+
+	@ConfigItem(position = 69, keyName = "hunt_bounty_password", name = "Hunt Bounty Password", description = "The current bounty password for the Hunt", section = overlaySection, hidden = true)
+	default String huntBountyPassword() {
+		return "";
+	}
+
+	@ConfigItem(position = 70, keyName = "hunt_daily_password", name = "Hunt Daily Password", description = "The current daily password for the Hunt", section = overlaySection, hidden = true)
+	default String huntDailyPassword() {
+		return "";
+	}
+
+	@ConfigItem(position = 71, keyName = "combined_hunt_password", name = "Combined Hunt Password", description = "The concatenated Hunt password string for overlay display", section = overlaySection, hidden = true)
+	default String combinedHuntPassword() {
+		return "";
+	}
 }

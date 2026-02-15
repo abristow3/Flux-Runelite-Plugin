@@ -144,6 +144,8 @@ public class FluxPlugin extends Plugin {
         updateBotmPass(configValues);
         updateDiscordInviteLink(configValues);
 		updateHuntSignupDiscordChannelUrl(configValues);
+		updateHuntPass(configValues);
+        updateHuntGdocUrl(configValues);
     }
 
     private void updateDiscordInviteLink(Map<String, String> configValues) {
@@ -165,6 +167,16 @@ public class FluxPlugin extends Plugin {
 			}
 		}
 	}
+
+    private void updateHuntGdocUrl(Map<String, String> configValues) {
+        String gdocUrl = configValues.get("HUNT_GDOC_URL");
+        if (gdocUrl != null && !gdocUrl.isEmpty()) {
+            String currentGdocUrl = configManager.getConfiguration(CONFIG_GROUP, "hunt_gdoc_url");
+            if (!gdocUrl.equals(currentGdocUrl)) {
+                configManager.setConfiguration(CONFIG_GROUP, "hunt_gdoc_url", gdocUrl);
+            }
+        }
+    }
 
     private void updateLoginMessage(java.util.Map<String, String> configValues) {
         String loginMsg = configValues.get("LOGIN_MESSAGE");
@@ -255,8 +267,29 @@ public class FluxPlugin extends Plugin {
         }
     }
 
+	private void updateHuntPass(Map<String, String> configValues) {
+		String huntMasterPass = configValues.get("HUNT_MASTER_PASSWORD");
+		String huntBountyPass = configValues.get("HUNT_BOUNTY_PASSWORD");
+		String huntDailyPass = configValues.get("HUNT_DAILY_PASSWORD");
 
-    @Subscribe
+		if (isNullOrEmpty(huntMasterPass) || isNullOrEmpty(huntBountyPass) || isNullOrEmpty(huntDailyPass)) {
+			log.warn("One or more Hunt event passwords were unable to be found.");
+			return;
+		}
+
+		String combinedHuntPassword = String.join(" | ", huntMasterPass, huntBountyPass, huntDailyPass);
+		String currentValue = configManager.getConfiguration(CONFIG_GROUP, "combined_hunt_password");
+
+		if (!combinedHuntPassword.equals(currentValue)) {
+			configManager.setConfiguration(CONFIG_GROUP, "combined_hunt_password", combinedHuntPassword);
+		}
+	}
+
+	private static boolean isNullOrEmpty(String s) {
+		return s == null || s.isEmpty();
+	}
+
+	@Subscribe
     public void onGameStateChanged(GameStateChanged event) {
         GameState state = event.getGameState();
 
@@ -277,6 +310,7 @@ public class FluxPlugin extends Plugin {
         }
 
         String key = event.getKey();
+
         if (key.equals("discord_invite_url")) {
             if (panel != null && panel.getHomeCard() != null) {
                 panel.getHomeCard().refreshButtonLinks();
