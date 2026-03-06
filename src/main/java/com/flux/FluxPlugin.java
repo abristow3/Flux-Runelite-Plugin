@@ -140,6 +140,8 @@ public class FluxPlugin extends Plugin {
         updateLoginMessage(configValues);
         updateAnnouncementMessage(configValues);
         updateRollCallStatus(configValues);
+		updateHuntCompId(configValues);
+		updateHuntStatus(configValues);
         updateHuntTeamColors(configValues);
         updateBotmPass(configValues);
         updateDiscordInviteLink(configValues);
@@ -147,6 +149,7 @@ public class FluxPlugin extends Plugin {
 		updateHuntPass(configValues);
         updateHuntGdocUrl(configValues);
 		updateHuntTeamScores(configValues);
+		updateHuntWomUrl(configValues);
     }
 
     private void updateDiscordInviteLink(Map<String, String> configValues) {
@@ -311,6 +314,39 @@ public class FluxPlugin extends Plugin {
 		}
 	}
 
+	private void updateHuntCompId(Map<String, String> configValues) {
+		String comp_id = configValues.get("HUNT_COMPETITION_ID");
+		if (isNullOrEmpty(comp_id)) {
+			log.warn("No WOM Comp ID found for the Hunt Event.");
+			return;
+		}
+
+		configManager.setConfiguration(CONFIG_GROUP, "hunt_competition_id", comp_id);
+	}
+
+	private void updateHuntStatus(java.util.Map<String, String> configValues) {
+		String huntActive = configValues.get("HUNT_ACTIVE");
+		if (!isNullOrEmpty(huntActive)) {
+			boolean isActive = huntActive.equalsIgnoreCase("TRUE");
+			String currentStatus = configManager.getConfiguration(CONFIG_GROUP, "huntActive");
+			boolean currentActive = Boolean.parseBoolean(currentStatus);
+
+			if (isActive != currentActive) {
+				configManager.setConfiguration(CONFIG_GROUP, "huntActive", String.valueOf(isActive));
+			}
+		}
+	}
+
+	private void updateHuntWomUrl(Map<String, String> configValues) {
+		String url = configValues.get("HUNT_WOM_URL");
+		if (isNullOrEmpty(url)) {
+			log.warn("No WOM Comp URL found for the Hunt Event.");
+			return;
+		}
+
+		configManager.setConfiguration(CONFIG_GROUP, "hunt_wom_url", url);
+	}
+
 	private static boolean isNullOrEmpty(String s) {
 		return s == null || s.isEmpty();
 	}
@@ -425,8 +461,15 @@ public class FluxPlugin extends Plugin {
         if (key.equals("hunt_wom_url") || key.equals("hunt_gdoc_url") || key.equals("hunt_signup_discord_channel_url")) {
             if (panel != null && panel.getHuntCard() != null) {
                 panel.getHuntCard().refreshButtonLinks();
+				panel.getHuntCard().refreshLeaderboard();
             }
         }
+
+		if (key.equals("hunt_competition_id")) {
+			if (panel != null && panel.getHuntCard() != null) {
+				panel.getHuntCard().refreshButtonLinks();
+			}
+		}
     }
 
     @Provides
