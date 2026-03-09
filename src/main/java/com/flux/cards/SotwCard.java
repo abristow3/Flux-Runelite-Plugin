@@ -137,6 +137,7 @@ public class SotwCard extends FluxCard {
 
     @Override
     public void refresh() {
+		updateEventTitle();
         checkEventStateChanged();
         updateCountdownLabel();
     }
@@ -151,7 +152,7 @@ public class SotwCard extends FluxCard {
         return getConfigValue(key, defaultValue, configManager);
     }
 
-    private void startCountdownTimer() {
+    public void startCountdownTimer() {
         if (countdownTimer != null) {
             countdownTimer.stop();
         }

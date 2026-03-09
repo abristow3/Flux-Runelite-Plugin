@@ -410,6 +410,18 @@ public class FluxPlugin extends Plugin {
             }
         }
 
+		if (key.equals("sotwTitle") || key.equals("sotw_title")) {
+			if (panel != null && panel.getSotwCard() != null) {
+				panel.getSotwCard().updateEventTitle();
+			}
+		}
+
+		if (key.equals("sotw_start_time") || key.equals("sotw_end_time")) {
+			if (panel != null && panel.getSotwCard() != null) {
+				panel.getSotwCard().startCountdownTimer();
+			}
+		}
+
         if (key.equals("sotw_wom_link") || key.equals("sotwWomLink")) {
             if (panel != null && panel.getSotwCard() != null) {
                 panel.getSotwCard().refreshButtonLinks();

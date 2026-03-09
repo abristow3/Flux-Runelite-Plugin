@@ -364,6 +364,7 @@ public class FluxPanel extends PluginPanel {
     private void refreshSotwCard() {
         if (sotwCard != null) {
             sotwCard.refreshLeaderboard();
+			sotwCard.updateEventTitle();
         }
     }
 
