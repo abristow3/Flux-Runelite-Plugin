@@ -46,7 +46,7 @@ public interface FluxConfig extends Config {
     }
 
     @ConfigItem(position = 8, keyName = "loginColor", name = "Login Message Color", description = "The color of the Login Message.", section = overlaySection)
-    default Color loginColor() {return new Color(180, 0, 0); } //Custom dark red.
+    default Color loginColor() {return new Color(255, 255, 0); } //Custom dark red.
 
 // ========== OVERLAY SECTION - HIDDEN ==========
 

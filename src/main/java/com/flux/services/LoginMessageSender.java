@@ -38,8 +38,8 @@ public class LoginMessageSender {
 
         chatMessageManager.queue(
                 QueuedMessage.builder()
-                        .type(ChatMessageType.GAMEMESSAGE)
-                        .runeLiteFormattedMessage("<col=" + hex + ">" + loginMessage + "</col>")
+                        .type(ChatMessageType.BROADCAST)
+                        .runeLiteFormattedMessage("<col=" + hex + ">[Flux] " + loginMessage + "</col>")
                         .build()
         );
 
@@ -52,5 +52,9 @@ public class LoginMessageSender {
 
     public boolean hasSentMessage() {
         return hasSentMessage;
+    }
+
+    public String getLoginMessage() {
+        return configManager.getConfiguration(CONFIG_GROUP, CONFIG_KEY);
     }
 }
