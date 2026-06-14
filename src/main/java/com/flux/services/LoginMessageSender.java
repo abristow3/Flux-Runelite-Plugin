@@ -39,7 +39,7 @@ public class LoginMessageSender {
         chatMessageManager.queue(
                 QueuedMessage.builder()
                         .type(ChatMessageType.BROADCAST)
-                        .runeLiteFormattedMessage("<col=" + hex + ">" + loginMessage + "</col>")
+                        .runeLiteFormattedMessage("<col=" + hex + ">[Flux] " + loginMessage + "</col>")
                         .build()
         );
 

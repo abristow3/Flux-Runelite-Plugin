@@ -488,20 +488,17 @@ public class FluxPlugin extends Plugin {
 		}
     }
 
+    // updates the broadcast message font color from yellow to black for easier reading
     @Subscribe
     public void onChatMessage(ChatMessage event) {
         String loginMessage = loginMessageSender.getLoginMessage();
-        log.info("ChatMessage type={} message={}", event.getType(), event.getMessage());
         if (loginMessage != null
                 && event.getType() == ChatMessageType.BROADCAST
                 && event.getMessage().contains(loginMessage)) {
-            log.info("Matched login message, deferring recolor to next client tick");
             final MessageNode node = event.getMessageNode();
             clientThread.invokeLater(() -> {
-                log.info("Applying recolor to message node");
-                node.setRuneLiteFormatMessage(loginMessage);
+                node.setRuneLiteFormatMessage("[Flux] " + loginMessage);
                 chatMessageManager.update(node);
-                log.info("Recolor applied: {}", node.getRuneLiteFormatMessage());
             });
         }
     }
