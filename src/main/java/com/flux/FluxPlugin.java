@@ -14,8 +14,11 @@ import javax.inject.Inject;
 
 import lombok.extern.slf4j.Slf4j;
 
+import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
+import net.runelite.api.MessageNode;
+import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.client.chat.ChatMessageManager;
 import net.runelite.client.config.ConfigManager;
@@ -48,6 +51,7 @@ public class FluxPlugin extends Plugin {
     @Inject private FluxOverlay overlay;
     @Inject private ClientToolbar clientToolbar;
     @Inject private OkHttpClient okHttpClient;
+    @Inject private net.runelite.client.callback.ClientThread clientThread;
 
     private FluxPanel panel;
     private NavigationButton uiNavigationButton;
@@ -482,6 +486,24 @@ public class FluxPlugin extends Plugin {
 				panel.getHuntCard().refreshButtonLinks();
 			}
 		}
+    }
+
+    @Subscribe
+    public void onChatMessage(ChatMessage event) {
+        String loginMessage = loginMessageSender.getLoginMessage();
+        log.info("ChatMessage type={} message={}", event.getType(), event.getMessage());
+        if (loginMessage != null
+                && event.getType() == ChatMessageType.BROADCAST
+                && event.getMessage().contains(loginMessage)) {
+            log.info("Matched login message, deferring recolor to next client tick");
+            final MessageNode node = event.getMessageNode();
+            clientThread.invokeLater(() -> {
+                log.info("Applying recolor to message node");
+                node.setRuneLiteFormatMessage(loginMessage);
+                chatMessageManager.update(node);
+                log.info("Recolor applied: {}", node.getRuneLiteFormatMessage());
+            });
+        }
     }
 
     @Provides
