@@ -29,9 +29,6 @@ public class GoogleSheetParser {
     private Consumer<Map<String, String>> configCallback;
     private final AtomicBoolean isRunning = new AtomicBoolean(false);
     private final SheetType sheetType;
-    private Thread leaderboardThread;
-    private Thread huntScoreThread;
-    private Thread configThread;
     private final OkHttpClient httpClient;
 
     public enum SheetType {
@@ -294,19 +291,16 @@ public class GoogleSheetParser {
     public void start() {
         if (isRunning.compareAndSet(false, true)) {
             if (sheetType == SheetType.HUNT) {
-                huntScoreThread = new Thread(this::pollHuntScores);
-                huntScoreThread.start();
+                startPollHuntScores();
             } else if (sheetType == SheetType.CONFIG) {
-                configThread = new Thread(this::pollConfigValues);
-                configThread.start();
+                startPollConfigValues();
             } else {
-                leaderboardThread = new Thread(this::pollLeaderboard);
-                leaderboardThread.start();
+                startPollLeaderboard();
             }
         }
     }
 
-    private void pollLeaderboard() {
+    private void startPollLeaderboard() {
         Runnable leaderboardTask = () -> {
             if (!isRunning.get()) {
                 return;
@@ -321,7 +315,7 @@ public class GoogleSheetParser {
         scheduler.scheduleAtFixedRate(leaderboardTask, 0, 7, TimeUnit.MINUTES);
     }
 
-    private void pollHuntScores() {
+    private void startPollHuntScores() {
         Runnable huntScoresTask = () -> {
             if (!isRunning.get()) {
                 return;
@@ -336,7 +330,7 @@ public class GoogleSheetParser {
         scheduler.scheduleAtFixedRate(huntScoresTask, 0, 7, TimeUnit.MINUTES);
     }
 
-    private void pollConfigValues() {
+    private void startPollConfigValues() {
         Runnable configValuesTask = () -> {
             if (!isRunning.get()) {
                 log.debug("[Config] Poll skipped (not running)");
@@ -368,15 +362,5 @@ public class GoogleSheetParser {
     public void shutdown() {
         stop();
         scheduler.shutdownNow();
-
-        if (leaderboardThread != null) {
-            leaderboardThread.interrupt();
-        }
-        if (huntScoreThread != null) {
-            huntScoreThread.interrupt();
-        }
-        if (configThread != null) {
-            configThread.interrupt();
-        }
     }
 }
