@@ -498,7 +498,6 @@ public class FluxPlugin extends Plugin {
             final MessageNode node = event.getMessageNode();
             clientThread.invokeLater(() -> {
                 node.setRuneLiteFormatMessage("[Flux] " + loginMessage);
-                chatMessageManager.update(node);
             });
         }
     }
