@@ -81,7 +81,7 @@ public class FluxPlugin extends Plugin {
     private void initializePanel() {
         final BufferedImage icon = ImageUtil.loadImageResource(getClass(), "/flux-icon-tiny.png");
 
-        panel = new FluxPanel(competitionScheduler, config, configManager);
+        panel = new FluxPanel(competitionScheduler, config, configManager, okHttpClient);
 
         uiNavigationButton = NavigationButton.builder()
                 .tooltip("Flux")

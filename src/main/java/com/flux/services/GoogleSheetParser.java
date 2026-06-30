@@ -103,60 +103,69 @@ public class GoogleSheetParser {
     }
 
 
-    public JsonArray parseTop10Leaderboard() {
-        JsonArray leaderboard = new JsonArray();
+	public JsonArray parseTop10Leaderboard() {
+		JsonArray leaderboard = new JsonArray();
 
-        try {
-            JsonArray jsonArray = getValues("BOTM");
+		try {
+			JsonArray jsonArray = getValues("BOTM");
 
-            List<List<Object>> values = new ArrayList<>();
-            for (int i = 0; i < jsonArray.size(); i++) {
-                JsonArray row = jsonArray.get(i).getAsJsonArray();
-                List<Object> rowValues = new ArrayList<>();
-                for (int j = 0; j < row.size(); j++) {
-                    rowValues.add(row.get(j));
-                }
-                values.add(rowValues);
-            }
+			List<List<Object>> values = new ArrayList<>();
+			for (int i = 0; i < jsonArray.size(); i++) {
+				JsonArray row = jsonArray.get(i).getAsJsonArray();
+				List<Object> rowValues = new ArrayList<>();
+				for (int j = 0; j < row.size(); j++) {
+					rowValues.add(row.get(j));
+				}
+				values.add(rowValues);
+			}
 
-            if (!values.isEmpty()) {
-                int startRow = findLeaderboardStartRow(values);
-                if (startRow >= 0) {
-                    List<Object> headers = values.get(startRow - 1);
-                    Map<String, Integer> headerIndexMap = mapHeaders(headers);
+			if (!values.isEmpty()) {
+				int startRow = findLeaderboardStartRow(values);
+				if (startRow >= 0) {
+					List<Object> headers = values.get(startRow - 1);
+					Map<String, Integer> headerIndexMap = mapHeaders(headers);
 
-                    for (int i = startRow; i < values.size(); i++) {
-                        List<Object> row = values.get(i);
-                        if (row.size() >= headerIndexMap.size()) {
-                            JsonObject playerData = new JsonObject();
-                            if (headerIndexMap.containsKey("Rank") && row.size() > headerIndexMap.get("Rank"))
-                                playerData.addProperty("rank", String.valueOf(row.get(headerIndexMap.get("Rank"))));
-                            if (headerIndexMap.containsKey("Players") && row.size() > headerIndexMap.get("Players"))
-                                playerData.addProperty("username", String.valueOf(row.get(headerIndexMap.get("Players"))));
-                            if (headerIndexMap.containsKey("Points") && row.size() > headerIndexMap.get("Points"))
-                                playerData.addProperty("score", Integer.parseInt(String.valueOf(row.get(headerIndexMap.get("Points")))));
-                            if (headerIndexMap.containsKey("KC") && row.size() > headerIndexMap.get("KC"))
-                                playerData.addProperty("kc", Integer.parseInt(String.valueOf(row.get(headerIndexMap.get("KC")))));
+					for (int i = startRow; i < values.size(); i++) {
+						List<Object> row = values.get(i);
+						if (row.size() >= headerIndexMap.size()) {
+							JsonObject playerData = new JsonObject();
+							if (headerIndexMap.containsKey("Rank") && row.size() > headerIndexMap.get("Rank"))
+								playerData.addProperty("rank", asString(row.get(headerIndexMap.get("Rank"))));
+							if (headerIndexMap.containsKey("Players") && row.size() > headerIndexMap.get("Players"))
+								playerData.addProperty("username", asString(row.get(headerIndexMap.get("Players"))));
+							if (headerIndexMap.containsKey("Points") && row.size() > headerIndexMap.get("Points"))
+								playerData.addProperty("score", Integer.parseInt(asString(row.get(headerIndexMap.get("Points")))));
+							if (headerIndexMap.containsKey("KC") && row.size() > headerIndexMap.get("KC"))
+								playerData.addProperty("kc", Integer.parseInt(asString(row.get(headerIndexMap.get("KC")))));
 
-                            leaderboard.add(playerData);
-                        }
-                    }
-                }
-            }
-        } catch (IOException e) {
-            log.error("Error fetching Google Sheets data", e);
-        }
+							leaderboard.add(playerData);
+						}
+					}
+				} else {
+					log.warn("[BOTM] Could not find header row (Rank/Points/Players/KC) in sheet values");
+				}
+			} else {
+				log.warn("[BOTM] No values returned for range 'BOTM'");
+			}
 
-        if (leaderboard.size() > 10) {
-            JsonArray top10 = new JsonArray();
-            for (int i = 0; i < 10; i++) {
-                top10.add(leaderboard.get(i));
-            }
-            leaderboard = top10;
-        }
+			log.info("[BOTM] Raw rows count: {}, leaderboard size: {}", values.size(), leaderboard.size());
 
-        return leaderboard;
-    }
+		} catch (IOException e) {
+			log.error("Error fetching Google Sheets data", e);
+		} catch (Exception e) {
+			log.error("[BOTM] Unexpected error while parsing leaderboard", e);
+		}
+
+		if (leaderboard.size() > 10) {
+			JsonArray top10 = new JsonArray();
+			for (int i = 0; i < 10; i++) {
+				top10.add(leaderboard.get(i));
+			}
+			leaderboard = top10;
+		}
+
+		return leaderboard;
+	}
 
     public Map<String, Integer> parseHuntScores() {
         Map<String, Integer> scores = new HashMap<>();
@@ -256,37 +265,44 @@ public class GoogleSheetParser {
         return -1;
     }
 
-    private static int findLeaderboardStartRow(List<List<Object>> values) {
-        for (int i = 0; i < values.size(); i++) {
-            List<Object> row = values.get(i);
-            if (row.size() >= 4) {
-                if (row.stream().anyMatch(cell -> cell.toString().equalsIgnoreCase("Rank")) &&
-                        row.stream().anyMatch(cell -> cell.toString().equalsIgnoreCase("Points")) &&
-                        row.stream().anyMatch(cell -> cell.toString().equalsIgnoreCase("Players")) &&
-                        row.stream().anyMatch(cell -> cell.toString().equalsIgnoreCase("KC"))) {
-                    return i + 1;
-                }
-            }
-        }
-        return -1;
-    }
+	private static int findLeaderboardStartRow(List<List<Object>> values) {
+		for (int i = 0; i < values.size(); i++) {
+			List<Object> row = values.get(i);
+			if (row.size() >= 4) {
+				if (row.stream().anyMatch(cell -> asString(cell).equalsIgnoreCase("Rank")) &&
+						row.stream().anyMatch(cell -> asString(cell).equalsIgnoreCase("Points")) &&
+						row.stream().anyMatch(cell -> asString(cell).equalsIgnoreCase("Players")) &&
+						row.stream().anyMatch(cell -> asString(cell).equalsIgnoreCase("KC"))) {
+					return i + 1;
+				}
+			}
+		}
+		return -1;
+	}
 
-    private static Map<String, Integer> mapHeaders(List<Object> headers) {
-        Map<String, Integer> headerIndexMap = new HashMap<>();
-        for (int i = 0; i < headers.size(); i++) {
-            String header = headers.get(i).toString().trim();
-            if (header.equalsIgnoreCase("Rank")) {
-                headerIndexMap.put("Rank", i);
-            } else if (header.equalsIgnoreCase("Players")) {
-                headerIndexMap.put("Players", i);
-            } else if (header.equalsIgnoreCase("Points")) {
-                headerIndexMap.put("Points", i);
-            } else if (header.equalsIgnoreCase("KC")) {
-                headerIndexMap.put("KC", i);
-            }
-        }
-        return headerIndexMap;
-    }
+	private static Map<String, Integer> mapHeaders(List<Object> headers) {
+		Map<String, Integer> headerIndexMap = new HashMap<>();
+		for (int i = 0; i < headers.size(); i++) {
+			String header = asString(headers.get(i)).trim();
+			if (header.equalsIgnoreCase("Rank")) {
+				headerIndexMap.put("Rank", i);
+			} else if (header.equalsIgnoreCase("Players")) {
+				headerIndexMap.put("Players", i);
+			} else if (header.equalsIgnoreCase("Points")) {
+				headerIndexMap.put("Points", i);
+			} else if (header.equalsIgnoreCase("KC")) {
+				headerIndexMap.put("KC", i);
+			}
+		}
+		return headerIndexMap;
+	}
+
+	private static String asString(Object cell) {
+		if (cell instanceof com.google.gson.JsonElement) {
+			return ((com.google.gson.JsonElement) cell).getAsString();
+		}
+		return String.valueOf(cell);
+	}
 
     public void start() {
         if (isRunning.compareAndSet(false, true)) {

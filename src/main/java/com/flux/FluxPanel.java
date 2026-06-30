@@ -45,17 +45,16 @@ public class FluxPanel extends PluginPanel {
     private InverseCornerButton activeFooterButton;
     private boolean isAdminOrHigher = false;
     private boolean adminHubInitialized = false;
-
-    @Inject
-    private OkHttpClient okHttpClient;
+	private final OkHttpClient okHttpClient;
 
     private final Timer glowTimer = new Timer(GLOW_CHECK_INTERVAL, e -> updateEventGlows());
 
-    public FluxPanel(CompetitionScheduler competitionScheduler, FluxConfig config, ConfigManager configManager) {
+    public FluxPanel(CompetitionScheduler competitionScheduler, FluxConfig config, ConfigManager configManager, OkHttpClient okHttpClient) {
         super(false);
         this.competitionScheduler = competitionScheduler;
         this.config = config;
         this.configManager = configManager;
+		this.okHttpClient = okHttpClient;
 
         setupLayout();
         glowTimer.start();
