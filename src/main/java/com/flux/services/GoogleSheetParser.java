@@ -148,7 +148,7 @@ public class GoogleSheetParser {
 				log.warn("[BOTM] No values returned for range 'BOTM'");
 			}
 
-			log.info("[BOTM] Raw rows count: {}, leaderboard size: {}", values.size(), leaderboard.size());
+			log.debug("[BOTM] Raw rows count: {}, leaderboard size: {}", values.size(), leaderboard.size());
 
 		} catch (IOException e) {
 			log.error("Error fetching Google Sheets data", e);
@@ -223,7 +223,7 @@ public class GoogleSheetParser {
 
         try {
             JsonArray jsonArray = getValues("Config");
-            log.info("[Config] Raw rows count: {}", jsonArray.size());
+            log.debug("[Config] Raw rows count: {}", jsonArray.size());
 
             for (int i = 0; i < jsonArray.size(); i++) {
                 JsonArray row = jsonArray.get(i).getAsJsonArray();

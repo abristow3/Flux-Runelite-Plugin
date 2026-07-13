@@ -49,7 +49,7 @@ public class WiseOldManApiClient {
             if (response.isSuccessful() && response.body() != null) {
                 return response.body().string();
             }
-            log.info("Wise old man request failed response: {}", response);
+            log.warn("Wise old man request failed response: {}", response);
             return EMPTY_STRING;
         } catch (IOException e) {
             log.error("Request failed: {}", e.getMessage());
