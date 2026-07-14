@@ -2,7 +2,6 @@ package com.flux;
 
 import java.awt.*;
 import java.util.*;
-import javax.inject.Inject;
 import javax.swing.*;
 import javax.swing.Timer;
 
@@ -11,13 +10,17 @@ import com.flux.components.combobox.ComboBoxIconEntry;
 import com.flux.components.combobox.ComboBoxIconListRenderer;
 import com.flux.components.combobox.EntrySelect;
 import com.flux.services.CompetitionScheduler;
+import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.config.ConfigManager;
 import com.flux.cards.*;
+import net.runelite.client.game.SpriteManager;
+import net.runelite.client.hiscore.HiscoreSkill;
 import net.runelite.client.ui.PluginPanel;
 import net.runelite.client.util.ImageUtil;
 import okhttp3.OkHttpClient;
 import okhttp3.*;
 
+@Slf4j
 public class FluxPanel extends PluginPanel {
     private static final int GLOW_CHECK_INTERVAL = 500;
     private static final int SCROLL_UNIT_INCREMENT = 16;
@@ -46,15 +49,17 @@ public class FluxPanel extends PluginPanel {
     private boolean isAdminOrHigher = false;
     private boolean adminHubInitialized = false;
 	private final OkHttpClient okHttpClient;
+	private final SpriteManager spriteManager;
 
     private final Timer glowTimer = new Timer(GLOW_CHECK_INTERVAL, e -> updateEventGlows());
 
-    public FluxPanel(CompetitionScheduler competitionScheduler, FluxConfig config, ConfigManager configManager, OkHttpClient okHttpClient) {
+    public FluxPanel(CompetitionScheduler competitionScheduler, FluxConfig config, ConfigManager configManager, OkHttpClient okHttpClient, SpriteManager spriteManager) {
         super(false);
         this.competitionScheduler = competitionScheduler;
         this.config = config;
         this.configManager = configManager;
 		this.okHttpClient = okHttpClient;
+		this.spriteManager = spriteManager;
 
         setupLayout();
         glowTimer.start();
@@ -240,6 +245,32 @@ public class FluxPanel extends PluginPanel {
         }
     }
 
+    void updateSotwIcon() {
+		if (sotwCard == null) return;
+
+		HiscoreSkill skill = sotwCard.getSkill();
+		if (skill == null) return;
+
+		spriteManager.getSpriteAsync(skill.getSpriteId(), 0, sprite ->
+			SwingUtilities.invokeLater(() -> updateEntryIcon(" SOTW", new ImageIcon(sprite))));
+	}
+
+	private void updateEntryIcon(String label, ImageIcon icon) {
+		footerButtons.stream()
+			.filter(btn -> btn.getText().trim().equals(label.trim()))
+			.findFirst()
+			.ifPresent(btn -> btn.setIcon(icon));
+
+		for (int i = 0; i < dropdown.getItemCount(); i++) {
+			ComboBoxIconEntry item = dropdown.getItemAt(i);
+			if (item.getText().trim().equals(label.trim())) {
+				item.setIcon(icon);
+				dropdown.repaint();
+				break;
+			}
+		}
+	}
+
     private void activateFooterButton(InverseCornerButton button) {
         if (activeFooterButton != null) {
             activeFooterButton.setActive(false);
@@ -364,6 +395,7 @@ public class FluxPanel extends PluginPanel {
         if (sotwCard != null) {
             sotwCard.refreshLeaderboard();
 			sotwCard.updateEventTitle();
+			updateSotwIcon();
         }
     }
 

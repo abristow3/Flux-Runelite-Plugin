@@ -125,6 +125,7 @@ public class CompetitionFinder {
                 startsAt,
                 endsAt,
                 null,
+				null,
                 huntData
         ));
     }
@@ -143,6 +144,7 @@ public class CompetitionFinder {
                 startsAt,
                 endsAt,
                 type == EventType.SOTW ? dataParser.parseSotwLeaderboard(details) : null,
+                type == EventType.SOTW ? dataParser.parseSotwSkill(details) : null,
                 null
         ));
     }

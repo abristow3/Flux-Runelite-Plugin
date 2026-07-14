@@ -4,6 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import java.util.*;
+import joptsimple.internal.Strings;
 import lombok.extern.slf4j.Slf4j;
 
 import static com.flux.services.wom.CompetitionModels.*;
@@ -54,6 +55,20 @@ public class CompetitionDataParser {
 
         return leaderboard;
     }
+
+	public String parseSotwSkill(JsonObject competitionDetails)
+	{
+		String skillName = Strings.EMPTY;
+		try {
+			skillName = competitionDetails.has("metric")
+				? competitionDetails.getAsJsonPrimitive("metric").getAsString()
+				: Strings.EMPTY;
+			log.debug("SOTW skill name: {}", skillName);
+		} catch (Exception e) {
+			log.error("Error parsing SOTW skill name: {}", String.valueOf(e));
+		}
+		return skillName;
+	}
 
     // Parses Hunt team data from competition JSON payload.
     public HuntTeamData parseHuntTeamData(JsonObject competitionDetails) {
