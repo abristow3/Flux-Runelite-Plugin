@@ -24,6 +24,7 @@ import net.runelite.client.chat.ChatMessageManager;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
+import net.runelite.client.game.SpriteManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.ClientToolbar;
@@ -51,6 +52,7 @@ public class FluxPlugin extends Plugin {
     @Inject private FluxOverlay overlay;
     @Inject private ClientToolbar clientToolbar;
     @Inject private OkHttpClient okHttpClient;
+	@Inject private SpriteManager spriteManager;
     @Inject private net.runelite.client.callback.ClientThread clientThread;
 
     private FluxPanel panel;
@@ -81,7 +83,7 @@ public class FluxPlugin extends Plugin {
     private void initializePanel() {
         final BufferedImage icon = ImageUtil.loadImageResource(getClass(), "/flux-icon-tiny.png");
 
-        panel = new FluxPanel(competitionScheduler, config, configManager, okHttpClient);
+        panel = new FluxPanel(competitionScheduler, config, configManager, okHttpClient, spriteManager);
 
         uiNavigationButton = NavigationButton.builder()
                 .tooltip("Flux")
@@ -122,6 +124,7 @@ public class FluxPlugin extends Plugin {
         if (panel != null) {
             if (panel.getSotwCard() != null) {
                 panel.getSotwCard().checkEventStateChanged();
+				panel.updateSotwIcon();
             }
             if (panel.getBotmCard() != null) {
                 panel.getBotmCard().checkEventStateChanged();
@@ -417,6 +420,12 @@ public class FluxPlugin extends Plugin {
 		if (key.equals("sotwTitle") || key.equals("sotw_title")) {
 			if (panel != null && panel.getSotwCard() != null) {
 				panel.getSotwCard().updateEventTitle();
+			}
+		}
+
+		if (key.equals("sotwSkill")) {
+			if (panel != null && panel.getSotwCard() != null) {
+				panel.updateSotwIcon();
 			}
 		}
 

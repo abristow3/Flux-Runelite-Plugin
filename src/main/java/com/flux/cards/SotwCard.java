@@ -2,6 +2,7 @@ package com.flux.cards;
 
 import net.runelite.client.config.ConfigManager;
 import com.flux.components.LeaderboardCellRenderer;
+import net.runelite.client.hiscore.HiscoreSkill;
 import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -202,6 +203,20 @@ public class SotwCard extends FluxCard {
     private String getEventEndedMessage() {
         return "The SOTW Event has ended!";
     }
+
+	public HiscoreSkill getSkill() {
+		String skillName = getConfigValue("sotwSkill", "Runecraft");
+		if (skillName.isEmpty()) return null;
+
+		for (HiscoreSkill skill : HiscoreSkill.values()) {
+			if (skill.getName().equalsIgnoreCase(skillName)) {
+				logger.debug("Found SOTW skill name {}", skill.getName());
+				return skill;
+			}
+		}
+		logger.debug("Could not find SOTW skill name {}", skillName);
+		return null;
+	}
 
     @Override
     public void shutdown() {
