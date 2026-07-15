@@ -40,7 +40,7 @@ public class CompetitionConfigUpdater {
             case SOTW:
                 if (data.sotwLeaderboard != null) {
                     saveSotwLeaderboard(data.sotwLeaderboard);
-					saveSotwSkill(data.sotwSkill);
+					saveSotwSkill(data.eventMetric);
                     if (!isActive && !data.sotwLeaderboard.isEmpty()) {
                         String winner = data.sotwLeaderboard.keySet().iterator().next();
                         setConfigIfChanged(prefix + "_winner", winner);

@@ -205,7 +205,7 @@ public class SotwCard extends FluxCard {
     }
 
 	public HiscoreSkill getSkill() {
-		String skillName = getConfigValue("sotwSkill", "Runecraft");
+		String skillName = getConfigValue("sotwSkill", "Overall");
 		if (skillName.isEmpty()) return null;
 
 		for (HiscoreSkill skill : HiscoreSkill.values()) {

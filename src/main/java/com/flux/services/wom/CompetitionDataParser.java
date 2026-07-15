@@ -4,10 +4,10 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import java.util.*;
-import joptsimple.internal.Strings;
 import lombok.extern.slf4j.Slf4j;
 
 import static com.flux.services.wom.CompetitionModels.*;
+import net.runelite.client.hiscore.HiscoreSkill;
 
 @Slf4j
 public class CompetitionDataParser {
@@ -58,11 +58,11 @@ public class CompetitionDataParser {
 
 	public String parseSotwSkill(JsonObject competitionDetails)
 	{
-		String skillName = Strings.EMPTY;
+		String skillName = HiscoreSkill.OVERALL.getName();
 		try {
 			skillName = competitionDetails.has("metric")
 				? competitionDetails.getAsJsonPrimitive("metric").getAsString()
-				: Strings.EMPTY;
+				: skillName;
 			log.debug("SOTW skill name: {}", skillName);
 		} catch (Exception e) {
 			log.error("Error parsing SOTW skill name: {}", String.valueOf(e));

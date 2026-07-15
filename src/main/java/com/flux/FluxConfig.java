@@ -144,7 +144,7 @@ public interface FluxConfig extends Config {
 
 	@ConfigItem(keyName = "sotwSkill", name = "SOTW Skill", description = "Current SOTW Skill", section = overlaySection, hidden = true)
 	default String sotwSkill() {
-		return "Runecraft";
+		return "Overall";
 	}
 
     @ConfigItem(position = 33, keyName = "sotw_wom_link", name = "SOTW WOM Link", description = "SOTW wise old man link.", section = overlaySection, hidden = true)

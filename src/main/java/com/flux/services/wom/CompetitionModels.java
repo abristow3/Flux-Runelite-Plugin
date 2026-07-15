@@ -12,17 +12,17 @@ public class CompetitionModels {
         public final Instant startTime;
         public final Instant endTime;
         public final LinkedHashMap<String, Integer> sotwLeaderboard;
-		public final String sotwSkill;
+		public final String eventMetric;
         public final HuntTeamData huntTeamData;
 
         public CompetitionData(int competitionId, String title, Instant startTime, Instant endTime,
-                               LinkedHashMap<String, Integer> sotwLeaderboard, String sotwSkill, HuntTeamData huntTeamData) {
+                               LinkedHashMap<String, Integer> sotwLeaderboard, String eventMetric, HuntTeamData huntTeamData) {
             this.competitionId = competitionId;
             this.title = title;
             this.startTime = startTime;
             this.endTime = endTime;
             this.sotwLeaderboard = sotwLeaderboard;
-			this.sotwSkill = sotwSkill;
+			this.eventMetric = eventMetric;
             this.huntTeamData = huntTeamData;
         }
 
