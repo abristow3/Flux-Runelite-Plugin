@@ -170,7 +170,7 @@ public class FluxPanel extends PluginPanel {
     }
 
     private void addEntry(EntrySelect entry) {
-        EntryConfig view = createEntryView(entry);
+        EntryConfig view = createEntryConfig(entry);
         if (view == null) return;
 
 		entries.put(entry, view);
@@ -182,7 +182,7 @@ public class FluxPanel extends PluginPanel {
         centerPanel.add(makeScrollable(view.getCard()), entry.getName());
     }
 
-    private EntryConfig createEntryView(EntrySelect entry) {
+    private EntryConfig createEntryConfig(EntrySelect entry) {
         switch (entry) {
             case HOME:
                 homeCard = new HomeCard(config, configManager);

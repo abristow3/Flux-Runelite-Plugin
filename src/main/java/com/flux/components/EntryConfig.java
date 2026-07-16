@@ -28,7 +28,6 @@ public class EntryConfig {
 		button.addActionListener(e -> onSelected.run());
 	}
 
-
 	public void setIcon(Icon icon) {
 		Icon scaledIcon = scaleIcon(icon);
 		comboEntry.setIcon(scaledIcon);
