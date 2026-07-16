@@ -41,142 +41,142 @@ import java.util.Map;
 
 @Slf4j
 @PluginDescriptor(
-        name = "Flux",
-        description = "A plugin used to keep track of clan events.",
-        tags = {"flux", "cc", "hunt", "pass", "event", "clan"}
+		name = "Flux",
+		description = "A plugin used to keep track of clan events.",
+		tags = {"flux", "cc", "hunt", "pass", "event", "clan"}
 )
 public class FluxPlugin extends Plugin {
-    public static final String CONFIG_GROUP = "flux";
+	public static final String CONFIG_GROUP = "flux";
 
-    @Inject private Client client;
-    @Inject private ChatMessageManager chatMessageManager;
-    @Inject private FluxConfig config;
-    @Inject private ConfigManager configManager;
-    @Inject private OverlayManager overlayManager;
-    @Inject private FluxOverlay overlay;
-    @Inject private ClientToolbar clientToolbar;
-    @Inject private OkHttpClient okHttpClient;
+	@Inject private Client client;
+	@Inject private ChatMessageManager chatMessageManager;
+	@Inject private FluxConfig config;
+	@Inject private ConfigManager configManager;
+	@Inject private OverlayManager overlayManager;
+	@Inject private FluxOverlay overlay;
+	@Inject private ClientToolbar clientToolbar;
+	@Inject private OkHttpClient okHttpClient;
 	@Inject private SpriteManager spriteManager;
 	@Inject private ChatCommandHandler chatCommandHandler;
-    @Inject private ClientThread clientThread;
+	@Inject private ClientThread clientThread;
 
 	@Getter
-    private FluxPanel panel;
-    private NavigationButton uiNavigationButton;
-    private CompetitionScheduler competitionScheduler;
-    private GoogleSheetParser configParser;
-    private ClanRankMonitor clanRankMonitor;
-    private LoginMessageSender loginMessageSender;
+	private FluxPanel panel;
+	private NavigationButton uiNavigationButton;
+	private CompetitionScheduler competitionScheduler;
+	private GoogleSheetParser configParser;
+	private ClanRankMonitor clanRankMonitor;
+	private LoginMessageSender loginMessageSender;
 
-    @Override
-    protected void startUp() {
-        overlayManager.add(overlay);
-        initializeServices();
-        initializePanel();
-        configParser.start();
-        refreshAllCards();
+	@Override
+	protected void startUp() {
+		overlayManager.add(overlay);
+		initializeServices();
+		initializePanel();
+		configParser.start();
+		refreshAllCards();
 		chatCommandHandler.registerChatCommands();
 	}
 
-    @Override
-    protected void shutDown() {
-        overlayManager.remove(overlay);
-        clientToolbar.removeNavigation(uiNavigationButton);
-        panel.shutdown();
-        configParser.shutdown();
-        clanRankMonitor.shutdown();
+	@Override
+	protected void shutDown() {
+		overlayManager.remove(overlay);
+		clientToolbar.removeNavigation(uiNavigationButton);
+		panel.shutdown();
+		configParser.shutdown();
+		clanRankMonitor.shutdown();
 		chatCommandHandler.unregisterChatCommands();
-    }
-
-    private void initializePanel() {
-        final BufferedImage icon = ImageUtil.loadImageResource(getClass(), "/flux-icon-tiny.png");
-
-        panel = new FluxPanel(competitionScheduler, config, configManager, okHttpClient, spriteManager);
-
-        uiNavigationButton = NavigationButton.builder()
-                .tooltip("Flux")
-                .icon(icon)
-                .priority(config.menuPriority())
-                .panel(panel)
-                .build();
-
-        clientToolbar.addNavigation(uiNavigationButton);
-    }
-
-    private void initializeServices() {
-        WiseOldManApiClient apiClient = new WiseOldManApiClient(okHttpClient);
-        CompetitionDataParser dataParser = new CompetitionDataParser();
-        CompetitionFinder finder = new CompetitionFinder(apiClient, dataParser);
-        CompetitionConfigUpdater configUpdater = new CompetitionConfigUpdater(configManager);
-
-        competitionScheduler = new CompetitionScheduler(
-                configManager,
-                apiClient,
-                finder,
-                configUpdater
-        );
-
-        configParser = new GoogleSheetParser(
-                configManager,
-                GoogleSheetParser.SheetType.CONFIG,
-                this::handleConfigUpdate,
-                true,
-                okHttpClient
-        );
-
-        clanRankMonitor = new ClanRankMonitor(client, this::handleRankChange);
-        loginMessageSender = new LoginMessageSender(chatMessageManager, configManager, config.loginColor());
 	}
 
-    private void refreshAllCards() {
-        if (panel != null) {
-            if (panel.getSotwCard() != null) {
-                panel.getSotwCard().checkEventStateChanged();
+	private void initializePanel() {
+		final BufferedImage icon = ImageUtil.loadImageResource(getClass(), "/flux-icon-tiny.png");
+
+		panel = new FluxPanel(competitionScheduler, config, configManager, okHttpClient, spriteManager);
+
+		uiNavigationButton = NavigationButton.builder()
+				.tooltip("Flux")
+				.icon(icon)
+				.priority(config.menuPriority())
+				.panel(panel)
+				.build();
+
+		clientToolbar.addNavigation(uiNavigationButton);
+	}
+
+	private void initializeServices() {
+		WiseOldManApiClient apiClient = new WiseOldManApiClient(okHttpClient);
+		CompetitionDataParser dataParser = new CompetitionDataParser();
+		CompetitionFinder finder = new CompetitionFinder(apiClient, dataParser);
+		CompetitionConfigUpdater configUpdater = new CompetitionConfigUpdater(configManager);
+
+		competitionScheduler = new CompetitionScheduler(
+				configManager,
+				apiClient,
+				finder,
+				configUpdater
+		);
+
+		configParser = new GoogleSheetParser(
+				configManager,
+				GoogleSheetParser.SheetType.CONFIG,
+				this::handleConfigUpdate,
+				true,
+				okHttpClient
+		);
+
+		clanRankMonitor = new ClanRankMonitor(client, this::handleRankChange);
+		loginMessageSender = new LoginMessageSender(chatMessageManager, configManager, config.loginColor());
+	}
+
+	private void refreshAllCards() {
+		if (panel != null) {
+			if (panel.getSotwCard() != null) {
+				panel.getSotwCard().checkEventStateChanged();
 				panel.updateIcon(panel.getSotwCard().getSkill(), EntrySelect.SOTW);
-            }
-            if (panel.getBotmCard() != null) {
-                panel.getBotmCard().checkEventStateChanged();
+			}
+			if (panel.getBotmCard() != null) {
+				panel.getBotmCard().checkEventStateChanged();
 				panel.updateIcon(panel.getBotmCard().getBoss(), EntrySelect.BOTM);
-            }
-            if (panel.getHuntCard() != null) {
-                panel.getHuntCard().checkEventStateChanged();
-            }
-        }
-    }
+			}
+			if (panel.getHuntCard() != null) {
+				panel.getHuntCard().checkEventStateChanged();
+			}
+		}
+	}
 
-    private void handleRankChange(boolean isAdmiralOrHigher) {
-        if (panel != null) {
-            panel.updateClanRankStatus(isAdmiralOrHigher);
-        }
-    }
+	private void handleRankChange(boolean isAdmiralOrHigher) {
+		if (panel != null) {
+			panel.updateClanRankStatus(isAdmiralOrHigher);
+		}
+	}
 
-    private void handleConfigUpdate(java.util.Map<String, String> configValues) {
-        log.debug("Received config updates from Google Sheets");
+	private void handleConfigUpdate(java.util.Map<String, String> configValues) {
+		log.debug("Received config updates from Google Sheets");
 
-        updateLoginMessage(configValues);
-        updateAnnouncementMessage(configValues);
-        updateRollCallStatus(configValues);
+		updateLoginMessage(configValues);
+		updateAnnouncementMessage(configValues);
+		updateRollCallStatus(configValues);
 		updateHuntCompId(configValues);
 		updateHuntStatus(configValues);
-        updateHuntTeamColors(configValues);
-        updateBotmPass(configValues);
-        updateDiscordInviteLink(configValues);
+		updateHuntTeamColors(configValues);
+		updateBotmPass(configValues);
+		updateDiscordInviteLink(configValues);
 		updateHuntSignupDiscordChannelUrl(configValues);
 		updateHuntPass(configValues);
-        updateHuntGdocUrl(configValues);
+		updateHuntGdocUrl(configValues);
 		updateHuntTeamScores(configValues);
 		updateHuntWomUrl(configValues);
-    }
+	}
 
-    private void updateDiscordInviteLink(Map<String, String> configValues) {
-        String inviteUrl = configValues.get("DISCORD_INVITE_URL");
-        if (!isNullOrEmpty(inviteUrl)) {
-            String currentInviteUrl = configManager.getConfiguration(CONFIG_GROUP, "discord_invite_url");
-            if (!inviteUrl.equals(currentInviteUrl)) {
-                configManager.setConfiguration(CONFIG_GROUP, "discord_invite_url", inviteUrl);
-            }
-        }
-    }
+	private void updateDiscordInviteLink(Map<String, String> configValues) {
+		String inviteUrl = configValues.get("DISCORD_INVITE_URL");
+		if (!isNullOrEmpty(inviteUrl)) {
+			String currentInviteUrl = configManager.getConfiguration(CONFIG_GROUP, "discord_invite_url");
+			if (!inviteUrl.equals(currentInviteUrl)) {
+				configManager.setConfiguration(CONFIG_GROUP, "discord_invite_url", inviteUrl);
+			}
+		}
+	}
 
 	private void updateHuntSignupDiscordChannelUrl(Map<String, String> configValues) {
 		String signupUrl = configValues.get("HUNT_SIGNUP_DISCORD_CHANNEL_URL");
@@ -188,92 +188,92 @@ public class FluxPlugin extends Plugin {
 		}
 	}
 
-    private void updateHuntGdocUrl(Map<String, String> configValues) {
-        String gdocUrl = configValues.get("HUNT_GDOC_URL");
-        if (!isNullOrEmpty(gdocUrl)) {
-            String currentGdocUrl = configManager.getConfiguration(CONFIG_GROUP, "hunt_gdoc_url");
-            if (!gdocUrl.equals(currentGdocUrl)) {
-                configManager.setConfiguration(CONFIG_GROUP, "hunt_gdoc_url", gdocUrl);
-            }
-        }
-    }
+	private void updateHuntGdocUrl(Map<String, String> configValues) {
+		String gdocUrl = configValues.get("HUNT_GDOC_URL");
+		if (!isNullOrEmpty(gdocUrl)) {
+			String currentGdocUrl = configManager.getConfiguration(CONFIG_GROUP, "hunt_gdoc_url");
+			if (!gdocUrl.equals(currentGdocUrl)) {
+				configManager.setConfiguration(CONFIG_GROUP, "hunt_gdoc_url", gdocUrl);
+			}
+		}
+	}
 
-    private void updateLoginMessage(java.util.Map<String, String> configValues) {
-        String loginMsg = configValues.get("LOGIN_MESSAGE");
-        if (!isNullOrEmpty(loginMsg)) {
-            String currentValue = configManager.getConfiguration(CONFIG_GROUP, "clan_login_message");
-            if (!loginMsg.equals(currentValue)) {
-                configManager.setConfiguration(CONFIG_GROUP, "clan_login_message", loginMsg);
-            }
-        }
-    }
+	private void updateLoginMessage(java.util.Map<String, String> configValues) {
+		String loginMsg = configValues.get("LOGIN_MESSAGE");
+		if (!isNullOrEmpty(loginMsg)) {
+			String currentValue = configManager.getConfiguration(CONFIG_GROUP, "clan_login_message");
+			if (!loginMsg.equals(currentValue)) {
+				configManager.setConfiguration(CONFIG_GROUP, "clan_login_message", loginMsg);
+			}
+		}
+	}
 
-    private void updateAnnouncementMessage(java.util.Map<String, String> configValues) {
-        String announcement = configValues.get("ANNOUNCEMENT_MESSAGE");
-        if (!isNullOrEmpty(announcement)) {
-            String currentAnnouncement = configManager.getConfiguration(CONFIG_GROUP, "plugin_announcement_message");
+	private void updateAnnouncementMessage(java.util.Map<String, String> configValues) {
+		String announcement = configValues.get("ANNOUNCEMENT_MESSAGE");
+		if (!isNullOrEmpty(announcement)) {
+			String currentAnnouncement = configManager.getConfiguration(CONFIG_GROUP, "plugin_announcement_message");
 
-            if (!announcement.equals(currentAnnouncement)) {
-                configManager.setConfiguration(CONFIG_GROUP, "plugin_announcement_message", announcement);
+			if (!announcement.equals(currentAnnouncement)) {
+				configManager.setConfiguration(CONFIG_GROUP, "plugin_announcement_message", announcement);
 
-                if (panel != null && panel.getHomeCard() != null) {
-                    javax.swing.SwingUtilities.invokeLater(() -> {
-                        panel.getHomeCard().refreshPluginAnnouncement();
-                        panel.getHomeCard().refreshButtonLinks();
-                    });
-                }
-            }
-        }
-    }
+				if (panel != null && panel.getHomeCard() != null) {
+					javax.swing.SwingUtilities.invokeLater(() -> {
+						panel.getHomeCard().refreshPluginAnnouncement();
+						panel.getHomeCard().refreshButtonLinks();
+					});
+				}
+			}
+		}
+	}
 
-    private void updateRollCallStatus(java.util.Map<String, String> configValues) {
-        String rollCallActive = configValues.get("ROLL_CALL_ACTIVE");
-        if (!isNullOrEmpty(rollCallActive)) {
-            boolean isActive = rollCallActive.equalsIgnoreCase("TRUE");
-            String currentStatus = configManager.getConfiguration(CONFIG_GROUP, "rollCallActive");
-            boolean currentActive = Boolean.parseBoolean(currentStatus);
+	private void updateRollCallStatus(java.util.Map<String, String> configValues) {
+		String rollCallActive = configValues.get("ROLL_CALL_ACTIVE");
+		if (!isNullOrEmpty(rollCallActive)) {
+			boolean isActive = rollCallActive.equalsIgnoreCase("TRUE");
+			String currentStatus = configManager.getConfiguration(CONFIG_GROUP, "rollCallActive");
+			boolean currentActive = Boolean.parseBoolean(currentStatus);
 
-            if (isActive != currentActive) {
-                configManager.setConfiguration(CONFIG_GROUP, "rollCallActive", String.valueOf(isActive));
+			if (isActive != currentActive) {
+				configManager.setConfiguration(CONFIG_GROUP, "rollCallActive", String.valueOf(isActive));
 
-                if (panel != null) {
-                    javax.swing.SwingUtilities.invokeLater(() -> {
-                        if (panel.getHomeCard() != null) {
-                            panel.getHomeCard().isRollCallActive();
-                        }
-                        if (panel.getAdminHubCard() != null) {
-                            panel.getAdminHubCard().refresh();
-                        }
-                    });
-                }
-            }
-        }
-    }
+				if (panel != null) {
+					javax.swing.SwingUtilities.invokeLater(() -> {
+						if (panel.getHomeCard() != null) {
+							panel.getHomeCard().isRollCallActive();
+						}
+						if (panel.getAdminHubCard() != null) {
+							panel.getAdminHubCard().refresh();
+						}
+					});
+				}
+			}
+		}
+	}
 
-    private void updateHuntTeamColors(java.util.Map<String, String> configValues) {
-        // TEAM 1 COLOR
-        String team1Color = configValues.get("TEAM_1_COLOR");
-        if (!isNullOrEmpty(team1Color)) {
-            String currentTeam1Color = configManager.getConfiguration(CONFIG_GROUP, "hunt_team_1_color");
-            if (!team1Color.equals(currentTeam1Color)) {
-                configManager.setConfiguration(CONFIG_GROUP, "hunt_team_1_color", team1Color);
-            }
-        }
+	private void updateHuntTeamColors(java.util.Map<String, String> configValues) {
+		// TEAM 1 COLOR
+		String team1Color = configValues.get("TEAM_1_COLOR");
+		if (!isNullOrEmpty(team1Color)) {
+			String currentTeam1Color = configManager.getConfiguration(CONFIG_GROUP, "hunt_team_1_color");
+			if (!team1Color.equals(currentTeam1Color)) {
+				configManager.setConfiguration(CONFIG_GROUP, "hunt_team_1_color", team1Color);
+			}
+		}
 
-        // TEAM 2 COLOR
-        String team2Color = configValues.get("TEAM_2_COLOR");
-        if (!isNullOrEmpty(team2Color)) {
-            String currentTeam2Color = configManager.getConfiguration(CONFIG_GROUP, "hunt_team_2_color");
-            if (!team2Color.equals(currentTeam2Color)) {
-                configManager.setConfiguration(CONFIG_GROUP, "hunt_team_2_color", team2Color);
-            }
-        }
+		// TEAM 2 COLOR
+		String team2Color = configValues.get("TEAM_2_COLOR");
+		if (!isNullOrEmpty(team2Color)) {
+			String currentTeam2Color = configManager.getConfiguration(CONFIG_GROUP, "hunt_team_2_color");
+			if (!team2Color.equals(currentTeam2Color)) {
+				configManager.setConfiguration(CONFIG_GROUP, "hunt_team_2_color", team2Color);
+			}
+		}
 
-        // refresh the Hunt card UI if it existsto apply color change
-        if (panel != null && panel.getHuntCard() != null) {
-            javax.swing.SwingUtilities.invokeLater(() -> panel.getHuntCard().updateTeamLabels());
-        }
-    }
+		// refresh the Hunt card UI if it existsto apply color change
+		if (panel != null && panel.getHuntCard() != null) {
+			javax.swing.SwingUtilities.invokeLater(() -> panel.getHuntCard().updateTeamLabels());
+		}
+	}
 
 	private void updateHuntTeamScores(java.util.Map<String, String> configValues) {
 		// TEAM 1 Score
@@ -300,17 +300,17 @@ public class FluxPlugin extends Plugin {
 		}
 	}
 
-    private void updateBotmPass(java.util.Map<String, String> configValues) {
-        String botmPass = configValues.get("BOTM_PASS");
-        if (!isNullOrEmpty(botmPass)) {
-            String currentValue = configManager.getConfiguration(CONFIG_GROUP, "botm_password");
-            if (!botmPass.equals(currentValue)) {
-                configManager.setConfiguration(CONFIG_GROUP, "botm_password", botmPass);
-            }
-        } else {
-            log.warn("BOTM_PASS is missing or empty in the Google Sheet values.");
-        }
-    }
+	private void updateBotmPass(java.util.Map<String, String> configValues) {
+		String botmPass = configValues.get("BOTM_PASS");
+		if (!isNullOrEmpty(botmPass)) {
+			String currentValue = configManager.getConfiguration(CONFIG_GROUP, "botm_password");
+			if (!botmPass.equals(currentValue)) {
+				configManager.setConfiguration(CONFIG_GROUP, "botm_password", botmPass);
+			}
+		} else {
+			log.warn("BOTM_PASS is missing or empty in the Google Sheet values.");
+		}
+	}
 
 	private void updateHuntPass(Map<String, String> configValues) {
 		String huntMasterPass = configValues.get("HUNT_MASTER_PASSWORD");
@@ -368,54 +368,54 @@ public class FluxPlugin extends Plugin {
 	}
 
 	@Subscribe
-    public void onGameStateChanged(GameStateChanged event) {
-        GameState state = event.getGameState();
+	public void onGameStateChanged(GameStateChanged event) {
+		GameState state = event.getGameState();
 
-        if (state == GameState.LOGGED_IN) {
-            loginMessageSender.sendLoginMessage();
-            clanRankMonitor.startMonitoring();
-        } else if (state == GameState.LOGIN_SCREEN) {
-            clanRankMonitor.stopMonitoring();
-        }
-    }
+		if (state == GameState.LOGGED_IN) {
+			loginMessageSender.sendLoginMessage();
+			clanRankMonitor.startMonitoring();
+		} else if (state == GameState.LOGIN_SCREEN) {
+			clanRankMonitor.stopMonitoring();
+		}
+	}
 
-    @Subscribe
-    //TODO: please for the love of god fix this giant list of if statements. Case statement can be used. @alex
-    //TODO: @anthony, I promise but only if you cleanup the config file.
-    public void onConfigChanged(ConfigChanged event) {
-        if (!event.getGroup().equals(CONFIG_GROUP)) {
-            return;
-        }
+	@Subscribe
+	//TODO: please for the love of god fix this giant list of if statements. Case statement can be used. @alex
+	//TODO: @anthony, I promise but only if you cleanup the config file.
+	public void onConfigChanged(ConfigChanged event) {
+		if (!event.getGroup().equals(CONFIG_GROUP)) {
+			return;
+		}
 
-        String key = event.getKey();
+		String key = event.getKey();
 
-        if (key.equals("discord_invite_url")) {
-            if (panel != null && panel.getHomeCard() != null) {
-                panel.getHomeCard().refreshButtonLinks();
-            }
-        }
+		if (key.equals("discord_invite_url")) {
+			if (panel != null && panel.getHomeCard() != null) {
+				panel.getHomeCard().refreshButtonLinks();
+			}
+		}
 
-        if (key.equals("plugin_announcement_message")) {
-            if (panel != null && panel.getHomeCard() != null) {
-                panel.getHomeCard().refreshPluginAnnouncement();
-                panel.getHomeCard().refreshButtonLinks();
-            }
-        }
+		if (key.equals("plugin_announcement_message")) {
+			if (panel != null && panel.getHomeCard() != null) {
+				panel.getHomeCard().refreshPluginAnnouncement();
+				panel.getHomeCard().refreshButtonLinks();
+			}
+		}
 
-        if (key.equals("rollCallActive")) {
-            if (panel != null && panel.getHomeCard() != null) {
-                panel.getHomeCard().isRollCallActive();
-            }
-            if (panel != null && panel.getAdminHubCard() != null) {
-                panel.getAdminHubCard().refresh();
-            }
-        }
+		if (key.equals("rollCallActive")) {
+			if (panel != null && panel.getHomeCard() != null) {
+				panel.getHomeCard().isRollCallActive();
+			}
+			if (panel != null && panel.getAdminHubCard() != null) {
+				panel.getAdminHubCard().refresh();
+			}
+		}
 
-        if (key.equals("botmActive") || key.equals("botm_active")) {
-            if (panel != null && panel.getBotmCard() != null) {
-                panel.getBotmCard().checkEventStateChanged();
-            }
-        }
+		if (key.equals("botmActive") || key.equals("botm_active")) {
+			if (panel != null && panel.getBotmCard() != null) {
+				panel.getBotmCard().checkEventStateChanged();
+			}
+		}
 
 		if (key.equals("botmBoss")) {
 			if (panel != null && panel.getBotmCard() != null) {
@@ -423,14 +423,14 @@ public class FluxPlugin extends Plugin {
 			}
 		}
 
-        if (key.equals("sotw_active") || key.equals("sotwActive")) {
-            if (panel != null) {
-                panel.refreshAllCards();
-                if (panel.getSotwCard() != null) {
-                    panel.getSotwCard().checkEventStateChanged();
-                }
-            }
-        }
+		if (key.equals("sotw_active") || key.equals("sotwActive")) {
+			if (panel != null) {
+				panel.refreshAllCards();
+				if (panel.getSotwCard() != null) {
+					panel.getSotwCard().checkEventStateChanged();
+				}
+			}
+		}
 
 		if (key.equals("sotwTitle") || key.equals("sotw_title")) {
 			if (panel != null && panel.getSotwCard() != null) {
@@ -450,84 +450,84 @@ public class FluxPlugin extends Plugin {
 			}
 		}
 
-        if (key.equals("sotw_wom_link") || key.equals("sotwWomLink")) {
-            if (panel != null && panel.getSotwCard() != null) {
-                panel.getSotwCard().refreshButtonLinks();
-            }
-        }
+		if (key.equals("sotw_wom_link") || key.equals("sotwWomLink")) {
+			if (panel != null && panel.getSotwCard() != null) {
+				panel.getSotwCard().refreshButtonLinks();
+			}
+		}
 
-        if (key.equals("sotw_leaderboard") || key.equals("sotwLeaderboard")) {
-            if (panel != null) {
-                panel.refreshAllCards();
-            }
-        }
+		if (key.equals("sotw_leaderboard") || key.equals("sotwLeaderboard")) {
+			if (panel != null) {
+				panel.refreshAllCards();
+			}
+		}
 
-        if (key.equals("huntActive")) {
-            if (panel != null) {
-                if (panel.getHuntCard() != null) {
-                    panel.getHuntCard().checkEventStateChanged();
-                }
-                if (panel.getHomeCard() != null) {
-                    panel.getHomeCard().refreshHuntStatus();
-                }
-            }
-        }
+		if (key.equals("huntActive")) {
+			if (panel != null) {
+				if (panel.getHuntCard() != null) {
+					panel.getHuntCard().checkEventStateChanged();
+				}
+				if (panel.getHomeCard() != null) {
+					panel.getHomeCard().refreshHuntStatus();
+				}
+			}
+		}
 
-        if (key.equals("huntTitle")) {
-            if (panel != null && panel.getHuntCard() != null) {
-                panel.getHuntCard().updateEventTitle();
-            }
-        }
+		if (key.equals("huntTitle")) {
+			if (panel != null && panel.getHuntCard() != null) {
+				panel.getHuntCard().updateEventTitle();
+			}
+		}
 
-        if (key.equals("hunt_team_1_name") || key.equals("hunt_team_2_name") ||
-                key.equals("hunt_team_1_color") || key.equals("hunt_team_2_color")) {
-            if (panel != null && panel.getHuntCard() != null) {
-                panel.getHuntCard().updateTeamLabels();
-            }
-        }
+		if (key.equals("hunt_team_1_name") || key.equals("hunt_team_2_name") ||
+				key.equals("hunt_team_1_color") || key.equals("hunt_team_2_color")) {
+			if (panel != null && panel.getHuntCard() != null) {
+				panel.getHuntCard().updateTeamLabels();
+			}
+		}
 
-        if (key.equals("hunt_team_1_leaderboard") || key.equals("hunt_team_2_leaderboard")) {
-            if (panel != null && panel.getHuntCard() != null) {
-                panel.getHuntCard().refreshLeaderboard();
-            }
-        }
-
-        if (key.equals("hunt_team_1_score") || key.equals("hunt_team_2_score")) {
-            if (panel != null && panel.getHuntCard() != null) {
-                panel.getHuntCard().updateTeamScores();
-            }
-        }
-
-        if (key.equals("hunt_wom_url") || key.equals("hunt_gdoc_url") || key.equals("hunt_signup_discord_channel_url")) {
-            if (panel != null && panel.getHuntCard() != null) {
-                panel.getHuntCard().refreshButtonLinks();
+		if (key.equals("hunt_team_1_leaderboard") || key.equals("hunt_team_2_leaderboard")) {
+			if (panel != null && panel.getHuntCard() != null) {
 				panel.getHuntCard().refreshLeaderboard();
-            }
-        }
+			}
+		}
+
+		if (key.equals("hunt_team_1_score") || key.equals("hunt_team_2_score")) {
+			if (panel != null && panel.getHuntCard() != null) {
+				panel.getHuntCard().updateTeamScores();
+			}
+		}
+
+		if (key.equals("hunt_wom_url") || key.equals("hunt_gdoc_url") || key.equals("hunt_signup_discord_channel_url")) {
+			if (panel != null && panel.getHuntCard() != null) {
+				panel.getHuntCard().refreshButtonLinks();
+				panel.getHuntCard().refreshLeaderboard();
+			}
+		}
 
 		if (key.equals("hunt_competition_id")) {
 			if (panel != null && panel.getHuntCard() != null) {
 				panel.getHuntCard().refreshButtonLinks();
 			}
 		}
-    }
+	}
 
-    // updates the broadcast message font color from yellow to black for easier reading
-    @Subscribe
-    public void onChatMessage(ChatMessage event) {
-        String loginMessage = loginMessageSender.getLoginMessage();
-        if (loginMessage != null
-                && event.getType() == ChatMessageType.BROADCAST
-                && event.getMessage().contains(loginMessage)) {
-            final MessageNode node = event.getMessageNode();
-            clientThread.invokeLater(() -> {
-                node.setRuneLiteFormatMessage("[Flux] " + loginMessage);
-            });
-        }
-    }
+	// updates the broadcast message font color from yellow to black for easier reading
+	@Subscribe
+	public void onChatMessage(ChatMessage event) {
+		String loginMessage = loginMessageSender.getLoginMessage();
+		if (loginMessage != null
+				&& event.getType() == ChatMessageType.BROADCAST
+				&& event.getMessage().contains(loginMessage)) {
+			final MessageNode node = event.getMessageNode();
+			clientThread.invokeLater(() -> {
+				node.setRuneLiteFormatMessage("[Flux] " + loginMessage);
+			});
+		}
+	}
 
-    @Provides
-    FluxConfig provideConfig(ConfigManager configManager) {
-        return configManager.getConfig(FluxConfig.class);
-    }
+	@Provides
+	FluxConfig provideConfig(ConfigManager configManager) {
+		return configManager.getConfig(FluxConfig.class);
+	}
 }

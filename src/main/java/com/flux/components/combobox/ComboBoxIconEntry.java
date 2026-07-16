@@ -40,8 +40,8 @@ import lombok.Setter;
 public class ComboBoxIconEntry
 {
 	@Setter
-    private Icon icon;
-    private String text;
-    private Optional<String> id;  // rename from data to id
+	private Icon icon;
+	private String text;
+	private Optional<String> id;  // rename from data to id
 }
 

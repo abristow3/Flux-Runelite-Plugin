@@ -20,87 +20,87 @@ import okhttp3.ResponseBody;
 
 @Slf4j
 public class GoogleSheetParser {
-    private static final String API_KEY = "AIzaSyBu-qDCAFvD_z00uohkfD_ub0sZj-H8s1E";
-    private static final String SPREADSHEET_ID = "1qqkjx4YjuQ9FIBDgAGzSpmoKcDow3yEa9lYFmc-JeDA";
-    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-    private final ConfigManager configManager;
-    private Consumer<JsonArray> leaderboardCallback;
-    private Consumer<Map<String, Integer>> huntScoreCallback;
-    private Consumer<Map<String, String>> configCallback;
-    private final AtomicBoolean isRunning = new AtomicBoolean(false);
-    private final SheetType sheetType;
-    private final OkHttpClient httpClient;
+	private static final String API_KEY = "AIzaSyBu-qDCAFvD_z00uohkfD_ub0sZj-H8s1E";
+	private static final String SPREADSHEET_ID = "1qqkjx4YjuQ9FIBDgAGzSpmoKcDow3yEa9lYFmc-JeDA";
+	private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+	private final ConfigManager configManager;
+	private Consumer<JsonArray> leaderboardCallback;
+	private Consumer<Map<String, Integer>> huntScoreCallback;
+	private Consumer<Map<String, String>> configCallback;
+	private final AtomicBoolean isRunning = new AtomicBoolean(false);
+	private final SheetType sheetType;
+	private final OkHttpClient httpClient;
 
-    public enum SheetType {
-        BOTM,
-        HUNT,
-        CONFIG
-    }
+	public enum SheetType {
+		BOTM,
+		HUNT,
+		CONFIG
+	}
 
-    public GoogleSheetParser(ConfigManager configManager, Consumer<JsonArray> leaderboardCallback, OkHttpClient httpClient) {
-        this.configManager = configManager;
-        this.leaderboardCallback = leaderboardCallback;
-        this.sheetType = SheetType.BOTM;
-        this.httpClient = httpClient;
-    }
+	public GoogleSheetParser(ConfigManager configManager, Consumer<JsonArray> leaderboardCallback, OkHttpClient httpClient) {
+		this.configManager = configManager;
+		this.leaderboardCallback = leaderboardCallback;
+		this.sheetType = SheetType.BOTM;
+		this.httpClient = httpClient;
+	}
 
-    public GoogleSheetParser(ConfigManager configManager, SheetType type, Consumer<Map<String, Integer>> huntScoreCallback, OkHttpClient httpClient) {
-        this.configManager = configManager;
-        this.huntScoreCallback = huntScoreCallback;
-        this.sheetType = type;
-        this.httpClient = httpClient;
-    }
+	public GoogleSheetParser(ConfigManager configManager, SheetType type, Consumer<Map<String, Integer>> huntScoreCallback, OkHttpClient httpClient) {
+		this.configManager = configManager;
+		this.huntScoreCallback = huntScoreCallback;
+		this.sheetType = type;
+		this.httpClient = httpClient;
+	}
 
-    public GoogleSheetParser(ConfigManager configManager, SheetType type, Consumer<Map<String, String>> configCallback, boolean isConfigSheet, OkHttpClient httpClient) {
-        this.configManager = configManager;
-        this.configCallback = configCallback;
-        this.sheetType = type;
-        this.httpClient = httpClient;
-    }
+	public GoogleSheetParser(ConfigManager configManager, SheetType type, Consumer<Map<String, String>> configCallback, boolean isConfigSheet, OkHttpClient httpClient) {
+		this.configManager = configManager;
+		this.configCallback = configCallback;
+		this.sheetType = type;
+		this.httpClient = httpClient;
+	}
 
-    private String makeSheetsApiRequest(String range) throws IOException {
-        HttpUrl url = HttpUrl.parse("https://sheets.googleapis.com/v4/spreadsheets/"
-                        + SPREADSHEET_ID
-                        + "/values/"
-                        + range)
-                .newBuilder()
-                .addQueryParameter("key", API_KEY)
-                .build();
+	private String makeSheetsApiRequest(String range) throws IOException {
+		HttpUrl url = HttpUrl.parse("https://sheets.googleapis.com/v4/spreadsheets/"
+						+ SPREADSHEET_ID
+						+ "/values/"
+						+ range)
+				.newBuilder()
+				.addQueryParameter("key", API_KEY)
+				.build();
 
-        Request request = new Request.Builder()
-                .url(url)
-                .get()
-                .build();
+		Request request = new Request.Builder()
+				.url(url)
+				.get()
+				.build();
 
-        try (Response response = httpClient.newCall(request).execute()) {
-            if (!response.isSuccessful()) {
-                log.error("Request failed with status code: {}", response.code());
-                throw new IOException("Unexpected code " + response);
-            }
+		try (Response response = httpClient.newCall(request).execute()) {
+			if (!response.isSuccessful()) {
+				log.error("Request failed with status code: {}", response.code());
+				throw new IOException("Unexpected code " + response);
+			}
 
-            ResponseBody body = response.body();
-            if (body == null) {
-                throw new IOException("Empty response body");
-            }
+			ResponseBody body = response.body();
+			if (body == null) {
+				throw new IOException("Empty response body");
+			}
 
-            return body.string();
-        }
-    }
+			return body.string();
+		}
+	}
 
-    public JsonArray getValues(String range) throws IOException {
-        String jsonResponse = makeSheetsApiRequest(range);
+	public JsonArray getValues(String range) throws IOException {
+		String jsonResponse = makeSheetsApiRequest(range);
 
-        JsonObject jsonObject = new JsonParser()
-                .parse(jsonResponse)
-                .getAsJsonObject();
+		JsonObject jsonObject = new JsonParser()
+				.parse(jsonResponse)
+				.getAsJsonObject();
 
-        if (!jsonObject.has("values")) {
-            log.warn("[Sheets] No 'values' field found for range {}", range);
-            return new JsonArray();
-        }
+		if (!jsonObject.has("values")) {
+			log.warn("[Sheets] No 'values' field found for range {}", range);
+			return new JsonArray();
+		}
 
-        return jsonObject.getAsJsonArray("values");
-    }
+		return jsonObject.getAsJsonArray("values");
+	}
 
 
 	public JsonArray parseTop10Leaderboard() {
@@ -167,103 +167,103 @@ public class GoogleSheetParser {
 		return leaderboard;
 	}
 
-    public Map<String, Integer> parseHuntScores() {
-        Map<String, Integer> scores = new HashMap<>();
+	public Map<String, Integer> parseHuntScores() {
+		Map<String, Integer> scores = new HashMap<>();
 
-        try {
-            JsonArray jsonArray = getValues("Hunt");
-            List<List<Object>> values = new ArrayList<>();
-            for (int i = 0; i < jsonArray.size(); i++) {
-                JsonArray row = jsonArray.get(i).getAsJsonArray();
-                List<Object> rowValues = new ArrayList<>();
-                for (int j = 0; j < row.size(); j++) {
-                    rowValues.add(row.get(j));
-                }
-                values.add(rowValues);
-            }
+		try {
+			JsonArray jsonArray = getValues("Hunt");
+			List<List<Object>> values = new ArrayList<>();
+			for (int i = 0; i < jsonArray.size(); i++) {
+				JsonArray row = jsonArray.get(i).getAsJsonArray();
+				List<Object> rowValues = new ArrayList<>();
+				for (int j = 0; j < row.size(); j++) {
+					rowValues.add(row.get(j));
+				}
+				values.add(rowValues);
+			}
 
-            if (!values.isEmpty()) {
-                int scoreStartRow = findCurrentScoreSection(values);
+			if (!values.isEmpty()) {
+				int scoreStartRow = findCurrentScoreSection(values);
 
-                if (scoreStartRow >= 0) {
-                    int dataStartRow = scoreStartRow + 2;
+				if (scoreStartRow >= 0) {
+					int dataStartRow = scoreStartRow + 2;
 
-                    for (int i = dataStartRow; i < values.size() && i < dataStartRow + 10; i++) {
-                        List<Object> row = values.get(i);
+					for (int i = dataStartRow; i < values.size() && i < dataStartRow + 10; i++) {
+						List<Object> row = values.get(i);
 
-                        if (row.size() >= 2) {
-                            String teamName = String.valueOf(row.get(0)).trim();
-                            String pointsStr = String.valueOf(row.get(1)).trim();
+						if (row.size() >= 2) {
+							String teamName = String.valueOf(row.get(0)).trim();
+							String pointsStr = String.valueOf(row.get(1)).trim();
 
-                            if (teamName.isEmpty() || pointsStr.isEmpty()) {
-                                break;
-                            }
+							if (teamName.isEmpty() || pointsStr.isEmpty()) {
+								break;
+							}
 
-                            try {
-                                int points = Integer.parseInt(pointsStr);
-                                scores.put(teamName, points);
-                            } catch (NumberFormatException e) {
-                                log.warn("Failed to parse points for team: {}, value: {}", teamName, pointsStr);
-                            }
-                        }
-                    }
-                } else {
-                    log.warn("Could not find 'Current Score' section in Hunt sheet");
-                }
-            }
-        } catch (IOException e) {
-            log.error("Error fetching Hunt scores from Google Sheets", e);
-        }
+							try {
+								int points = Integer.parseInt(pointsStr);
+								scores.put(teamName, points);
+							} catch (NumberFormatException e) {
+								log.warn("Failed to parse points for team: {}, value: {}", teamName, pointsStr);
+							}
+						}
+					}
+				} else {
+					log.warn("Could not find 'Current Score' section in Hunt sheet");
+				}
+			}
+		} catch (IOException e) {
+			log.error("Error fetching Hunt scores from Google Sheets", e);
+		}
 
-        return scores;
-    }
+		return scores;
+	}
 
-    public Map<String, String> parseConfigValues() {
-        Map<String, String> configValues = new HashMap<>();
+	public Map<String, String> parseConfigValues() {
+		Map<String, String> configValues = new HashMap<>();
 
-        try {
-            JsonArray jsonArray = getValues("Config");
-            log.info("[Config] Raw rows count: {}", jsonArray.size());
+		try {
+			JsonArray jsonArray = getValues("Config");
+			log.info("[Config] Raw rows count: {}", jsonArray.size());
 
-            for (int i = 0; i < jsonArray.size(); i++) {
-                JsonArray row = jsonArray.get(i).getAsJsonArray();
+			for (int i = 0; i < jsonArray.size(); i++) {
+				JsonArray row = jsonArray.get(i).getAsJsonArray();
 
-                if (row.size() < 2) {
-                    log.debug("[Config] Skipping row {} (less than 2 columns)", i);
-                    continue;
-                }
+				if (row.size() < 2) {
+					log.debug("[Config] Skipping row {} (less than 2 columns)", i);
+					continue;
+				}
 
-                String key = row.get(0).getAsString().trim();
-                String value = row.get(1).getAsString().trim();
+				String key = row.get(0).getAsString().trim();
+				String value = row.get(1).getAsString().trim();
 
-                if (key.isEmpty() || key.equalsIgnoreCase("key") || key.equalsIgnoreCase("config")) {
-                    log.debug("[Config] Skipping header/empty key: {}", key);
-                    continue;
-                }
+				if (key.isEmpty() || key.equalsIgnoreCase("key") || key.equalsIgnoreCase("config")) {
+					log.debug("[Config] Skipping header/empty key: {}", key);
+					continue;
+				}
 
-                configValues.put(key.toUpperCase(), value);
-            }
+				configValues.put(key.toUpperCase(), value);
+			}
 
-        } catch (IOException e) {
-            log.error("Error fetching Config values from Google Sheets", e);
-        }
+		} catch (IOException e) {
+			log.error("Error fetching Config values from Google Sheets", e);
+		}
 
-        return configValues;
-    }
+		return configValues;
+	}
 
 
-    private static int findCurrentScoreSection(List<List<Object>> values) {
-        for (int i = 0; i < values.size(); i++) {
-            List<Object> row = values.get(i);
-            if (!row.isEmpty()) {
-                String cellValue = String.valueOf(row.get(0)).trim().toLowerCase();
-                if (cellValue.contains("current score")) {
-                    return i;
-                }
-            }
-        }
-        return -1;
-    }
+	private static int findCurrentScoreSection(List<List<Object>> values) {
+		for (int i = 0; i < values.size(); i++) {
+			List<Object> row = values.get(i);
+			if (!row.isEmpty()) {
+				String cellValue = String.valueOf(row.get(0)).trim().toLowerCase();
+				if (cellValue.contains("current score")) {
+					return i;
+				}
+			}
+		}
+		return -1;
+	}
 
 	private static int findLeaderboardStartRow(List<List<Object>> values) {
 		for (int i = 0; i < values.size(); i++) {
@@ -304,79 +304,79 @@ public class GoogleSheetParser {
 		return String.valueOf(cell);
 	}
 
-    public void start() {
-        if (isRunning.compareAndSet(false, true)) {
-            if (sheetType == SheetType.HUNT) {
-                startPollHuntScores();
-            } else if (sheetType == SheetType.CONFIG) {
-                startPollConfigValues();
-            } else {
-                startPollLeaderboard();
-            }
-        }
-    }
+	public void start() {
+		if (isRunning.compareAndSet(false, true)) {
+			if (sheetType == SheetType.HUNT) {
+				startPollHuntScores();
+			} else if (sheetType == SheetType.CONFIG) {
+				startPollConfigValues();
+			} else {
+				startPollLeaderboard();
+			}
+		}
+	}
 
-    private void startPollLeaderboard() {
-        Runnable leaderboardTask = () -> {
-            if (!isRunning.get()) {
-                return;
-            }
+	private void startPollLeaderboard() {
+		Runnable leaderboardTask = () -> {
+			if (!isRunning.get()) {
+				return;
+			}
 
-            JsonArray leaderboard = parseTop10Leaderboard();
-            if (leaderboardCallback != null) {
-                leaderboardCallback.accept(leaderboard);
-            }
-        };
+			JsonArray leaderboard = parseTop10Leaderboard();
+			if (leaderboardCallback != null) {
+				leaderboardCallback.accept(leaderboard);
+			}
+		};
 
-        scheduler.scheduleAtFixedRate(leaderboardTask, 0, 7, TimeUnit.MINUTES);
-    }
+		scheduler.scheduleAtFixedRate(leaderboardTask, 0, 7, TimeUnit.MINUTES);
+	}
 
-    private void startPollHuntScores() {
-        Runnable huntScoresTask = () -> {
-            if (!isRunning.get()) {
-                return;
-            }
+	private void startPollHuntScores() {
+		Runnable huntScoresTask = () -> {
+			if (!isRunning.get()) {
+				return;
+			}
 
-            Map<String, Integer> scores = parseHuntScores();
-            if (huntScoreCallback != null && !scores.isEmpty()) {
-                huntScoreCallback.accept(scores);
-            }
-        };
+			Map<String, Integer> scores = parseHuntScores();
+			if (huntScoreCallback != null && !scores.isEmpty()) {
+				huntScoreCallback.accept(scores);
+			}
+		};
 
-        scheduler.scheduleAtFixedRate(huntScoresTask, 0, 7, TimeUnit.MINUTES);
-    }
+		scheduler.scheduleAtFixedRate(huntScoresTask, 0, 7, TimeUnit.MINUTES);
+	}
 
-    private void startPollConfigValues() {
-        Runnable configValuesTask = () -> {
-            if (!isRunning.get()) {
-                log.debug("[Config] Poll skipped (not running)");
-                return;
-            }
+	private void startPollConfigValues() {
+		Runnable configValuesTask = () -> {
+			if (!isRunning.get()) {
+				log.debug("[Config] Poll skipped (not running)");
+				return;
+			}
 
-            Map<String, String> configValues = parseConfigValues();
+			Map<String, String> configValues = parseConfigValues();
 
-            if (configCallback == null) {
-                log.warn("[Config] configCallback is NULL");
-                return;
-            }
+			if (configCallback == null) {
+				log.warn("[Config] configCallback is NULL");
+				return;
+			}
 
-            if (configValues.isEmpty()) {
-                log.warn("[Config] No config values parsed");
-                return;
-            }
+			if (configValues.isEmpty()) {
+				log.warn("[Config] No config values parsed");
+				return;
+			}
 
-            configCallback.accept(configValues);
-        };
+			configCallback.accept(configValues);
+		};
 
-        scheduler.scheduleAtFixedRate(configValuesTask, 0, 15, TimeUnit.SECONDS);
-    }
+		scheduler.scheduleAtFixedRate(configValuesTask, 0, 15, TimeUnit.SECONDS);
+	}
 
-    public void stop() {
-        isRunning.set(false);
-    }
+	public void stop() {
+		isRunning.set(false);
+	}
 
-    public void shutdown() {
-        stop();
-        scheduler.shutdownNow();
-    }
+	public void shutdown() {
+		stop();
+		scheduler.shutdownNow();
+	}
 }
