@@ -35,12 +35,17 @@ public class CompetitionConfigUpdater {
         switch (type) {
             case BOTM:
                 setConfigIfChanged("botmWomUrl", womUrl);
+				if (data.eventMetric != null) {
+					saveBotmBoss(data.eventMetric);
+				}
                 break;
 
             case SOTW:
                 if (data.sotwLeaderboard != null) {
                     saveSotwLeaderboard(data.sotwLeaderboard);
-					saveSotwSkill(data.eventMetric);
+					if (data.eventMetric != null) {
+						saveSotwSkill(data.eventMetric);
+					}
                     if (!isActive && !data.sotwLeaderboard.isEmpty()) {
                         String winner = data.sotwLeaderboard.keySet().iterator().next();
                         setConfigIfChanged(prefix + "_winner", winner);
@@ -80,6 +85,10 @@ public class CompetitionConfigUpdater {
 
 	private void saveSotwSkill(String skillName) {
 		setConfigIfChanged("sotwSkill", skillName);
+	}
+
+	private void saveBotmBoss(String bossName) {
+		setConfigIfChanged("botmBoss", bossName);
 	}
 
     private void saveHuntTeamData(HuntTeamData huntData) {

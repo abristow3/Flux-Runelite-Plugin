@@ -348,6 +348,7 @@ public class FluxPanel extends PluginPanel {
     public void refreshAllCards() {
         refreshHomeCard();
         refreshSotwCard();
+		refreshBotmCard();
         updateEventGlows();
     }
 
@@ -368,6 +369,14 @@ public class FluxPanel extends PluginPanel {
 			updateIcon(sotwCard.getSkill(), EntrySelect.SOTW);
         }
     }
+
+	private void refreshBotmCard() {
+		if (botmCard != null) {
+			botmCard.refreshLeaderboard();
+			botmCard.updateEventTitle();
+			updateIcon(botmCard.getBoss(), EntrySelect.BOTM);
+		}
+	}
 
     public void shutdown() {
         glowTimer.stop();

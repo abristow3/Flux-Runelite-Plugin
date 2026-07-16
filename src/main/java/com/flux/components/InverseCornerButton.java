@@ -14,7 +14,7 @@ public class InverseCornerButton extends JButton {
 
     private static final int CONCAVE_DEPTH = 10;
     private static final Color ACTIVE_COLOR = Color.decode("#811F1D");
-    private static final Color DEFAULT_COLOR = Color.decode("#373737");
+    private static final Color DEFAULT_COLOR = Color.decode("#1E1E1E");
     private static final Color GLOW_COLOR = Color.YELLOW;
     private static final Color BORDER_COLOR = Color.WHITE;
 

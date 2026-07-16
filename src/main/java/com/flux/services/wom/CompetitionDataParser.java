@@ -56,18 +56,36 @@ public class CompetitionDataParser {
         return leaderboard;
     }
 
-	public String parseSotwSkill(JsonObject competitionDetails)
+	public HiscoreSkill parseSotwSkill(JsonObject competitionDetails)
 	{
-		String skillName = HiscoreSkill.OVERALL.getName();
 		try {
-			skillName = competitionDetails.has("metric")
-				? competitionDetails.getAsJsonPrimitive("metric").getAsString()
-				: skillName;
-			log.debug("SOTW skill name: {}", skillName);
+			if (!competitionDetails.has("metric")) {
+				return HiscoreSkill.OVERALL;
+			}
+			String rawMetric = competitionDetails.getAsJsonPrimitive("metric").getAsString();
+			HiscoreSkill skill = WomMetricResolver.resolveSkill(rawMetric).orElse(HiscoreSkill.OVERALL);
+			log.debug("SOTW metric '{}' resolved to {}", rawMetric, skill);
+			return skill;
 		} catch (Exception e) {
 			log.error("Error parsing SOTW skill name: {}", String.valueOf(e));
+			return HiscoreSkill.OVERALL;
 		}
-		return skillName.equalsIgnoreCase("runecrafting") ? "runecraft" : skillName;
+	}
+
+	public HiscoreSkill parseBotmBoss(JsonObject competitionDetails)
+	{
+		try {
+			if (!competitionDetails.has("metric")) {
+				return HiscoreSkill.VORKATH;
+			}
+			String rawMetric = competitionDetails.getAsJsonPrimitive("metric").getAsString();
+			HiscoreSkill boss = WomMetricResolver.resolveBoss(rawMetric).orElse(HiscoreSkill.VORKATH);
+			log.debug("BOTM metric '{}' resolved to {}", rawMetric, boss);
+			return boss;
+		} catch (Exception e) {
+			log.error("Error parsing BOTM boss name: {}", String.valueOf(e));
+			return HiscoreSkill.VORKATH;
+		}
 	}
 
     // Parses Hunt team data from competition JSON payload.

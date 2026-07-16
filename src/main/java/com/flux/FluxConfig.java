@@ -144,7 +144,7 @@ public interface FluxConfig extends Config {
 
 	@ConfigItem(keyName = "sotwSkill", name = "SOTW Skill", description = "Current SOTW Skill", section = overlaySection, hidden = true)
 	default String sotwSkill() {
-		return "Overall";
+		return "OVERALL";
 	}
 
     @ConfigItem(position = 33, keyName = "sotw_wom_link", name = "SOTW WOM Link", description = "SOTW wise old man link.", section = overlaySection, hidden = true)
@@ -183,6 +183,11 @@ public interface FluxConfig extends Config {
     default String botmLeaderboard() {
         return "[]";
     }
+
+	@ConfigItem(keyName = "botmBoss", name = "BOTM Boss", description = "Current BOTM Boss", section = overlaySection, hidden = true)
+	default String botmBoss() {
+		return "VORKATH";
+	}
 
     @ConfigItem(position = 43, keyName = "botmWomUrl", name = "BOTM WOM URL", description = "BOTM wise old man URL.", section = overlaySection, hidden = true)
     default String botmWomUrl() {
