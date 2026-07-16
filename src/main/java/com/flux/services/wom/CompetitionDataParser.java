@@ -67,7 +67,7 @@ public class CompetitionDataParser {
 		} catch (Exception e) {
 			log.error("Error parsing SOTW skill name: {}", String.valueOf(e));
 		}
-		return skillName;
+		return skillName.equalsIgnoreCase("runecrafting") ? "runecraft" : skillName;
 	}
 
     // Parses Hunt team data from competition JSON payload.
