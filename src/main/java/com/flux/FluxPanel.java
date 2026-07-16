@@ -179,21 +179,16 @@ public class FluxPanel extends PluginPanel {
 
         footerButtons.add(entryConfig.getButton());
 
-        centerPanel.add(makeScrollable(entryConfig.getCard()), entry.getName());
+        centerPanel.add(makeScrollable(entryConfig.getCard()), entryConfig.getName());
     }
 
     private EntryConfig createEntryConfig(EntrySelect entry) {
         switch (entry) {
             case HOME:
                 homeCard = new HomeCard(config, configManager);
-				return new EntryConfig(
-					entry,
-					" Home",
-					"/home.png",
-					homeCard,
-					() -> {
+				return new EntryConfig(entry, " Home", "/home.png", homeCard, () -> {
 						activateFooterButton(entries.get(entry).getButton());
-						cardLayout.show(centerPanel, entry.getName());
+						cardLayout.show(centerPanel, entries.get(entry).getName());
 					}
 				);
 
@@ -201,28 +196,28 @@ public class FluxPanel extends PluginPanel {
                 sotwCard = new SotwCard(configManager);
 				return new EntryConfig(entry, " SOTW", "/sotw.png", sotwCard, () -> {
 						activateFooterButton(entries.get(entry).getButton());
-						cardLayout.show(centerPanel, entry.getName());
+						cardLayout.show(centerPanel, entries.get(entry).getName());
 				});
 
             case BOTM:
                 botmCard = new BotmCard(configManager, okHttpClient);
 				return new EntryConfig(entry, " BOTM", "/botm.png", botmCard, () -> {
 						activateFooterButton(entries.get(entry).getButton());
-						cardLayout.show(centerPanel, entry.getName());
+						cardLayout.show(centerPanel, entries.get(entry).getName());
 					});
 
             case HUB:
                 adminHubCard = new AdminHubCard(config, configManager);
 				return new EntryConfig(entry, " Admin Hub", "/hub.png", adminHubCard, () -> {
 						activateFooterButton(entries.get(entry).getButton());
-						cardLayout.show(centerPanel, entry.getName());
+						cardLayout.show(centerPanel, entries.get(entry).getName());
 					});
 
             case HUNT:
                 huntCard = new HuntCard(configManager, okHttpClient);
 				return new EntryConfig(entry, " The Hunt", "/hunt.png", huntCard, () -> {
 						activateFooterButton(entries.get(entry).getButton());
-						cardLayout.show(centerPanel, entry.getName());
+						cardLayout.show(centerPanel, entries.get(entry).getName());
 					});
 
             default:
