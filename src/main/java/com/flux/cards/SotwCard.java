@@ -206,7 +206,6 @@ public class SotwCard extends FluxCard {
 
 	public HiscoreSkill getSkill() {
 		String skillName = getConfigValue("sotwSkill", "Overall");
-		if (skillName.isEmpty()) return null;
 
 		for (HiscoreSkill skill : HiscoreSkill.values()) {
 			if (skill.getName().equalsIgnoreCase(skillName)) {
@@ -215,7 +214,7 @@ public class SotwCard extends FluxCard {
 			}
 		}
 		logger.debug("Could not find SOTW skill name {}", skillName);
-		return null;
+		return HiscoreSkill.OVERALL;
 	}
 
     @Override
