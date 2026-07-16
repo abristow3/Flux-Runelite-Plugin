@@ -1,5 +1,6 @@
 package com.flux;
 
+import com.flux.components.combobox.EntrySelect;
 import com.flux.services.ClanRankMonitor;
 import com.flux.services.CompetitionScheduler;
 import com.flux.services.GoogleSheetParser;
@@ -124,7 +125,7 @@ public class FluxPlugin extends Plugin {
         if (panel != null) {
             if (panel.getSotwCard() != null) {
                 panel.getSotwCard().checkEventStateChanged();
-				panel.updateSotwIcon();
+				panel.updateIcon(panel.getSotwCard().getSkill(), EntrySelect.SOTW);
             }
             if (panel.getBotmCard() != null) {
                 panel.getBotmCard().checkEventStateChanged();
@@ -425,7 +426,7 @@ public class FluxPlugin extends Plugin {
 
 		if (key.equals("sotwSkill")) {
 			if (panel != null && panel.getSotwCard() != null) {
-				panel.updateSotwIcon();
+				panel.updateIcon(panel.getSotwCard().getSkill(), EntrySelect.SOTW);
 			}
 		}
 
