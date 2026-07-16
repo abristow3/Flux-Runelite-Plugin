@@ -126,19 +126,23 @@ public class GoogleSheetParser {
 					Map<String, Integer> headerIndexMap = mapHeaders(headers);
 
 					for (int i = startRow; i < values.size(); i++) {
-						List<Object> row = values.get(i);
-						if (row.size() >= headerIndexMap.size()) {
-							JsonObject playerData = new JsonObject();
-							if (headerIndexMap.containsKey("Rank") && row.size() > headerIndexMap.get("Rank"))
-								playerData.addProperty("rank", asString(row.get(headerIndexMap.get("Rank"))));
-							if (headerIndexMap.containsKey("Players") && row.size() > headerIndexMap.get("Players"))
-								playerData.addProperty("username", asString(row.get(headerIndexMap.get("Players"))));
-							if (headerIndexMap.containsKey("Points") && row.size() > headerIndexMap.get("Points"))
-								playerData.addProperty("score", Integer.parseInt(asString(row.get(headerIndexMap.get("Points")))));
-							if (headerIndexMap.containsKey("KC") && row.size() > headerIndexMap.get("KC"))
-								playerData.addProperty("kc", Integer.parseInt(asString(row.get(headerIndexMap.get("KC")))));
+						try {
+							List<Object> row = values.get(i);
+							if (row.size() >= headerIndexMap.size()) {
+								JsonObject playerData = new JsonObject();
+								if (headerIndexMap.containsKey("Rank") && row.size() > headerIndexMap.get("Rank"))
+									playerData.addProperty("rank", asString(row.get(headerIndexMap.get("Rank"))));
+								if (headerIndexMap.containsKey("Players") && row.size() > headerIndexMap.get("Players"))
+									playerData.addProperty("username", asString(row.get(headerIndexMap.get("Players"))));
+								if (headerIndexMap.containsKey("Points") && row.size() > headerIndexMap.get("Points"))
+									playerData.addProperty("score", Integer.parseInt(asString(row.get(headerIndexMap.get("Points")))));
+								if (headerIndexMap.containsKey("KC") && row.size() > headerIndexMap.get("KC"))
+									playerData.addProperty("kc", Integer.parseInt(asString(row.get(headerIndexMap.get("KC")))));
 
-							leaderboard.add(playerData);
+								leaderboard.add(playerData);
+							}
+						} catch (NumberFormatException e) {
+							log.warn("Skipping row index {} because it contains non-numeric data: {}", i, e.getMessage());
 						}
 					}
 				} else {
@@ -148,7 +152,7 @@ public class GoogleSheetParser {
 				log.warn("[BOTM] No values returned for range 'BOTM'");
 			}
 
-			log.info("[BOTM] Raw rows count: {}, leaderboard size: {}", values.size(), leaderboard.size());
+			log.debug("[BOTM] Raw rows count: {}, leaderboard size: {}", values.size(), leaderboard.size());
 
 		} catch (IOException e) {
 			log.error("Error fetching Google Sheets data", e);
@@ -223,7 +227,7 @@ public class GoogleSheetParser {
 
         try {
             JsonArray jsonArray = getValues("Config");
-            log.info("[Config] Raw rows count: {}", jsonArray.size());
+            log.debug("[Config] Raw rows count: {}", jsonArray.size());
 
             for (int i = 0; i < jsonArray.size(); i++) {
                 JsonArray row = jsonArray.get(i).getAsJsonArray();
