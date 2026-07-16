@@ -170,16 +170,16 @@ public class FluxPanel extends PluginPanel {
     }
 
     private void addEntry(EntrySelect entry) {
-        EntryConfig view = createEntryConfig(entry);
-        if (view == null) return;
+        EntryConfig entryConfig = createEntryConfig(entry);
+        if (entryConfig == null) return;
 
-		entries.put(entry, view);
+		entries.put(entry, entryConfig);
 
-        dropdown.addItem(view.getComboEntry());
+        dropdown.addItem(entryConfig.getComboEntry());
 
-        footerButtons.add(view.getButton());
+        footerButtons.add(entryConfig.getButton());
 
-        centerPanel.add(makeScrollable(view.getCard()), entry.getName());
+        centerPanel.add(makeScrollable(entryConfig.getCard()), entry.getName());
     }
 
     private EntryConfig createEntryConfig(EntrySelect entry) {
@@ -279,11 +279,11 @@ public class FluxPanel extends PluginPanel {
     }
 
     private void setButtonGlow(EntrySelect entry, boolean active) {
-		EntryConfig view = entries.get(entry);
+		EntryConfig entryConfig = entries.get(entry);
 
-		if (view != null)
+		if (entryConfig != null)
 		{
-			view.setGlowing(active);
+			entryConfig.setGlowing(active);
 		}
     }
 
