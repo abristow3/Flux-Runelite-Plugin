@@ -40,6 +40,7 @@ public class CompetitionConfigUpdater {
             case SOTW:
                 if (data.sotwLeaderboard != null) {
                     saveSotwLeaderboard(data.sotwLeaderboard);
+					saveSotwSkill(data.eventMetric);
                     if (!isActive && !data.sotwLeaderboard.isEmpty()) {
                         String winner = data.sotwLeaderboard.keySet().iterator().next();
                         setConfigIfChanged(prefix + "_winner", winner);
@@ -76,6 +77,10 @@ public class CompetitionConfigUpdater {
         });
         setConfigIfChanged("sotwLeaderboard", json.toString());
     }
+
+	private void saveSotwSkill(String skillName) {
+		setConfigIfChanged("sotwSkill", skillName);
+	}
 
     private void saveHuntTeamData(HuntTeamData huntData) {
         setConfigIfChanged("hunt_team_1_name", huntData.team1Name);

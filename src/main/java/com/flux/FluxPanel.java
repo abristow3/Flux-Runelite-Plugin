@@ -1,8 +1,8 @@
 package com.flux;
 
+import com.flux.components.EntryConfig;
 import java.awt.*;
 import java.util.*;
-import javax.inject.Inject;
 import javax.swing.*;
 import javax.swing.Timer;
 
@@ -11,13 +11,15 @@ import com.flux.components.combobox.ComboBoxIconEntry;
 import com.flux.components.combobox.ComboBoxIconListRenderer;
 import com.flux.components.combobox.EntrySelect;
 import com.flux.services.CompetitionScheduler;
+import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.config.ConfigManager;
 import com.flux.cards.*;
+import net.runelite.client.game.SpriteManager;
+import net.runelite.client.hiscore.HiscoreSkill;
 import net.runelite.client.ui.PluginPanel;
-import net.runelite.client.util.ImageUtil;
 import okhttp3.OkHttpClient;
-import okhttp3.*;
 
+@Slf4j
 public class FluxPanel extends PluginPanel {
     private static final int GLOW_CHECK_INTERVAL = 500;
     private static final int SCROLL_UNIT_INCREMENT = 16;
@@ -35,7 +37,7 @@ public class FluxPanel extends PluginPanel {
     private final ComboBoxIconListRenderer renderer = new ComboBoxIconListRenderer();
     private final java.util.List<InverseCornerButton> footerButtons = new ArrayList<>();
 
-    private final Map<EntrySelect, JPanel> cards = new EnumMap<>(EntrySelect.class);
+    private final Map<EntrySelect, EntryConfig> entries = new EnumMap<>(EntrySelect.class);
     private HomeCard homeCard;
     private SotwCard sotwCard;
     private BotmCard botmCard;
@@ -46,15 +48,17 @@ public class FluxPanel extends PluginPanel {
     private boolean isAdminOrHigher = false;
     private boolean adminHubInitialized = false;
 	private final OkHttpClient okHttpClient;
+	private final SpriteManager spriteManager;
 
     private final Timer glowTimer = new Timer(GLOW_CHECK_INTERVAL, e -> updateEventGlows());
 
-    public FluxPanel(CompetitionScheduler competitionScheduler, FluxConfig config, ConfigManager configManager, OkHttpClient okHttpClient) {
+    public FluxPanel(CompetitionScheduler competitionScheduler, FluxConfig config, ConfigManager configManager, OkHttpClient okHttpClient, SpriteManager spriteManager) {
         super(false);
         this.competitionScheduler = competitionScheduler;
         this.config = config;
         this.configManager = configManager;
 		this.okHttpClient = okHttpClient;
+		this.spriteManager = spriteManager;
 
         setupLayout();
         glowTimer.start();
@@ -117,14 +121,14 @@ public class FluxPanel extends PluginPanel {
 
     private void handleDropdownSelection() {
         ComboBoxIconEntry selectedItem = (ComboBoxIconEntry) dropdown.getSelectedItem();
-        if (selectedItem == null || !selectedItem.getId().isPresent()) {
+        if (selectedItem == null || selectedItem.getId().isEmpty()) {
             return;
         }
 
         String cardId = selectedItem.getId().get();
-        String selectedText = selectedItem.getText().trim();
+        EntrySelect entry = EntrySelect.valueOf(cardId.toUpperCase());
 
-        activateButtonByLabel(selectedText);
+		activateFooterButton(entries.get(entry).getButton());
         cardLayout.show(centerPanel, cardId);
     }
 
@@ -167,60 +171,58 @@ public class FluxPanel extends PluginPanel {
 
     private void addEntry(EntrySelect entry) {
         EntryConfig entryConfig = createEntryConfig(entry);
-        if (entryConfig == null) {
-            return;
-        }
+        if (entryConfig == null) return;
 
-        addToDropdown(entryConfig);
-        InverseCornerButton button = createFooterButton(entryConfig, entry);
-        footerButtons.add(button);
+		entries.put(entry, entryConfig);
 
-        centerPanel.add(makeScrollable(entryConfig.card), entry.name().toLowerCase());
-        cards.put(entry, entryConfig.card);
+        dropdown.addItem(entryConfig.getComboEntry());
+
+        footerButtons.add(entryConfig.getButton());
+
+        centerPanel.add(makeScrollable(entryConfig.getCard()), entryConfig.getName());
     }
 
     private EntryConfig createEntryConfig(EntrySelect entry) {
         switch (entry) {
             case HOME:
                 homeCard = new HomeCard(config, configManager);
-                return new EntryConfig(" Home", "/home.png", homeCard, entry);
+				return new EntryConfig(entry, " Home", "/home.png", homeCard, () -> {
+						activateFooterButton(entries.get(entry).getButton());
+						cardLayout.show(centerPanel, entries.get(entry).getName());
+					}
+				);
 
             case SOTW:
                 sotwCard = new SotwCard(configManager);
-                return new EntryConfig(" SOTW", "/sotw.png", sotwCard, entry);
+				return new EntryConfig(entry, " SOTW", "/sotw.png", sotwCard, () -> {
+						activateFooterButton(entries.get(entry).getButton());
+						cardLayout.show(centerPanel, entries.get(entry).getName());
+				});
 
             case BOTM:
                 botmCard = new BotmCard(configManager, okHttpClient);
-                return new EntryConfig(" BOTM", "/botm.png", botmCard, entry);
+				return new EntryConfig(entry, " BOTM", "/botm.png", botmCard, () -> {
+						activateFooterButton(entries.get(entry).getButton());
+						cardLayout.show(centerPanel, entries.get(entry).getName());
+					});
 
             case HUB:
                 adminHubCard = new AdminHubCard(config, configManager);
-                return new EntryConfig(" Admin Hub", "/hub.png", adminHubCard, entry);
+				return new EntryConfig(entry, " Admin Hub", "/hub.png", adminHubCard, () -> {
+						activateFooterButton(entries.get(entry).getButton());
+						cardLayout.show(centerPanel, entries.get(entry).getName());
+					});
 
             case HUNT:
                 huntCard = new HuntCard(configManager, okHttpClient);
-                return new EntryConfig(" The Hunt", "/hunt.png", huntCard, entry);
+				return new EntryConfig(entry, " The Hunt", "/hunt.png", huntCard, () -> {
+						activateFooterButton(entries.get(entry).getButton());
+						cardLayout.show(centerPanel, entries.get(entry).getName());
+					});
 
             default:
                 return null;
         }
-    }
-
-    private void addToDropdown(EntryConfig config) {
-        dropdown.addItem(new ComboBoxIconEntry(
-                new ImageIcon(ImageUtil.loadImageResource(getClass(), config.iconPath)),
-                config.label,
-                Optional.of(config.entry.name().toLowerCase())
-        ));
-    }
-
-    private InverseCornerButton createFooterButton(EntryConfig config, EntrySelect entry) {
-        InverseCornerButton button = InverseCornerButton.withImage(config.label, config.iconPath);
-        button.addActionListener(e -> {
-            activateFooterButton(button);
-            cardLayout.show(centerPanel, entry.name().toLowerCase());
-        });
-        return button;
     }
 
     public void updateClanRankStatus(boolean isAdminOrHigher) {
@@ -240,6 +242,16 @@ public class FluxPanel extends PluginPanel {
         }
     }
 
+    void updateIcon(HiscoreSkill skill, EntrySelect entry) {
+		if (skill == null || entry == null) return;
+
+		spriteManager.getSpriteAsync(skill.getSpriteId(), 0, sprite ->
+			SwingUtilities.invokeLater(() -> {
+				entries.get(entry).setIcon(new ImageIcon(sprite));
+				dropdown.repaint();
+			}));
+	}
+
     private void activateFooterButton(InverseCornerButton button) {
         if (activeFooterButton != null) {
             activeFooterButton.setActive(false);
@@ -249,13 +261,6 @@ public class FluxPanel extends PluginPanel {
         activeFooterButton.setActive(true);
 
         syncDropdownWithButton(button.getText().trim());
-    }
-
-    private void activateButtonByLabel(String label) {
-        footerButtons.stream()
-                .filter(btn -> btn.getText().trim().equals(label))
-                .findFirst()
-                .ifPresent(this::activateFooterButton);
     }
 
     private void syncDropdownWithButton(String buttonLabel) {
@@ -268,49 +273,45 @@ public class FluxPanel extends PluginPanel {
         }
     }
 
-    private void setButtonGlow(String label, boolean glow) {
-        footerButtons.stream()
-                .filter(btn -> btn.getText().trim().equalsIgnoreCase(label.trim()))
-                .findFirst()
-                .ifPresent(btn -> {
-                    btn.setGlowing(glow);
-                    if (!glow) {
-                        btn.repaint();
-                        footerPanel.repaint();
-                    }
-                });
+    private void setButtonGlow(EntrySelect entry, boolean active) {
+		EntryConfig entryConfig = entries.get(entry);
+
+		if (entryConfig != null)
+		{
+			entryConfig.setGlowing(active);
+		}
     }
 
     private void updateEventGlows() {
-        updateCardGlow(sotwCard, " SOTW", card -> card.isEventActive());
-        updateCardGlow(botmCard, " BOTM", card -> card.isEventActive());
-        updateCardGlow(huntCard, " The Hunt", card -> card.isEventActive());
+        updateCardGlow(sotwCard, EntrySelect.SOTW, SotwCard::isEventActive);
+        updateCardGlow(botmCard, EntrySelect.BOTM, BotmCard::isEventActive);
+        updateCardGlow(huntCard, EntrySelect.HUNT, HuntCard::isEventActive);
 
         if (homeCard != null) {
             homeCard.isRollCallActive();
         }
     }
 
-    private <T extends JPanel> void updateCardGlow(T card, String label, EventActiveChecker<T> checker) {
+    private <T extends JPanel> void updateCardGlow(T card, EntrySelect entry, EventActiveChecker<T> checker) {
         if (card != null) {
             boolean active = checker.isActive(card);
-            setButtonGlow(label, active);
+            setButtonGlow(entry, active);
 
             if (homeCard != null) {
-                updateHomeCardEventStatus(label, active);
+                updateHomeCardEventStatus(entry, active);
             }
         }
     }
 
-    private void updateHomeCardEventStatus(String label, boolean active) {
-        switch (label.trim()) {
-            case "SOTW":
+    private void updateHomeCardEventStatus(EntrySelect entry, boolean active) {
+        switch (entry) {
+            case SOTW:
                 homeCard.updateSotwStatus(active);
                 break;
-            case "BOTM":
+            case BOTM:
                 homeCard.updateBotmStatus(active);
                 break;
-            case "The Hunt":
+			case HUNT:
                 homeCard.updateHuntStatus(active);
                 break;
         }
@@ -364,6 +365,7 @@ public class FluxPanel extends PluginPanel {
         if (sotwCard != null) {
             sotwCard.refreshLeaderboard();
 			sotwCard.updateEventTitle();
+			updateIcon(sotwCard.getSkill(), EntrySelect.SOTW);
         }
     }
 
@@ -373,20 +375,6 @@ public class FluxPanel extends PluginPanel {
         sotwCard.shutdown();
         huntCard.shutdown();
         competitionScheduler.stop();
-    }
-
-    private static class EntryConfig {
-        final String label;
-        final String iconPath;
-        final JPanel card;
-        final EntrySelect entry;
-
-        EntryConfig(String label, String iconPath, JPanel card, EntrySelect entry) {
-            this.label = label;
-            this.iconPath = iconPath;
-            this.card = card;
-            this.entry = entry;
-        }
     }
 
     @FunctionalInterface

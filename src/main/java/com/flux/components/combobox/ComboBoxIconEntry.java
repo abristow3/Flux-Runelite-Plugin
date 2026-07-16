@@ -29,6 +29,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.util.Optional;
+import lombok.Setter;
 
 /**
  * Used with ComboBoxListRenderer to render an icon next to the text of the list entry.
@@ -38,6 +39,7 @@ import java.util.Optional;
 @Getter
 public class ComboBoxIconEntry
 {
+	@Setter
     private Icon icon;
     private String text;
     private Optional<String> id;  // rename from data to id

@@ -7,6 +7,7 @@ import java.util.*;
 import lombok.extern.slf4j.Slf4j;
 
 import static com.flux.services.wom.CompetitionModels.*;
+import net.runelite.client.hiscore.HiscoreSkill;
 
 @Slf4j
 public class CompetitionDataParser {
@@ -54,6 +55,20 @@ public class CompetitionDataParser {
 
         return leaderboard;
     }
+
+	public String parseSotwSkill(JsonObject competitionDetails)
+	{
+		String skillName = HiscoreSkill.OVERALL.getName();
+		try {
+			skillName = competitionDetails.has("metric")
+				? competitionDetails.getAsJsonPrimitive("metric").getAsString()
+				: skillName;
+			log.debug("SOTW skill name: {}", skillName);
+		} catch (Exception e) {
+			log.error("Error parsing SOTW skill name: {}", String.valueOf(e));
+		}
+		return skillName.equalsIgnoreCase("runecrafting") ? "runecraft" : skillName;
+	}
 
     // Parses Hunt team data from competition JSON payload.
     public HuntTeamData parseHuntTeamData(JsonObject competitionDetails) {
