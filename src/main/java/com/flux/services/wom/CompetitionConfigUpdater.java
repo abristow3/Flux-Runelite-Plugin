@@ -1,23 +1,25 @@
 package com.flux.services.wom;
 
-import net.runelite.client.config.ConfigManager;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import com.flux.services.wom.CompetitionModels.CompetitionData;
 import com.flux.services.wom.CompetitionModels.EventType;
 import com.flux.services.wom.CompetitionModels.HuntTeamData;
-import lombok.extern.slf4j.Slf4j;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import java.util.LinkedHashMap;
+import lombok.extern.slf4j.Slf4j;
+import net.runelite.client.config.ConfigManager;
 
 @Slf4j
 public class CompetitionConfigUpdater {
+
 	private final ConfigManager configManager;
 
 	public CompetitionConfigUpdater(ConfigManager configManager) {
 		this.configManager = configManager;
 	}
 
-	public void updateEventConfig(EventType type, CompetitionData data, boolean isActive, String womUrl) {
+	public void updateEventConfig(EventType type, CompetitionData data, boolean isActive,
+		String womUrl) {
 		String prefix = type.getConfigPrefix();
 
 		setConfigIfChanged(prefix + "Title", data.title);

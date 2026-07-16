@@ -13,6 +13,7 @@ import net.runelite.client.chat.ChatMessageBuilder;
 
 @Singleton
 public class ChatCommandHandler {
+
 	public static final String BOTM_COMMAND = "!BOTM";
 	public static final String SOTW_COMMAND = "!SOTW";
 
@@ -21,7 +22,8 @@ public class ChatCommandHandler {
 	private final Client client;
 
 	@Inject
-	public ChatCommandHandler(ChatCommandManager chatCommandManager, FluxPlugin plugin, Client client) {
+	public ChatCommandHandler(ChatCommandManager chatCommandManager, FluxPlugin plugin,
+		Client client) {
 		this.chatCommandManager = chatCommandManager;
 		this.plugin = plugin;
 		this.client = client;
@@ -39,7 +41,9 @@ public class ChatCommandHandler {
 
 	private void botmLookup(ChatMessage chatMessage, String message) {
 		FluxPanel panel = plugin.getPanel();
-		if (panel.getBotmCard() == null) return;
+		if (panel.getBotmCard() == null) {
+			return;
+		}
 
 		String bossName = panel.getBotmCard().getBoss().getName();
 		ChatMessageBuilder chatMessageBuilder = new ChatMessageBuilder()
@@ -52,7 +56,9 @@ public class ChatCommandHandler {
 
 	private void sotwLookup(ChatMessage chatMessage, String message) {
 		FluxPanel panel = plugin.getPanel();
-		if (panel.getSotwCard() == null) return;
+		if (panel.getSotwCard() == null) {
+			return;
+		}
 
 		ChatMessageBuilder chatMessageBuilder = new ChatMessageBuilder()
 			.append(ChatColorType.NORMAL)

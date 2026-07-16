@@ -1,5 +1,17 @@
 package com.flux;
 
+import static net.runelite.api.MenuAction.RUNELITE_OVERLAY_CONFIG;
+import static net.runelite.client.ui.overlay.OverlayManager.OPTION_CONFIGURE;
+
+import com.google.common.base.Strings;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics2D;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+import java.util.TimeZone;
+import javax.inject.Inject;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.ui.overlay.OverlayMenuEntry;
 import net.runelite.client.ui.overlay.OverlayPanel;
@@ -7,20 +19,8 @@ import net.runelite.client.ui.overlay.OverlayPosition;
 import net.runelite.client.ui.overlay.components.LayoutableRenderableEntity;
 import net.runelite.client.ui.overlay.components.LineComponent;
 
-import javax.inject.Inject;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.TimeZone;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Graphics2D;
-import java.util.List;
-
-
-import static net.runelite.api.MenuAction.RUNELITE_OVERLAY_CONFIG;
-import static net.runelite.client.ui.overlay.OverlayManager.OPTION_CONFIGURE;
-
 public class FluxOverlay extends OverlayPanel {
+
 	private final ConfigManager configManager;
 	private final FluxConfig config;
 
@@ -30,7 +30,15 @@ public class FluxOverlay extends OverlayPanel {
 		this.config = config;
 
 		setPosition(OverlayPosition.TOP_CENTER);
-		getMenuEntries().add(new OverlayMenuEntry(RUNELITE_OVERLAY_CONFIG, OPTION_CONFIGURE, "Clan Events overlay"));
+		getMenuEntries().add(
+			new OverlayMenuEntry(RUNELITE_OVERLAY_CONFIG, OPTION_CONFIGURE, "Clan Events overlay"));
+	}
+
+	public static String localToGMT() {
+		Date date = new Date();
+		SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+		sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+		return sdf.format(date) + " UTC";
 	}
 
 	@Override
@@ -55,21 +63,21 @@ public class FluxOverlay extends OverlayPanel {
 			timeColor = Color.WHITE;
 		}
 
-		if (!isNullOrEmpty(eventPass)) {
+		if (!Strings.isNullOrEmpty(eventPass)) {
 			overlayString = overlayString + eventPass + " | ";
 		}
 
-		if (botmActive && !isNullOrEmpty(botmPass)) {
+		if (botmActive && !Strings.isNullOrEmpty(botmPass)) {
 			overlayString = overlayString + botmPass + " | ";
-			;
 		}
 
-		if (huntActive && !isNullOrEmpty(huntPass)) {
+		if (huntActive && !Strings.isNullOrEmpty(huntPass)) {
 			overlayString = overlayString + huntPass;
 		}
 
 		if (config.overlay()) {
-			panelComponent.getChildren().add(LineComponent.builder().left(overlayString).leftColor(passColor).build());
+			panelComponent.getChildren()
+				.add(LineComponent.builder().left(overlayString).leftColor(passColor).build());
 
 			if (config.dtm()) {
 				overlayString = overlayString + " " + localToGMT();
@@ -77,27 +85,17 @@ public class FluxOverlay extends OverlayPanel {
 				((LineComponent) elem.get(0)).setRight(localToGMT());
 				((LineComponent) elem.get(0)).setRightColor(timeColor);
 			}
-			panelComponent.setPreferredSize(new Dimension(graphics.getFontMetrics().stringWidth(overlayString) + 10, 0));
+			panelComponent.setPreferredSize(
+				new Dimension(graphics.getFontMetrics().stringWidth(overlayString) + 10, 0));
 		}
 		return super.render(graphics);
 	}
 
 	private boolean getBooleanConfig(String key) {
 		String value = configManager.getConfiguration("flux", key);
-		if (isNullOrEmpty(value)) {
+		if (Strings.isNullOrEmpty(value)) {
 			return false;
 		}
 		return Boolean.parseBoolean(value);
-	}
-
-	public static String localToGMT() {
-		Date date = new Date();
-		SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
-		sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
-		return sdf.format(date) + " UTC";
-	}
-
-	private static boolean isNullOrEmpty(String s) {
-		return s == null || s.isEmpty();
 	}
 }

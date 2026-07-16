@@ -1,14 +1,15 @@
 package com.flux.services;
 
+import java.awt.Color;
+import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.ChatMessageType;
 import net.runelite.client.chat.ChatMessageManager;
 import net.runelite.client.chat.QueuedMessage;
 import net.runelite.client.config.ConfigManager;
-import lombok.extern.slf4j.Slf4j;
-import java.awt.Color;
 
 @Slf4j
 public class LoginMessageSender {
+
 	private static final String CONFIG_GROUP = "flux";
 	private static final String CONFIG_KEY = "clan_login_message";
 
@@ -17,7 +18,8 @@ public class LoginMessageSender {
 	private final Color color;
 	private boolean hasSentMessage = false;
 
-	public LoginMessageSender(ChatMessageManager chatMessageManager, ConfigManager configManager, Color color) {
+	public LoginMessageSender(ChatMessageManager chatMessageManager, ConfigManager configManager,
+		Color color) {
 		this.chatMessageManager = chatMessageManager;
 		this.configManager = configManager;
 		this.color = color;
@@ -37,10 +39,10 @@ public class LoginMessageSender {
 		String hex = String.format("%06x", color.getRGB() & 0xFFFFFF);
 
 		chatMessageManager.queue(
-				QueuedMessage.builder()
-						.type(ChatMessageType.BROADCAST)
-						.runeLiteFormattedMessage("<col=" + hex + ">[Flux] " + loginMessage + "</col>")
-						.build()
+			QueuedMessage.builder()
+				.type(ChatMessageType.BROADCAST)
+				.runeLiteFormattedMessage("<col=" + hex + ">[Flux] " + loginMessage + "</col>")
+				.build()
 		);
 
 		hasSentMessage = true;

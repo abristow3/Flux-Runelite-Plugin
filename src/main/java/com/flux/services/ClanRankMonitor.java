@@ -1,19 +1,21 @@
 package com.flux.services;
 
-import net.runelite.api.Client;
-import net.runelite.api.clan.ClanChannel;
-import net.runelite.api.clan.ClanChannelMember;
-import net.runelite.api.clan.ClanRank;
-import lombok.extern.slf4j.Slf4j;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+import net.runelite.api.Client;
+import net.runelite.api.clan.ClanChannel;
+import net.runelite.api.clan.ClanChannelMember;
+import net.runelite.api.clan.ClanRank;
 
 // periodically check users clan rank for Flux to authorize the admin card rednering
 @Slf4j
 public class ClanRankMonitor {
+
 	private static final String TARGET_CLAN_NAME = "Flux";
 	private static final int CHECK_DELAY_SECONDS = 7;
 	private static final int CHECK_INTERVAL_SECONDS = 5;
@@ -23,6 +25,7 @@ public class ClanRankMonitor {
 	private final Consumer<Boolean> rankChangeCallback;
 
 	private ScheduledFuture<?> updateTask;
+	@Getter
 	private boolean isAdminOrHigher = false;
 
 	public ClanRankMonitor(Client client, Consumer<Boolean> rankChangeCallback) {
@@ -37,10 +40,10 @@ public class ClanRankMonitor {
 		}
 
 		updateTask = scheduler.scheduleAtFixedRate(
-				this::checkAndUpdateRank,
-				CHECK_DELAY_SECONDS,
-				CHECK_INTERVAL_SECONDS,
-				TimeUnit.SECONDS
+			this::checkAndUpdateRank,
+			CHECK_DELAY_SECONDS,
+			CHECK_INTERVAL_SECONDS,
+			TimeUnit.SECONDS
 		);
 	}
 
@@ -97,8 +100,8 @@ public class ClanRankMonitor {
 		}
 
 		String localPlayerName = client.getLocalPlayer() != null
-				? client.getLocalPlayer().getName()
-				: null;
+			? client.getLocalPlayer().getName()
+			: null;
 
 		if (localPlayerName == null) {
 			return null;
@@ -111,9 +114,5 @@ public class ClanRankMonitor {
 		}
 
 		return null;
-	}
-
-	public boolean isAdminOrHigher() {
-		return isAdminOrHigher;
 	}
 }

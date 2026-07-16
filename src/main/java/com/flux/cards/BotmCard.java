@@ -1,32 +1,40 @@
 package com.flux.cards;
 
-import net.runelite.client.config.ConfigManager;
-import com.flux.services.GoogleSheetParser;
 import com.flux.components.LeaderboardCellRenderer;
+import com.flux.services.GoogleSheetParser;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.util.concurrent.atomic.AtomicReference;
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.SwingUtilities;
+import javax.swing.Timer;
+import javax.swing.table.DefaultTableModel;
+import lombok.extern.slf4j.Slf4j;
+import net.runelite.client.config.ConfigManager;
 import net.runelite.client.hiscore.HiscoreSkill;
 import okhttp3.OkHttpClient;
-import org.slf4j.Logger; import org.slf4j.LoggerFactory;
-import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
-import java.awt.*;
-import java.util.concurrent.atomic.AtomicReference;
 
+@Slf4j
 public class BotmCard extends FluxCard {
+
 	private final ConfigManager configManager;
 	private final AtomicReference<String> lastLeaderboardJson = new AtomicReference<>("");
+	private final OkHttpClient httpClient;
 	private LeaderboardCellRenderer leaderboardCellRenderer;
-
 	private DefaultTableModel tableModel;
 	private JLabel eventTitle;
 	private JLabel countdownLabel;
 	private Timer countdownTimer;
 	private GoogleSheetParser sheetParser;
 	private boolean wasEventActive = false;
-	private static final Logger logger = LoggerFactory.getLogger(BotmCard.class);
-	private final OkHttpClient httpClient;
 
 	public BotmCard(ConfigManager configManager, OkHttpClient httpClient) {
 		super();
@@ -110,9 +118,12 @@ public class BotmCard extends FluxCard {
 
 	private void addButtons() {
 		LinkButton[] linkButtons = {
-				new LinkButton("BOTM", "/discord.png", "discord://discord.com/channels/414435426007384075/1014523362711715860"),
-				new LinkButton("BOTM Drops", "/discord.png", "discord://discord.com/channels/414435426007384075/1047792122914406420"),
-				new LinkButton("BOTM Wise Old Man", "/wom.png", getConfigValue("botmWomUrl", "https://wiseoldman.net/groups/141/competitions"))
+			new LinkButton("BOTM", "/discord.png",
+				"discord://discord.com/channels/414435426007384075/1014523362711715860"),
+			new LinkButton("BOTM Drops", "/discord.png",
+				"discord://discord.com/channels/414435426007384075/1047792122914406420"),
+			new LinkButton("BOTM Wise Old Man", "/wom.png",
+				getConfigValue("botmWomUrl", "https://wiseoldman.net/groups/141/competitions"))
 		};
 		addLinkButtons(linkButtons);
 	}
@@ -141,7 +152,7 @@ public class BotmCard extends FluxCard {
 			}
 		} catch (Exception e) {
 			handleAsyncError(e);
-			logger.error("Failed to parse BOTM leaderboard", e);
+			log.error("Failed to parse BOTM leaderboard", e);
 		}
 	}
 
@@ -187,7 +198,7 @@ public class BotmCard extends FluxCard {
 	// Private helpers
 	private void startSheetPolling() {
 		if (sheetParser == null) {
-			sheetParser = new GoogleSheetParser(configManager, leaderboardJsonArray -> {
+			sheetParser = new GoogleSheetParser(leaderboardJsonArray -> {
 				String newJson = leaderboardJsonArray.toString();
 				if (!newJson.equals(lastLeaderboardJson.get())) {
 					lastLeaderboardJson.set(newJson);
@@ -245,7 +256,7 @@ public class BotmCard extends FluxCard {
 		try {
 			return HiscoreSkill.valueOf(bossName);
 		} catch (IllegalArgumentException e) {
-			logger.debug("Could not find BOTM skill name {}", bossName);
+			log.debug("Could not find BOTM skill name {}", bossName);
 			return HiscoreSkill.VORKATH;
 		}
 	}

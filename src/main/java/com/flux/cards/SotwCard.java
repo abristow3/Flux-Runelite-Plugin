@@ -1,16 +1,23 @@
 package com.flux.cards;
 
-import net.runelite.client.config.ConfigManager;
 import com.flux.components.LeaderboardCellRenderer;
-import net.runelite.client.hiscore.HiscoreSkill;
-import org.slf4j.Logger; import org.slf4j.LoggerFactory;
-import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
-import java.awt.*;
+import java.awt.Dimension;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
+import javax.swing.JLabel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.Timer;
+import javax.swing.table.DefaultTableModel;
+import lombok.extern.slf4j.Slf4j;
+import net.runelite.client.config.ConfigManager;
+import net.runelite.client.hiscore.HiscoreSkill;
 
+@Slf4j
 public class SotwCard extends FluxCard {
+
 	private final ConfigManager configManager;
 	private LeaderboardCellRenderer leaderboardCellRenderer;
 	private DefaultTableModel tableModel;
@@ -18,7 +25,6 @@ public class SotwCard extends FluxCard {
 	private JLabel countdownLabel;
 	private Timer countdownTimer;
 	private boolean wasEventActive = false;
-	private static final Logger logger = LoggerFactory.getLogger(SotwCard.class);
 
 	public SotwCard(ConfigManager configManager) {
 		super();
@@ -91,21 +97,25 @@ public class SotwCard extends FluxCard {
 
 	private void addButtons() {
 		LinkButton[] linkButtons = {
-				new LinkButton("SOTW", "/discord.png", "discord://discord.com/channels/414435426007384075/416998364601909288"),
-				new LinkButton("SOTW Wise Old Man", "/wom.png", getConfigValue("sotw_wom_link", "https://wiseoldman.net/groups/141/competitions"))
+			new LinkButton("SOTW", "/discord.png",
+				"discord://discord.com/channels/414435426007384075/416998364601909288"),
+			new LinkButton("SOTW Wise Old Man", "/wom.png",
+				getConfigValue("sotw_wom_link", "https://wiseoldman.net/groups/141/competitions"))
 		};
 		addLinkButtons(linkButtons);
 	}
 
 	public void refreshLeaderboard() {
-		if (tableModel == null) return;
+		if (tableModel == null) {
+			return;
+		}
 
 		tableModel.setRowCount(0);
 		LinkedHashMap<String, Integer> leaderboard = new LinkedHashMap<>();
 		try {
 			leaderboard = parseLeaderboardJson("sotwLeaderboard", "xp", configManager);
 		} catch (Exception e) {
-			logger.warn("Failed to parse leaderboard JSON", e);
+			log.warn("Failed to parse leaderboard JSON", e);
 		}
 
 		for (Map.Entry<String, Integer> entry : leaderboard.entrySet()) {
@@ -177,7 +187,9 @@ public class SotwCard extends FluxCard {
 	}
 
 	private void updateCountdownLabel() {
-		if (countdownLabel == null) return;
+		if (countdownLabel == null) {
+			return;
+		}
 
 		if (!isEventActive()) {
 			updateWrappedLabelText(countdownLabel, getEventEndedMessage(), false);
@@ -190,7 +202,7 @@ public class SotwCard extends FluxCard {
 				message = formatCountdownMessage("sotw_start_time", "sotw_end_time", configManager);
 			}
 		} catch (Exception e) {
-			logger.warn("Failed to format countdown message", e);
+			log.warn("Failed to format countdown message", e);
 		}
 
 		if ("Event has ended.".equals(message)) {
@@ -210,7 +222,7 @@ public class SotwCard extends FluxCard {
 		try {
 			return HiscoreSkill.valueOf(skillName);
 		} catch (IllegalArgumentException e) {
-			logger.debug("Could not find SOTW skill name {}", skillName);
+			log.debug("Could not find SOTW skill name {}", skillName);
 			return HiscoreSkill.OVERALL;
 		}
 	}

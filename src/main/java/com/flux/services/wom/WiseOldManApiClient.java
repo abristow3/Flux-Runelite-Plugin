@@ -3,21 +3,21 @@ package com.flux.services.wom;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import java.io.IOException;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-import java.io.IOException;
-
 
 @Slf4j
 public class WiseOldManApiClient {
+
+	private static final String EMPTY_STRING = "";
 	private final String BASE_API_URL = "https://api.wiseoldman.net/v2";
 	private final String GROUP_ID = "141";
 	private final JsonParser jsonParser = new JsonParser();
 	private final OkHttpClient httpClient;
-	private static final String EMPTY_STRING = "";
 
 	public WiseOldManApiClient(OkHttpClient httpClient) {
 		this.httpClient = httpClient;
@@ -42,8 +42,8 @@ public class WiseOldManApiClient {
 
 	private String makeHttpRequest(String urlString) {
 		Request request = new Request.Builder()
-				.url(urlString)
-				.build();
+			.url(urlString)
+			.build();
 
 		try (Response response = httpClient.newCall(request).execute()) {
 			if (response.isSuccessful() && response.body() != null) {

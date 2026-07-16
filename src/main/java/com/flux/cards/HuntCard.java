@@ -1,25 +1,33 @@
 package com.flux.cards;
 
-import net.runelite.client.config.ConfigManager;
-import com.flux.services.GoogleSheetParser;
 import com.flux.components.LeaderboardCellRenderer;
-
-import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
-import java.awt.*;
+import com.flux.services.GoogleSheetParser;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
+import javax.swing.JLabel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
+import javax.swing.Timer;
+import javax.swing.table.DefaultTableModel;
+import net.runelite.client.config.ConfigManager;
 import okhttp3.OkHttpClient;
 
 public class HuntCard extends FluxCard {
+
 	private final ConfigManager configManager;
+	private final OkHttpClient httpClient;
 	private LeaderboardCellRenderer leaderboardCellRenderer;
 	private JLabel eventTitle;
 	private JLabel countdownLabel;
@@ -29,8 +37,6 @@ public class HuntCard extends FluxCard {
 	private Timer countdownTimer;
 	private GoogleSheetParser sheetParser;
 	private boolean wasEventActive = false;
-	private static final Logger logger = LoggerFactory.getLogger(HuntCard.class);
-	private final OkHttpClient httpClient;
 
 	public HuntCard(ConfigManager configManager, OkHttpClient httpClient) {
 		super();
@@ -53,9 +59,9 @@ public class HuntCard extends FluxCard {
 		addVerticalSpace(SPACING_MEDIUM);
 
 		eventTitle = createWrappedLabelWithUnderline(
-				getConfigValue("huntTitle", "No active hunt event", configManager),
-				FONT_SECTION,
-				COLOR_YELLOW
+			getConfigValue("huntTitle", "No active hunt event", configManager),
+			FONT_SECTION,
+			COLOR_YELLOW
 		);
 		setupDynamicResize(eventTitle);
 		add(eventTitle);
@@ -75,7 +81,8 @@ public class HuntCard extends FluxCard {
 	}
 
 	private void addScoreSection() {
-		scoreTitleLabel = createWrappedLabelWithUnderline("Current Score", FONT_SECTION, COLOR_YELLOW);
+		scoreTitleLabel = createWrappedLabelWithUnderline("Current Score", FONT_SECTION,
+			COLOR_YELLOW);
 		setupDynamicResize(scoreTitleLabel);
 		add(scoreTitleLabel);
 		addVerticalSpace(SPACING_SMALL);
@@ -92,15 +99,20 @@ public class HuntCard extends FluxCard {
 		int team1Score = getConfigInt("hunt_team_1_score", 0, configManager);
 		int team2Score = getConfigInt("hunt_team_2_score", 0, configManager);
 
-		Color team1Color = parseColor(getConfigValue("hunt_team_1_color", "#FF0000", configManager));
-		Color team2Color = parseColor(getConfigValue("hunt_team_2_color", "#0000FF", configManager));
+		Color team1Color = parseColor(
+			getConfigValue("hunt_team_1_color", "#FF0000", configManager));
+		Color team2Color = parseColor(
+			getConfigValue("hunt_team_2_color", "#0000FF", configManager));
 
-		String team1ColorHex = String.format("#%02x%02x%02x", team1Color.getRed(), team1Color.getGreen(), team1Color.getBlue());
-		String team2ColorHex = String.format("#%02x%02x%02x", team2Color.getRed(), team2Color.getGreen(), team2Color.getBlue());
+		String team1ColorHex = String.format("#%02x%02x%02x", team1Color.getRed(),
+			team1Color.getGreen(), team1Color.getBlue());
+		String team2ColorHex = String.format("#%02x%02x%02x", team2Color.getRed(),
+			team2Color.getGreen(), team2Color.getBlue());
 
-		return String.format("<span style='color: %s;'>%s: %,d</span><br><span style='color: %s;'>%s: %,d</span>",
-				team1ColorHex, team1Name, team1Score,
-				team2ColorHex, team2Name, team2Score);
+		return String.format(
+			"<span style='color: %s;'>%s: %,d</span><br><span style='color: %s;'>%s: %,d</span>",
+			team1ColorHex, team1Name, team1Score,
+			team2ColorHex, team2Name, team2Score);
 	}
 
 	private void addCombinedLeaderboard() {
@@ -118,7 +130,7 @@ public class HuntCard extends FluxCard {
 		configureTable(table);
 
 		int scrollHeight = (TABLE_ROW_HEIGHT + TABLE_ROW_SPACING) * 5 +
-				table.getTableHeader().getPreferredSize().height + 4;
+			table.getTableHeader().getPreferredSize().height + 4;
 
 		JScrollPane scrollPane = new JScrollPane(table);
 		scrollPane.setPreferredSize(new Dimension(300, scrollHeight));
@@ -143,14 +155,18 @@ public class HuntCard extends FluxCard {
 	}
 
 	private void addButtons() {
-		String gdocUrl = getConfigValue("hunt_gdoc_url", "https://docs.google.com/spreadsheets/d/e/2PACX-1vSLCxscAVFZY9wuDqmeBPu4UZio2I39DHDGy_8DXrvHqYKmZc8NgsC4DWv_olXOTjGQktcBnU88Fmf4/pubhtml?gid=0&single=true", configManager);
-		String womUrl = getConfigValue("hunt_wom_url", "https://wiseoldman.net/competitions", configManager);
-		String huntSignupChannelUrl = getConfigValue("hunt_signup_discord_channel_url", "discord://discord.com/channels/414435426007384075/414458243499425792", configManager);
+		String gdocUrl = getConfigValue("hunt_gdoc_url",
+			"https://docs.google.com/spreadsheets/d/e/2PACX-1vSLCxscAVFZY9wuDqmeBPu4UZio2I39DHDGy_8DXrvHqYKmZc8NgsC4DWv_olXOTjGQktcBnU88Fmf4/pubhtml?gid=0&single=true",
+			configManager);
+		String womUrl = getConfigValue("hunt_wom_url", "https://wiseoldman.net/competitions",
+			configManager);
+		String huntSignupChannelUrl = getConfigValue("hunt_signup_discord_channel_url",
+			"discord://discord.com/channels/414435426007384075/414458243499425792", configManager);
 
 		addLinkButtons(new LinkButton[]{
-				new LinkButton("Hunt Signup", "/discord.png", huntSignupChannelUrl),
-				new LinkButton("The Hunt GDoc", "/hunt.png", gdocUrl),
-				new LinkButton("Hunt WOM", "/wom.png", womUrl)
+			new LinkButton("Hunt Signup", "/discord.png", huntSignupChannelUrl),
+			new LinkButton("The Hunt GDoc", "/hunt.png", gdocUrl),
+			new LinkButton("Hunt WOM", "/wom.png", womUrl)
 		});
 	}
 
@@ -182,8 +198,8 @@ public class HuntCard extends FluxCard {
 		combinedTableModel.setRowCount(0);
 		for (PlayerEntry player : top10) {
 			combinedTableModel.addRow(new Object[]{
-					player.username,
-					String.format("%.2f", player.ehb)
+				player.username,
+				String.format("%.2f", player.ehb)
 			});
 		}
 
@@ -194,7 +210,9 @@ public class HuntCard extends FluxCard {
 		Map<String, Double> leaderboard = new LinkedHashMap<>();
 		String raw = configManager.getConfiguration("flux", configKey);
 
-		if (raw == null || raw.isEmpty()) return leaderboard;
+		if (raw == null || raw.isEmpty()) {
+			return leaderboard;
+		}
 
 		try {
 			JsonParser jsonParser = new JsonParser();
@@ -251,7 +269,8 @@ public class HuntCard extends FluxCard {
 
 	private void startSheetPolling() {
 		if (sheetParser == null) {
-			sheetParser = new GoogleSheetParser(configManager, GoogleSheetParser.SheetType.HUNT, this::handleSheetScoreUpdate, httpClient);
+			sheetParser = new GoogleSheetParser(GoogleSheetParser.SheetType.HUNT,
+				this::handleSheetScoreUpdate, httpClient);
 		}
 		sheetParser.start();
 	}
@@ -364,6 +383,7 @@ public class HuntCard extends FluxCard {
 	}
 
 	private static class PlayerEntry {
+
 		final String username;
 		final String teamName;
 		final double ehb;
@@ -376,11 +396,13 @@ public class HuntCard extends FluxCard {
 	}
 
 	private class TeamColoredLeaderboardRenderer extends LeaderboardCellRenderer {
+
 		@Override
 		public Component getTableCellRendererComponent(JTable table, Object value,
-													   boolean isSelected, boolean hasFocus, int row, int column) {
+			boolean isSelected, boolean hasFocus, int row, int column) {
 
-			Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+			Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus,
+				row, column);
 
 			String playerName = "";
 			if (row < table.getRowCount() && table.getColumnCount() > 0) {
@@ -393,8 +415,10 @@ public class HuntCard extends FluxCard {
 			Map<String, Double> team1Data = loadLeaderboardFromConfig("hunt_team_1_leaderboard");
 			Map<String, Double> team2Data = loadLeaderboardFromConfig("hunt_team_2_leaderboard");
 
-			Color team1Color = parseColor(getConfigValue("hunt_team_1_color", "#FF0000", configManager));
-			Color team2Color = parseColor(getConfigValue("hunt_team_2_color", "#0000FF", configManager));
+			Color team1Color = parseColor(
+				getConfigValue("hunt_team_1_color", "#FF0000", configManager));
+			Color team2Color = parseColor(
+				getConfigValue("hunt_team_2_color", "#0000FF", configManager));
 
 			if (team1Data.containsKey(playerName)) {
 				c.setForeground(team1Color);

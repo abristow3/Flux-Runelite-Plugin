@@ -12,6 +12,7 @@ import net.runelite.client.util.ImageUtil;
 
 @Getter
 public class EntryConfig {
+
 	private static final int ICON_SIZE = 18;
 
 	private final EntrySelect entry;
@@ -19,7 +20,8 @@ public class EntryConfig {
 	private final ComboBoxIconEntry comboEntry;
 	private final InverseCornerButton button;
 
-	public EntryConfig(EntrySelect entry, String label, String iconPath, JPanel card, Runnable onSelected) {
+	public EntryConfig(EntrySelect entry, String label, String iconPath, JPanel card,
+		Runnable onSelected) {
 		this.entry = entry;
 		this.card = card;
 		ImageIcon icon = new ImageIcon(ImageUtil.loadImageResource(getClass(), iconPath));
@@ -35,7 +37,9 @@ public class EntryConfig {
 	}
 
 	private Icon scaleIcon(Icon icon) {
-		if (!(icon instanceof ImageIcon)) return icon;
+		if (!(icon instanceof ImageIcon)) {
+			return icon;
+		}
 
 		Image image = ((ImageIcon) icon).getImage();
 		Image scaled = image.getScaledInstance(ICON_SIZE, ICON_SIZE, Image.SCALE_SMOOTH);

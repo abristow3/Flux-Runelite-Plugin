@@ -24,21 +24,21 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package com.flux.components.combobox;
+
+import java.util.Optional;
 import javax.swing.Icon;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-
-import java.util.Optional;
 import lombok.Setter;
 
 /**
- * Used with ComboBoxListRenderer to render an icon next to the text of the list entry.
- * Also supports adding a data object to be used for more complex selection logic
+ * Used with ComboBoxListRenderer to render an icon next to the text of the list entry. Also
+ * supports adding a data object to be used for more complex selection logic
  */
 @AllArgsConstructor
 @Getter
-public class ComboBoxIconEntry
-{
+public class ComboBoxIconEntry {
+
 	@Setter
 	private Icon icon;
 	private String text;

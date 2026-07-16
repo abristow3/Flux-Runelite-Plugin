@@ -1,9 +1,16 @@
 package com.flux.components;
 
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Insets;
+import java.awt.Point;
+import java.awt.RenderingHints;
 import javax.swing.border.AbstractBorder;
-import java.awt.*;
 
 public class AnimatedShinyBorder extends AbstractBorder {
+
 	private final Color baseColor;
 	private final int thickness;
 	private float shinePosition = 0f;
@@ -29,7 +36,8 @@ public class AnimatedShinyBorder extends AbstractBorder {
 
 		Color shineColor = lightenColor(baseColor, 0.5f);
 
-		g2.setColor(new Color(shineColor.getRed(), shineColor.getGreen(), shineColor.getBlue(), 180));
+		g2.setColor(
+			new Color(shineColor.getRed(), shineColor.getGreen(), shineColor.getBlue(), 180));
 
 		int perimeter = 2 * (width + height - 4 * thickness);
 		int shineLength = 8;
@@ -49,16 +57,19 @@ public class AnimatedShinyBorder extends AbstractBorder {
 		int w = width - 1;
 		int h = height - 1;
 
-		if (pos < w)
+		if (pos < w) {
 			return new Point(x + pos, y);
+		}
 		pos -= w;
 
-		if (pos < h)
+		if (pos < h) {
 			return new Point(x + w, y + pos);
+		}
 		pos -= h;
 
-		if (pos < w)
+		if (pos < w) {
 			return new Point(x + w - pos, y + h);
+		}
 		pos -= w;
 
 		return new Point(x, y + h - pos);

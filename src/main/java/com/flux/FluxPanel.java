@@ -1,19 +1,37 @@
 package com.flux;
 
+import com.flux.cards.AdminHubCard;
+import com.flux.cards.BotmCard;
+import com.flux.cards.HomeCard;
+import com.flux.cards.HuntCard;
+import com.flux.cards.SotwCard;
 import com.flux.components.EntryConfig;
-import java.awt.*;
-import java.util.*;
-import javax.swing.*;
-import javax.swing.Timer;
-
 import com.flux.components.InverseCornerButton;
 import com.flux.components.combobox.ComboBoxIconEntry;
 import com.flux.components.combobox.ComboBoxIconListRenderer;
 import com.flux.components.combobox.EntrySelect;
 import com.flux.services.CompetitionScheduler;
+import java.awt.BorderLayout;
+import java.awt.CardLayout;
+import java.awt.Color;
+import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.Map;
+import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
+import javax.swing.JComboBox;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.ScrollPaneConstants;
+import javax.swing.SwingUtilities;
+import javax.swing.Timer;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.config.ConfigManager;
-import com.flux.cards.*;
 import net.runelite.client.game.SpriteManager;
 import net.runelite.client.hiscore.HiscoreSkill;
 import net.runelite.client.ui.PluginPanel;
@@ -21,6 +39,7 @@ import okhttp3.OkHttpClient;
 
 @Slf4j
 public class FluxPanel extends PluginPanel {
+
 	private static final int GLOW_CHECK_INTERVAL = 500;
 	private static final int SCROLL_UNIT_INCREMENT = 16;
 
@@ -38,21 +57,25 @@ public class FluxPanel extends PluginPanel {
 	private final java.util.List<InverseCornerButton> footerButtons = new ArrayList<>();
 
 	private final Map<EntrySelect, EntryConfig> entries = new EnumMap<>(EntrySelect.class);
+	private final OkHttpClient okHttpClient;
+	private final SpriteManager spriteManager;
+	@Getter
 	private HomeCard homeCard;
+	@Getter
 	private SotwCard sotwCard;
+	@Getter
 	private BotmCard botmCard;
+	@Getter
 	private AdminHubCard adminHubCard;
+	@Getter
 	private HuntCard huntCard;
-
+	private final Timer glowTimer = new Timer(GLOW_CHECK_INTERVAL, e -> updateEventGlows());
 	private InverseCornerButton activeFooterButton;
 	private boolean isAdminOrHigher = false;
 	private boolean adminHubInitialized = false;
-	private final OkHttpClient okHttpClient;
-	private final SpriteManager spriteManager;
 
-	private final Timer glowTimer = new Timer(GLOW_CHECK_INTERVAL, e -> updateEventGlows());
-
-	public FluxPanel(CompetitionScheduler competitionScheduler, FluxConfig config, ConfigManager configManager, OkHttpClient okHttpClient, SpriteManager spriteManager) {
+	public FluxPanel(CompetitionScheduler competitionScheduler, FluxConfig config,
+		ConfigManager configManager, OkHttpClient okHttpClient, SpriteManager spriteManager) {
 		super(false);
 		this.competitionScheduler = competitionScheduler;
 		this.config = config;
@@ -69,14 +92,12 @@ public class FluxPanel extends PluginPanel {
 	}
 
 	@Override
-	public void onActivate()
-	{
+	public void onActivate() {
 		competitionScheduler.start();
 	}
 
 	@Override
-	public void onDeactivate()
-	{
+	public void onDeactivate() {
 		competitionScheduler.stop();
 	}
 
@@ -171,7 +192,9 @@ public class FluxPanel extends PluginPanel {
 
 	private void addEntry(EntrySelect entry) {
 		EntryConfig entryConfig = createEntryConfig(entry);
-		if (entryConfig == null) return;
+		if (entryConfig == null) {
+			return;
+		}
 
 		entries.put(entry, entryConfig);
 
@@ -185,40 +208,40 @@ public class FluxPanel extends PluginPanel {
 	private EntryConfig createEntryConfig(EntrySelect entry) {
 		switch (entry) {
 			case HOME:
-				homeCard = new HomeCard(config, configManager);
+				homeCard = new HomeCard(configManager);
 				return new EntryConfig(entry, " Home", "/home.png", homeCard, () -> {
-						activateFooterButton(entries.get(entry).getButton());
-						cardLayout.show(centerPanel, entries.get(entry).getName());
-					}
+					activateFooterButton(entries.get(entry).getButton());
+					cardLayout.show(centerPanel, entries.get(entry).getName());
+				}
 				);
 
 			case SOTW:
 				sotwCard = new SotwCard(configManager);
 				return new EntryConfig(entry, " SOTW", "/sotw.png", sotwCard, () -> {
-						activateFooterButton(entries.get(entry).getButton());
-						cardLayout.show(centerPanel, entries.get(entry).getName());
+					activateFooterButton(entries.get(entry).getButton());
+					cardLayout.show(centerPanel, entries.get(entry).getName());
 				});
 
 			case BOTM:
 				botmCard = new BotmCard(configManager, okHttpClient);
 				return new EntryConfig(entry, " BOTM", "/botm.png", botmCard, () -> {
-						activateFooterButton(entries.get(entry).getButton());
-						cardLayout.show(centerPanel, entries.get(entry).getName());
-					});
+					activateFooterButton(entries.get(entry).getButton());
+					cardLayout.show(centerPanel, entries.get(entry).getName());
+				});
 
 			case HUB:
 				adminHubCard = new AdminHubCard(config, configManager);
 				return new EntryConfig(entry, " Admin Hub", "/hub.png", adminHubCard, () -> {
-						activateFooterButton(entries.get(entry).getButton());
-						cardLayout.show(centerPanel, entries.get(entry).getName());
-					});
+					activateFooterButton(entries.get(entry).getButton());
+					cardLayout.show(centerPanel, entries.get(entry).getName());
+				});
 
 			case HUNT:
 				huntCard = new HuntCard(configManager, okHttpClient);
 				return new EntryConfig(entry, " The Hunt", "/hunt.png", huntCard, () -> {
-						activateFooterButton(entries.get(entry).getButton());
-						cardLayout.show(centerPanel, entries.get(entry).getName());
-					});
+					activateFooterButton(entries.get(entry).getButton());
+					cardLayout.show(centerPanel, entries.get(entry).getName());
+				});
 
 			default:
 				return null;
@@ -243,7 +266,9 @@ public class FluxPanel extends PluginPanel {
 	}
 
 	void updateIcon(HiscoreSkill skill, EntrySelect entry) {
-		if (skill == null || entry == null) return;
+		if (skill == null || entry == null) {
+			return;
+		}
 
 		spriteManager.getSpriteAsync(skill.getSpriteId(), 0, sprite ->
 			SwingUtilities.invokeLater(() -> {
@@ -276,8 +301,7 @@ public class FluxPanel extends PluginPanel {
 	private void setButtonGlow(EntrySelect entry, boolean active) {
 		EntryConfig entryConfig = entries.get(entry);
 
-		if (entryConfig != null)
-		{
+		if (entryConfig != null) {
 			entryConfig.setGlowing(active);
 		}
 	}
@@ -292,7 +316,8 @@ public class FluxPanel extends PluginPanel {
 		}
 	}
 
-	private <T extends JPanel> void updateCardGlow(T card, EntrySelect entry, EventActiveChecker<T> checker) {
+	private <T extends JPanel> void updateCardGlow(T card, EntrySelect entry,
+		EventActiveChecker<T> checker) {
 		if (card != null) {
 			boolean active = checker.isActive(card);
 			setButtonGlow(entry, active);
@@ -339,12 +364,6 @@ public class FluxPanel extends PluginPanel {
 		return scroll;
 	}
 
-	public HomeCard getHomeCard() { return homeCard; }
-	public BotmCard getBotmCard() { return botmCard; }
-	public SotwCard getSotwCard() { return sotwCard; }
-	public HuntCard getHuntCard() { return huntCard; }
-	public AdminHubCard getAdminHubCard() { return adminHubCard; }
-
 	public void refreshAllCards() {
 		refreshHomeCard();
 		refreshSotwCard();
@@ -388,6 +407,7 @@ public class FluxPanel extends PluginPanel {
 
 	@FunctionalInterface
 	private interface EventActiveChecker<T> {
+
 		boolean isActive(T card);
 	}
 }

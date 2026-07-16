@@ -1,36 +1,39 @@
 package com.flux.services;
 
-import com.flux.services.wom.*;
+import com.flux.services.wom.CompetitionConfigUpdater;
+import com.flux.services.wom.CompetitionFinder;
 import com.flux.services.wom.CompetitionModels.CompetitionData;
 import com.flux.services.wom.CompetitionModels.EventType;
-import net.runelite.client.config.ConfigManager;
-import lombok.extern.slf4j.Slf4j;
-
+import com.flux.services.wom.WiseOldManApiClient;
 import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import lombok.extern.slf4j.Slf4j;
+import net.runelite.client.config.ConfigManager;
 
 
 //Scheduler made for checking and updating comp data from wom API.
 @Slf4j
 public class CompetitionScheduler {
+
 	// TODO in future release make configurable, next hunt is 8 months away
 	private static final String DEFAULT_HUNT_COMPETITION_ID = "100262";
-	private volatile boolean active = false;
-	long initialDelaySeconds = 3;
-	long periodMinutes = 3;
-
 	private final ConfigManager configManager;
-	private volatile ScheduledExecutorService schedulerService;
 	private final WiseOldManApiClient apiClient;
 	private final CompetitionFinder finder;
 	private final CompetitionConfigUpdater configUpdater;
+	long initialDelaySeconds = 3;
+	long periodMinutes = 3;
+	private volatile boolean active = false;
+	private volatile ScheduledExecutorService schedulerService;
 
 	public CompetitionScheduler(ConfigManager configManager,
-								WiseOldManApiClient apiClient,
-								CompetitionFinder finder,
-								CompetitionConfigUpdater configUpdater) {
+		WiseOldManApiClient apiClient,
+		CompetitionFinder finder,
+		CompetitionConfigUpdater configUpdater) {
 		this.configManager = configManager;
 		this.apiClient = apiClient;
 		this.finder = finder;
@@ -39,12 +42,16 @@ public class CompetitionScheduler {
 
 	// Starts the periodic wom comp check scheduler.
 	public synchronized void start() {
-		if (schedulerService != null && !schedulerService.isShutdown()) return;
+		if (schedulerService != null && !schedulerService.isShutdown()) {
+			return;
+		}
 
 		active = true;
 		schedulerService = Executors.newSingleThreadScheduledExecutor();
 		schedulerService.scheduleAtFixedRate(() -> {
-			if (!active) return;
+			if (!active) {
+				return;
+			}
 			checkAndUpdateCompetitions();
 		}, initialDelaySeconds, periodMinutes * 60, TimeUnit.SECONDS);
 	}
@@ -109,11 +116,13 @@ public class CompetitionScheduler {
 	}
 
 	private int getHuntCompetitionId() {
-		String huntCompIdStr = configUpdater.getConfig("hunt_competition_id", DEFAULT_HUNT_COMPETITION_ID);
+		String huntCompIdStr = configUpdater.getConfig("hunt_competition_id",
+			DEFAULT_HUNT_COMPETITION_ID);
 
 		// Save default if not set
 		if (huntCompIdStr.equals(DEFAULT_HUNT_COMPETITION_ID)) {
-			configManager.setConfiguration("flux", "hunt_competition_id", DEFAULT_HUNT_COMPETITION_ID);
+			configManager.setConfiguration("flux", "hunt_competition_id",
+				DEFAULT_HUNT_COMPETITION_ID);
 		}
 
 		return Integer.parseInt(huntCompIdStr);

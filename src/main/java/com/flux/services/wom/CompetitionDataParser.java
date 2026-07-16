@@ -1,16 +1,23 @@
 package com.flux.services.wom;
 
+import static com.flux.services.wom.CompetitionModels.HuntParticipant;
+import static com.flux.services.wom.CompetitionModels.HuntTeamData;
+
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
-
-import static com.flux.services.wom.CompetitionModels.*;
 import net.runelite.client.hiscore.HiscoreSkill;
 
 @Slf4j
 public class CompetitionDataParser {
+
 	private static final int TOP_PARTICIPANTS_COUNT = 10;
 
 	// Parse SOTW leaderboard from WOM competition details.
@@ -19,8 +26,8 @@ public class CompetitionDataParser {
 
 		try {
 			JsonArray participants = competitionDetails.has("participations")
-					? competitionDetails.getAsJsonArray("participations")
-					: new JsonArray();
+				? competitionDetails.getAsJsonArray("participations")
+				: new JsonArray();
 			List<ParticipantEntry> entries = new ArrayList<>();
 
 			for (JsonElement element : participants) {
@@ -28,26 +35,25 @@ public class CompetitionDataParser {
 				JsonObject player = participant.getAsJsonObject("player");
 
 				String username = player != null && player.has("username")
-						? player.get("username").getAsString()
-						: "";
+					? player.get("username").getAsString()
+					: "";
 
 				JsonObject progress = participant.has("progress")
-						? participant.getAsJsonObject("progress")
-						: null;
+					? participant.getAsJsonObject("progress")
+					: null;
 
 				int xpGained = (progress != null && progress.has("gained"))
-						? progress.get("gained").getAsInt()
-						: 0;
-
+					? progress.get("gained").getAsInt()
+					: 0;
 
 				entries.add(new ParticipantEntry(username, xpGained));
 			}
 
 			// Sort by XP descending and take top 10
 			entries.stream()
-					.sorted((a, b) -> Integer.compare(b.xp, a.xp))
-					.limit(TOP_PARTICIPANTS_COUNT)
-					.forEach(entry -> leaderboard.put(entry.username, entry.xp));
+				.sorted((a, b) -> Integer.compare(b.xp, a.xp))
+				.limit(TOP_PARTICIPANTS_COUNT)
+				.forEach(entry -> leaderboard.put(entry.username, entry.xp));
 
 		} catch (Exception e) {
 			log.error("Error parsing SOTW leaderboard: " + e);
@@ -56,14 +62,14 @@ public class CompetitionDataParser {
 		return leaderboard;
 	}
 
-	public HiscoreSkill parseSotwSkill(JsonObject competitionDetails)
-	{
+	public HiscoreSkill parseSotwSkill(JsonObject competitionDetails) {
 		try {
 			if (!competitionDetails.has("metric")) {
 				return HiscoreSkill.OVERALL;
 			}
 			String rawMetric = competitionDetails.getAsJsonPrimitive("metric").getAsString();
-			HiscoreSkill skill = WomMetricResolver.resolveSkill(rawMetric).orElse(HiscoreSkill.OVERALL);
+			HiscoreSkill skill = WomMetricResolver.resolveSkill(rawMetric)
+				.orElse(HiscoreSkill.OVERALL);
 			log.debug("SOTW metric '{}' resolved to {}", rawMetric, skill);
 			return skill;
 		} catch (Exception e) {
@@ -72,14 +78,14 @@ public class CompetitionDataParser {
 		}
 	}
 
-	public HiscoreSkill parseBotmBoss(JsonObject competitionDetails)
-	{
+	public HiscoreSkill parseBotmBoss(JsonObject competitionDetails) {
 		try {
 			if (!competitionDetails.has("metric")) {
 				return HiscoreSkill.VORKATH;
 			}
 			String rawMetric = competitionDetails.getAsJsonPrimitive("metric").getAsString();
-			HiscoreSkill boss = WomMetricResolver.resolveBoss(rawMetric).orElse(HiscoreSkill.VORKATH);
+			HiscoreSkill boss = WomMetricResolver.resolveBoss(rawMetric)
+				.orElse(HiscoreSkill.VORKATH);
 			log.debug("BOTM metric '{}' resolved to {}", rawMetric, boss);
 			return boss;
 		} catch (Exception e) {
@@ -92,8 +98,8 @@ public class CompetitionDataParser {
 	public HuntTeamData parseHuntTeamData(JsonObject competitionDetails) {
 		try {
 			JsonArray participants = competitionDetails.has("participations")
-					? competitionDetails.getAsJsonArray("participations")
-					: new JsonArray();
+				? competitionDetails.getAsJsonArray("participations")
+				: new JsonArray();
 
 			// Extract team names
 			TeamNames teamNames = extractTeamNames(participants);
@@ -107,20 +113,20 @@ public class CompetitionDataParser {
 
 				JsonObject player = participant.getAsJsonObject("player");
 				String username = (player != null && player.has("displayName"))
-						? player.get("displayName").getAsString()
-						: "";
+					? player.get("displayName").getAsString()
+					: "";
 
 				String teamName = participant.has("teamName")
-						? participant.get("teamName").getAsString()
-						: "";
+					? participant.get("teamName").getAsString()
+					: "";
 
 				JsonObject progress = participant.has("progress")
-						? participant.getAsJsonObject("progress")
-						: null;
+					? participant.getAsJsonObject("progress")
+					: null;
 
 				double ehb = (progress != null && progress.has("gained"))
-						? progress.get("gained").getAsDouble()
-						: 0.0;
+					? progress.get("gained").getAsDouble()
+					: 0.0;
 
 				if (teamName.equals(teamNames.team1)) {
 					team1Participants.add(new HuntParticipant(username, ehb));
@@ -138,12 +144,12 @@ public class CompetitionDataParser {
 			double team2Total = team2Participants.stream().mapToDouble(p -> p.ehb).sum();
 
 			return new HuntTeamData(
-					teamNames.team1,
-					teamNames.team2,
-					team1Top10,
-					team2Top10,
-					(int) Math.round(team1Total),
-					(int) Math.round(team2Total)
+				teamNames.team1,
+				teamNames.team2,
+				team1Top10,
+				team2Top10,
+				(int) Math.round(team1Total),
+				(int) Math.round(team2Total)
 			);
 
 		} catch (Exception e) {
@@ -153,15 +159,14 @@ public class CompetitionDataParser {
 		return null;
 	}
 
-
 	private TeamNames extractTeamNames(JsonArray participants) {
 		Set<String> teamNamesSet = new HashSet<>();
 
 		for (JsonElement element : participants) {
 			JsonObject participant = element.getAsJsonObject();
 			String teamName = participant.has("teamName")
-					? participant.get("teamName").getAsString()
-					: "";
+				? participant.get("teamName").getAsString()
+				: "";
 			if (!teamName.isEmpty()) {
 				teamNamesSet.add(teamName);
 			}
@@ -177,20 +182,20 @@ public class CompetitionDataParser {
 		return new TeamNames("Team 1", "Team 2");
 	}
 
-
 	private LinkedHashMap<String, Double> getTopParticipants(List<HuntParticipant> participants) {
 		LinkedHashMap<String, Double> top10 = new LinkedHashMap<>();
 
 		participants.stream()
-				.sorted((a, b) -> Double.compare(b.ehb, a.ehb))
-				.limit(TOP_PARTICIPANTS_COUNT)
-				.forEach(p -> top10.put(p.username, p.ehb));
+			.sorted((a, b) -> Double.compare(b.ehb, a.ehb))
+			.limit(TOP_PARTICIPANTS_COUNT)
+			.forEach(p -> top10.put(p.username, p.ehb));
 
 		return top10;
 	}
 
 	// Helper classes
 	private static class ParticipantEntry {
+
 		final String username;
 		final int xp;
 
@@ -201,6 +206,7 @@ public class CompetitionDataParser {
 	}
 
 	private static class TeamNames {
+
 		final String team1;
 		final String team2;
 

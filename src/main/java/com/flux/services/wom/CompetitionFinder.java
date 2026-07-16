@@ -4,18 +4,18 @@ import com.flux.services.wom.CompetitionModels.CompetitionData;
 import com.flux.services.wom.CompetitionModels.EventType;
 import com.flux.services.wom.CompetitionModels.HuntTeamData;
 import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import com.google.gson.JsonElement;
-import lombok.extern.slf4j.Slf4j;
+import com.google.gson.JsonObject;
 import java.time.Instant;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.Optional;
-import net.runelite.client.hiscore.HiscoreSkill;
+import lombok.extern.slf4j.Slf4j;
 
 
 @Slf4j
 public class CompetitionFinder {
+
 	private final WiseOldManApiClient apiClient;
 	private final CompetitionDataParser dataParser;
 
@@ -49,7 +49,9 @@ public class CompetitionFinder {
 			// Check for SOTW and BOTM
 			for (EventType type : new EventType[]{EventType.SOTW, EventType.BOTM}) {
 				if (type.matchesTitle(title) && results.get(type) == null) {
-					Optional<CompetitionData> data = fetchCompetitionData(competitionId, type, startsAt, endsAt);
+					Optional<CompetitionData> data = fetchCompetitionData(competitionId, type,
+						startsAt,
+						endsAt);
 					data.ifPresent(competitionData -> results.put(type, competitionData));
 				}
 			}
@@ -57,7 +59,6 @@ public class CompetitionFinder {
 
 		return results;
 	}
-
 
 	public Optional<CompetitionData> findLastCompletedCompetition(EventType type) {
 		// Hunt is handled differently
@@ -104,7 +105,6 @@ public class CompetitionFinder {
 		return Optional.empty();
 	}
 
-
 	// Get Hunt competition data by ID
 	public Optional<CompetitionData> findHuntCompetition(int competitionId) {
 		JsonObject details = apiClient.fetchCompetitionDetails(competitionId);
@@ -119,18 +119,18 @@ public class CompetitionFinder {
 		HuntTeamData huntData = dataParser.parseHuntTeamData(details);
 
 		return Optional.of(new CompetitionData(
-				competitionId,
-				details.get("title").getAsString(),
-				startsAt,
-				endsAt,
-				null,
-				null,
-				huntData
+			competitionId,
+			details.get("title").getAsString(),
+			startsAt,
+			endsAt,
+			null,
+			null,
+			huntData
 		));
 	}
 
-
-	private Optional<CompetitionData> fetchCompetitionData(int competitionId,EventType type,Instant startsAt,Instant endsAt) {
+	private Optional<CompetitionData> fetchCompetitionData(int competitionId, EventType type,
+		Instant startsAt, Instant endsAt) {
 		JsonObject details = apiClient.fetchCompetitionDetails(competitionId);
 
 		if (details == null || details.isJsonNull()) {
@@ -138,13 +138,13 @@ public class CompetitionFinder {
 		}
 
 		return Optional.of(new CompetitionData(
-				competitionId,
-				details.get("title").getAsString(),
-				startsAt,
-				endsAt,
-				type == EventType.SOTW ? dataParser.parseSotwLeaderboard(details) : null,
-				parseEventTarget(type, details),
-				null
+			competitionId,
+			details.get("title").getAsString(),
+			startsAt,
+			endsAt,
+			type == EventType.SOTW ? dataParser.parseSotwLeaderboard(details) : null,
+			parseEventTarget(type, details),
+			null
 		));
 	}
 

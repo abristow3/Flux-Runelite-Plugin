@@ -1,13 +1,17 @@
 package com.flux;
 
 import com.flux.components.combobox.EntrySelect;
-import net.runelite.client.config.*;
-
-import java.awt.*;
+import java.awt.Color;
 import java.awt.event.KeyEvent;
+import net.runelite.client.config.Config;
+import net.runelite.client.config.ConfigGroup;
+import net.runelite.client.config.ConfigItem;
+import net.runelite.client.config.ConfigSection;
+import net.runelite.client.config.Keybind;
 
 @ConfigGroup(FluxPlugin.CONFIG_GROUP)
 public interface FluxConfig extends Config {
+
 	@ConfigSection(name = "Overlay", description = "Overlay configuration.", position = 0)
 	String overlaySection = "Overlay section";
 
@@ -33,7 +37,8 @@ public interface FluxConfig extends Config {
 	}
 
 	@ConfigItem(position = 4, keyName = "disclaimer", name = "Colors below must be different", description = "The Password Color and the Date & Time Color must be different.", section = overlaySection)
-	default void disclaimer() {}
+	default void disclaimer() {
+	}
 
 	@ConfigItem(position = 5, keyName = "passColor", name = "Password Color", description = "The color of the Event Password.", section = overlaySection)
 	default Color passColor() {
@@ -46,7 +51,9 @@ public interface FluxConfig extends Config {
 	}
 
 	@ConfigItem(position = 8, keyName = "loginColor", name = "Login Message Color", description = "The color of the Login Message.", section = overlaySection)
-	default Color loginColor() {return new Color(255, 255, 0); } //Custom dark red.
+	default Color loginColor() {
+		return new Color(255, 255, 0);
+	} //Custom dark red.
 
 // ========== OVERLAY SECTION - HIDDEN ==========
 

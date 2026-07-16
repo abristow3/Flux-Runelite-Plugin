@@ -1,16 +1,26 @@
 package com.flux.components;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.AlphaComposite;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.Shape;
 import java.awt.geom.Path2D;
+import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.SwingConstants;
+import javax.swing.Timer;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.util.LinkBrowser;
 
-
+@Slf4j
 public class InverseCornerButton extends JButton {
-	private static final Logger logger = LoggerFactory.getLogger(InverseCornerButton.class);
 
 	private static final int CONCAVE_DEPTH = 10;
 	private static final Color ACTIVE_COLOR = Color.decode("#811F1D");
@@ -26,8 +36,12 @@ public class InverseCornerButton extends JButton {
 
 	private static final int DEFAULT_HEIGHT = 40;
 
+	@Setter
+	@Getter
 	private String url;
+	@Getter
 	private boolean isActive = false;
+	@Getter
 	private boolean glowing = false;
 	private float glowAlpha = 0f;
 	private boolean glowIncreasing = true;
@@ -40,8 +54,8 @@ public class InverseCornerButton extends JButton {
 		if (icon != null) {
 			setIcon(icon);
 			setHorizontalTextPosition(label != null && !label.isEmpty()
-					? SwingConstants.RIGHT
-					: SwingConstants.CENTER);
+				? SwingConstants.RIGHT
+				: SwingConstants.CENTER);
 		}
 
 		setupButtonStyle();
@@ -62,9 +76,25 @@ public class InverseCornerButton extends JButton {
 		return new InverseCornerButton(null, null, icon);
 	}
 
-	public static InverseCornerButton withLabelImageAndUrl(String label, String imagePath, String url) {
+	public static InverseCornerButton withLabelImageAndUrl(String label, String imagePath,
+		String url) {
 		ImageIcon icon = loadIcon(imagePath);
 		return new InverseCornerButton(label, url, icon);
+	}
+
+	private static ImageIcon loadIcon(String path) {
+		if (path == null || path.isEmpty()) {
+			log.warn("Image path is null or empty");
+			return null;
+		}
+
+		java.net.URL imgURL = InverseCornerButton.class.getResource(path);
+		if (imgURL == null) {
+			log.warn("Could not find image resource: {}", path);
+			return null;
+		}
+
+		return new ImageIcon(imgURL);
 	}
 
 	private void setupButtonStyle() {
@@ -105,18 +135,6 @@ public class InverseCornerButton extends JButton {
 		repaint();
 	}
 
-	public boolean isActive() {
-		return isActive;
-	}
-
-	public void setUrl(String url) {
-		this.url = url;
-	}
-
-	public String getUrl() {
-		return url;
-	}
-
 	public void setGlowing(boolean glowing) {
 		this.glowing = glowing;
 
@@ -127,10 +145,6 @@ public class InverseCornerButton extends JButton {
 		}
 
 		repaint();
-	}
-
-	public boolean isGlowing() {
-		return glowing;
 	}
 
 	private void startGlowAnimation() {
@@ -243,21 +257,6 @@ public class InverseCornerButton extends JButton {
 		path.closePath();
 
 		return path;
-	}
-
-	private static ImageIcon loadIcon(String path) {
-		if (path == null || path.isEmpty()) {
-			logger.warn("Image path is null or empty");
-			return null;
-		}
-
-		java.net.URL imgURL = InverseCornerButton.class.getResource(path);
-		if (imgURL == null) {
-			logger.warn("Could not find image resource: {}", path);
-			return null;
-		}
-
-		return new ImageIcon(imgURL);
 	}
 
 	public void cleanup() {

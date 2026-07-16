@@ -1,15 +1,22 @@
 package com.flux.cards;
 
-import javax.swing.*;
-import net.runelite.client.config.ConfigManager;
 import com.flux.FluxConfig;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Objects;
+import javax.swing.Box;
+import javax.swing.JCheckBox;
+import javax.swing.JLabel;
+import javax.swing.JTextField;
 import lombok.extern.slf4j.Slf4j;
-
-import java.awt.*;
-import java.util.*;
+import net.runelite.client.config.ConfigManager;
 
 @Slf4j
 public class AdminHubCard extends FluxCard {
+
 	private static final int TEXT_FIELD_COLUMNS = 30;
 	private static final int SPACING_VERTICAL = 5;
 	private static final int SPACING_HORIZONTAL = 10;
@@ -32,13 +39,13 @@ public class AdminHubCard extends FluxCard {
 		GridBagConstraints gbc = createBaseConstraints();
 
 		ConfigField[] configFields = {
-				new ConfigField("Roll Call Active", "rollCallActive", true),
-				new ConfigField("BOTM Password", "botm_password", false),
-				new ConfigField("BOTM GDoc URL", "botmGdocUrl", false),
-				new ConfigField("Clan Login Message", "clan_login_message", false),
-				new ConfigField("Plugin Announcement", "plugin_announcement_message", false),
-				new ConfigField("Hunt GDoc URL", "hunt_gdoc_url", false),
-				new ConfigField("Hunt Passwords", "hunt_passwords", false)
+			new ConfigField("Roll Call Active", "rollCallActive", true),
+			new ConfigField("BOTM Password", "botm_password", false),
+			new ConfigField("BOTM GDoc URL", "botmGdocUrl", false),
+			new ConfigField("Clan Login Message", "clan_login_message", false),
+			new ConfigField("Plugin Announcement", "plugin_announcement_message", false),
+			new ConfigField("Hunt GDoc URL", "hunt_gdoc_url", false),
+			new ConfigField("Hunt Passwords", "hunt_passwords", false)
 		};
 
 		int row = 0;
@@ -177,6 +184,7 @@ public class AdminHubCard extends FluxCard {
 	}
 
 	private static class ConfigField {
+
 		final String label;
 		final String configKey;
 		final boolean isCheckbox;

@@ -1,22 +1,28 @@
 package com.flux.cards;
 
-import net.runelite.client.config.ConfigManager;
-import com.flux.FluxConfig;
 import com.flux.components.InverseCornerButton;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.swing.*;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Font;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextPane;
+import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
-import java.awt.*;
+import net.runelite.client.config.ConfigManager;
 
 public class HomeCard extends FluxCard {
-	private static final Logger logger = LoggerFactory.getLogger(HomeCard.class);
+
 	private static final Font HEADER_FONT = new Font("SansSerif", Font.BOLD, 14);
 	private static final Color TABLE_BG = new Color(30, 30, 30);
 	private static final Color HEADER_BG = new Color(50, 50, 50);
@@ -24,14 +30,12 @@ public class HomeCard extends FluxCard {
 	private static final int BOTM_ROW = 0;
 	private static final int SOTW_ROW = 1;
 	private static final int HUNT_ROW = 2;
-	private final FluxConfig config;
 	private final ConfigManager configManager;
 	private DefaultTableModel tableModel;
 	private JTextPane announcementsPane;
 
-	public HomeCard(FluxConfig config, ConfigManager configManager) {
+	public HomeCard(ConfigManager configManager) {
 		super();
-		this.config = config;
 		this.configManager = configManager;
 
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
@@ -76,7 +80,7 @@ public class HomeCard extends FluxCard {
 
 		// text wrapping constraint
 		announcementsPane.setMaximumSize(
-				new Dimension(Integer.MAX_VALUE, announcementsPane.getPreferredSize().height)
+			new Dimension(Integer.MAX_VALUE, announcementsPane.getPreferredSize().height)
 		);
 
 		add(announcementsPane);
@@ -96,12 +100,16 @@ public class HomeCard extends FluxCard {
 		addVerticalSpace(SPACING_SMALL);
 
 		LinkButton[] linkButtons = {
-				new LinkButton("Flux Clan Server", "/discord.png", "https://discord.gg/pTxsfJMNRJ"),
-				new LinkButton("Roll Call", "/discord.png", "discord://discord.com/channels/414435426007384075/636902420403847168"),
-				new LinkButton("Name Changes", "/discord.png", "discord://discord.com/channels/414435426007384075/415499145017557032"),
-				new LinkButton("Announcements", "/discord.png", "discord://discord.com/channels/414435426007384075/1349697176183246868"),
-				new LinkButton("Events", "/discord.png", "discord://discord.com/channels/414435426007384075/414458243499425792"),
-				new LinkButton("Wise Old Man", "/wom.png", "https://wiseoldman.net/groups/141")
+			new LinkButton("Flux Clan Server", "/discord.png", "https://discord.gg/pTxsfJMNRJ"),
+			new LinkButton("Roll Call", "/discord.png",
+				"discord://discord.com/channels/414435426007384075/636902420403847168"),
+			new LinkButton("Name Changes", "/discord.png",
+				"discord://discord.com/channels/414435426007384075/415499145017557032"),
+			new LinkButton("Announcements", "/discord.png",
+				"discord://discord.com/channels/414435426007384075/1349697176183246868"),
+			new LinkButton("Events", "/discord.png",
+				"discord://discord.com/channels/414435426007384075/414458243499425792"),
+			new LinkButton("Wise Old Man", "/wom.png", "https://wiseoldman.net/groups/141")
 		};
 		addLinkButtons(linkButtons);
 	}
@@ -109,9 +117,9 @@ public class HomeCard extends FluxCard {
 	private JScrollPane createEventsTable() {
 		String[] columnNames = {"Event", "Status"};
 		Object[][] rowData = {
-				{"BOTM", "Idle"},
-				{"SOTW", "Idle"},
-				{"The Hunt", "Idle"}
+			{"BOTM", "Idle"},
+			{"SOTW", "Idle"},
+			{"The Hunt", "Idle"}
 		};
 
 		tableModel = new DefaultTableModel(rowData, columnNames) {
@@ -165,8 +173,8 @@ public class HomeCard extends FluxCard {
 		scrollPane.setPreferredSize(new Dimension(400, totalHeight));
 		scrollPane.setAlignmentX(Component.CENTER_ALIGNMENT);
 		scrollPane.setBorder(BorderFactory.createCompoundBorder(
-				BorderFactory.createLineBorder(GRID_COLOR, 1, true),
-				BorderFactory.createEmptyBorder(10, 10, 10, 10)
+			BorderFactory.createLineBorder(GRID_COLOR, 1, true),
+			BorderFactory.createEmptyBorder(10, 10, 10, 10)
 		));
 	}
 
@@ -278,12 +286,13 @@ public class HomeCard extends FluxCard {
 	}
 
 	private static class StatusColorRenderer extends DefaultTableCellRenderer {
+
 		@Override
 		public Component getTableCellRendererComponent(
-				JTable table, Object value, boolean isSelected,
-				boolean hasFocus, int row, int column) {
+			JTable table, Object value, boolean isSelected,
+			boolean hasFocus, int row, int column) {
 			Component c = super.getTableCellRendererComponent(
-					table, value, isSelected, hasFocus, row, column
+				table, value, isSelected, hasFocus, row, column
 			);
 
 			if (column == 1) {

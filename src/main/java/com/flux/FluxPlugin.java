@@ -10,13 +10,13 @@ import com.flux.services.wom.CompetitionConfigUpdater;
 import com.flux.services.wom.CompetitionDataParser;
 import com.flux.services.wom.CompetitionFinder;
 import com.flux.services.wom.WiseOldManApiClient;
+import com.google.common.base.Strings;
 import com.google.inject.Provides;
-
+import java.awt.image.BufferedImage;
+import java.util.Map;
 import javax.inject.Inject;
-
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
@@ -36,29 +36,39 @@ import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.ui.overlay.OverlayManager;
 import net.runelite.client.util.ImageUtil;
 import okhttp3.OkHttpClient;
-import java.awt.image.BufferedImage;
-import java.util.Map;
 
 @Slf4j
 @PluginDescriptor(
-		name = "Flux",
-		description = "A plugin used to keep track of clan events.",
-		tags = {"flux", "cc", "hunt", "pass", "event", "clan"}
+	name = "Flux",
+	description = "A plugin used to keep track of clan events.",
+	tags = {"flux", "cc", "hunt", "pass", "event", "clan"}
 )
 public class FluxPlugin extends Plugin {
+
 	public static final String CONFIG_GROUP = "flux";
 
-	@Inject private Client client;
-	@Inject private ChatMessageManager chatMessageManager;
-	@Inject private FluxConfig config;
-	@Inject private ConfigManager configManager;
-	@Inject private OverlayManager overlayManager;
-	@Inject private FluxOverlay overlay;
-	@Inject private ClientToolbar clientToolbar;
-	@Inject private OkHttpClient okHttpClient;
-	@Inject private SpriteManager spriteManager;
-	@Inject private ChatCommandHandler chatCommandHandler;
-	@Inject private ClientThread clientThread;
+	@Inject
+	private Client client;
+	@Inject
+	private ChatMessageManager chatMessageManager;
+	@Inject
+	private FluxConfig config;
+	@Inject
+	private ConfigManager configManager;
+	@Inject
+	private OverlayManager overlayManager;
+	@Inject
+	private FluxOverlay overlay;
+	@Inject
+	private ClientToolbar clientToolbar;
+	@Inject
+	private OkHttpClient okHttpClient;
+	@Inject
+	private SpriteManager spriteManager;
+	@Inject
+	private ChatCommandHandler chatCommandHandler;
+	@Inject
+	private ClientThread clientThread;
 
 	@Getter
 	private FluxPanel panel;
@@ -91,14 +101,15 @@ public class FluxPlugin extends Plugin {
 	private void initializePanel() {
 		final BufferedImage icon = ImageUtil.loadImageResource(getClass(), "/flux-icon-tiny.png");
 
-		panel = new FluxPanel(competitionScheduler, config, configManager, okHttpClient, spriteManager);
+		panel = new FluxPanel(competitionScheduler, config, configManager, okHttpClient,
+			spriteManager);
 
 		uiNavigationButton = NavigationButton.builder()
-				.tooltip("Flux")
-				.icon(icon)
-				.priority(config.menuPriority())
-				.panel(panel)
-				.build();
+			.tooltip("Flux")
+			.icon(icon)
+			.priority(config.menuPriority())
+			.panel(panel)
+			.build();
 
 		clientToolbar.addNavigation(uiNavigationButton);
 	}
@@ -110,22 +121,22 @@ public class FluxPlugin extends Plugin {
 		CompetitionConfigUpdater configUpdater = new CompetitionConfigUpdater(configManager);
 
 		competitionScheduler = new CompetitionScheduler(
-				configManager,
-				apiClient,
-				finder,
-				configUpdater
+			configManager,
+			apiClient,
+			finder,
+			configUpdater
 		);
 
 		configParser = new GoogleSheetParser(
-				configManager,
-				GoogleSheetParser.SheetType.CONFIG,
-				this::handleConfigUpdate,
-				true,
-				okHttpClient
+			GoogleSheetParser.SheetType.CONFIG,
+			this::handleConfigUpdate,
+			true,
+			okHttpClient
 		);
 
 		clanRankMonitor = new ClanRankMonitor(client, this::handleRankChange);
-		loginMessageSender = new LoginMessageSender(chatMessageManager, configManager, config.loginColor());
+		loginMessageSender = new LoginMessageSender(chatMessageManager, configManager,
+			config.loginColor());
 	}
 
 	private void refreshAllCards() {
@@ -170,8 +181,9 @@ public class FluxPlugin extends Plugin {
 
 	private void updateDiscordInviteLink(Map<String, String> configValues) {
 		String inviteUrl = configValues.get("DISCORD_INVITE_URL");
-		if (!isNullOrEmpty(inviteUrl)) {
-			String currentInviteUrl = configManager.getConfiguration(CONFIG_GROUP, "discord_invite_url");
+		if (!Strings.isNullOrEmpty(inviteUrl)) {
+			String currentInviteUrl = configManager.getConfiguration(CONFIG_GROUP,
+				"discord_invite_url");
 			if (!inviteUrl.equals(currentInviteUrl)) {
 				configManager.setConfiguration(CONFIG_GROUP, "discord_invite_url", inviteUrl);
 			}
@@ -180,17 +192,19 @@ public class FluxPlugin extends Plugin {
 
 	private void updateHuntSignupDiscordChannelUrl(Map<String, String> configValues) {
 		String signupUrl = configValues.get("HUNT_SIGNUP_DISCORD_CHANNEL_URL");
-		if (!isNullOrEmpty(signupUrl)) {
-			String currentInviteUrl = configManager.getConfiguration(CONFIG_GROUP, "hunt_signup_discord_channel_url");
+		if (!Strings.isNullOrEmpty(signupUrl)) {
+			String currentInviteUrl = configManager.getConfiguration(CONFIG_GROUP,
+				"hunt_signup_discord_channel_url");
 			if (!signupUrl.equals(currentInviteUrl)) {
-				configManager.setConfiguration(CONFIG_GROUP, "hunt_signup_discord_channel_url", signupUrl);
+				configManager.setConfiguration(CONFIG_GROUP, "hunt_signup_discord_channel_url",
+					signupUrl);
 			}
 		}
 	}
 
 	private void updateHuntGdocUrl(Map<String, String> configValues) {
 		String gdocUrl = configValues.get("HUNT_GDOC_URL");
-		if (!isNullOrEmpty(gdocUrl)) {
+		if (!Strings.isNullOrEmpty(gdocUrl)) {
 			String currentGdocUrl = configManager.getConfiguration(CONFIG_GROUP, "hunt_gdoc_url");
 			if (!gdocUrl.equals(currentGdocUrl)) {
 				configManager.setConfiguration(CONFIG_GROUP, "hunt_gdoc_url", gdocUrl);
@@ -200,8 +214,9 @@ public class FluxPlugin extends Plugin {
 
 	private void updateLoginMessage(java.util.Map<String, String> configValues) {
 		String loginMsg = configValues.get("LOGIN_MESSAGE");
-		if (!isNullOrEmpty(loginMsg)) {
-			String currentValue = configManager.getConfiguration(CONFIG_GROUP, "clan_login_message");
+		if (!Strings.isNullOrEmpty(loginMsg)) {
+			String currentValue = configManager.getConfiguration(CONFIG_GROUP,
+				"clan_login_message");
 			if (!loginMsg.equals(currentValue)) {
 				configManager.setConfiguration(CONFIG_GROUP, "clan_login_message", loginMsg);
 			}
@@ -210,11 +225,13 @@ public class FluxPlugin extends Plugin {
 
 	private void updateAnnouncementMessage(java.util.Map<String, String> configValues) {
 		String announcement = configValues.get("ANNOUNCEMENT_MESSAGE");
-		if (!isNullOrEmpty(announcement)) {
-			String currentAnnouncement = configManager.getConfiguration(CONFIG_GROUP, "plugin_announcement_message");
+		if (!Strings.isNullOrEmpty(announcement)) {
+			String currentAnnouncement = configManager.getConfiguration(CONFIG_GROUP,
+				"plugin_announcement_message");
 
 			if (!announcement.equals(currentAnnouncement)) {
-				configManager.setConfiguration(CONFIG_GROUP, "plugin_announcement_message", announcement);
+				configManager.setConfiguration(CONFIG_GROUP, "plugin_announcement_message",
+					announcement);
 
 				if (panel != null && panel.getHomeCard() != null) {
 					javax.swing.SwingUtilities.invokeLater(() -> {
@@ -228,13 +245,14 @@ public class FluxPlugin extends Plugin {
 
 	private void updateRollCallStatus(java.util.Map<String, String> configValues) {
 		String rollCallActive = configValues.get("ROLL_CALL_ACTIVE");
-		if (!isNullOrEmpty(rollCallActive)) {
+		if (!Strings.isNullOrEmpty(rollCallActive)) {
 			boolean isActive = rollCallActive.equalsIgnoreCase("TRUE");
 			String currentStatus = configManager.getConfiguration(CONFIG_GROUP, "rollCallActive");
 			boolean currentActive = Boolean.parseBoolean(currentStatus);
 
 			if (isActive != currentActive) {
-				configManager.setConfiguration(CONFIG_GROUP, "rollCallActive", String.valueOf(isActive));
+				configManager.setConfiguration(CONFIG_GROUP, "rollCallActive",
+					String.valueOf(isActive));
 
 				if (panel != null) {
 					javax.swing.SwingUtilities.invokeLater(() -> {
@@ -253,8 +271,9 @@ public class FluxPlugin extends Plugin {
 	private void updateHuntTeamColors(java.util.Map<String, String> configValues) {
 		// TEAM 1 COLOR
 		String team1Color = configValues.get("TEAM_1_COLOR");
-		if (!isNullOrEmpty(team1Color)) {
-			String currentTeam1Color = configManager.getConfiguration(CONFIG_GROUP, "hunt_team_1_color");
+		if (!Strings.isNullOrEmpty(team1Color)) {
+			String currentTeam1Color = configManager.getConfiguration(CONFIG_GROUP,
+				"hunt_team_1_color");
 			if (!team1Color.equals(currentTeam1Color)) {
 				configManager.setConfiguration(CONFIG_GROUP, "hunt_team_1_color", team1Color);
 			}
@@ -262,14 +281,15 @@ public class FluxPlugin extends Plugin {
 
 		// TEAM 2 COLOR
 		String team2Color = configValues.get("TEAM_2_COLOR");
-		if (!isNullOrEmpty(team2Color)) {
-			String currentTeam2Color = configManager.getConfiguration(CONFIG_GROUP, "hunt_team_2_color");
+		if (!Strings.isNullOrEmpty(team2Color)) {
+			String currentTeam2Color = configManager.getConfiguration(CONFIG_GROUP,
+				"hunt_team_2_color");
 			if (!team2Color.equals(currentTeam2Color)) {
 				configManager.setConfiguration(CONFIG_GROUP, "hunt_team_2_color", team2Color);
 			}
 		}
 
-		// refresh the Hunt card UI if it existsto apply color change
+		// refresh the Hunt card UI if it exists to apply color change
 		if (panel != null && panel.getHuntCard() != null) {
 			javax.swing.SwingUtilities.invokeLater(() -> panel.getHuntCard().updateTeamLabels());
 		}
@@ -278,8 +298,9 @@ public class FluxPlugin extends Plugin {
 	private void updateHuntTeamScores(java.util.Map<String, String> configValues) {
 		// TEAM 1 Score
 		String team1Score = configValues.get("TEAM_1_SCORE");
-		if (!isNullOrEmpty(team1Score)) {
-			String currentTeam1Score = configManager.getConfiguration(CONFIG_GROUP, "hunt_team_1_score");
+		if (!Strings.isNullOrEmpty(team1Score)) {
+			String currentTeam1Score = configManager.getConfiguration(CONFIG_GROUP,
+				"hunt_team_1_score");
 			if (!team1Score.equals(currentTeam1Score)) {
 				configManager.setConfiguration(CONFIG_GROUP, "hunt_team_1_score", team1Score);
 			}
@@ -287,14 +308,15 @@ public class FluxPlugin extends Plugin {
 
 		// TEAM 2 Score
 		String team2Score = configValues.get("TEAM_2_SCORE");
-		if (!isNullOrEmpty(team2Score)) {
-			String currentTeam2Score = configManager.getConfiguration(CONFIG_GROUP, "hunt_team_2_score");
+		if (!Strings.isNullOrEmpty(team2Score)) {
+			String currentTeam2Score = configManager.getConfiguration(CONFIG_GROUP,
+				"hunt_team_2_score");
 			if (!team2Score.equals(currentTeam2Score)) {
 				configManager.setConfiguration(CONFIG_GROUP, "hunt_team_2_score", team2Score);
 			}
 		}
 
-		// refresh the Hunt card UI if it existsto apply color change
+		// refresh the Hunt card UI if it exists to apply color change
 		if (panel != null && panel.getHuntCard() != null) {
 			javax.swing.SwingUtilities.invokeLater(() -> panel.getHuntCard().updateTeamScores());
 		}
@@ -302,7 +324,7 @@ public class FluxPlugin extends Plugin {
 
 	private void updateBotmPass(java.util.Map<String, String> configValues) {
 		String botmPass = configValues.get("BOTM_PASS");
-		if (!isNullOrEmpty(botmPass)) {
+		if (!Strings.isNullOrEmpty(botmPass)) {
 			String currentValue = configManager.getConfiguration(CONFIG_GROUP, "botm_password");
 			if (!botmPass.equals(currentValue)) {
 				configManager.setConfiguration(CONFIG_GROUP, "botm_password", botmPass);
@@ -317,54 +339,55 @@ public class FluxPlugin extends Plugin {
 		String huntBountyPass = configValues.get("HUNT_BOUNTY_PASSWORD");
 		String huntDailyPass = configValues.get("HUNT_DAILY_PASSWORD");
 
-		if (isNullOrEmpty(huntMasterPass) || isNullOrEmpty(huntBountyPass) || isNullOrEmpty(huntDailyPass)) {
+		if (Strings.isNullOrEmpty(huntMasterPass) || Strings.isNullOrEmpty(huntBountyPass) ||
+			Strings.isNullOrEmpty(huntDailyPass)) {
 			log.warn("One or more Hunt event passwords were unable to be found.");
 			return;
 		}
 
-		String combinedHuntPassword = String.join(" | ", huntMasterPass, huntBountyPass, huntDailyPass);
-		String currentValue = configManager.getConfiguration(CONFIG_GROUP, "combined_hunt_password");
+		String combinedHuntPassword = String.join(" | ", huntMasterPass, huntBountyPass,
+			huntDailyPass);
+		String currentValue = configManager.getConfiguration(CONFIG_GROUP,
+			"combined_hunt_password");
 
 		if (!combinedHuntPassword.equals(currentValue)) {
-			configManager.setConfiguration(CONFIG_GROUP, "combined_hunt_password", combinedHuntPassword);
+			configManager.setConfiguration(CONFIG_GROUP, "combined_hunt_password",
+				combinedHuntPassword);
 		}
 	}
 
 	private void updateHuntCompId(Map<String, String> configValues) {
-		String comp_id = configValues.get("HUNT_COMPETITION_ID");
-		if (isNullOrEmpty(comp_id)) {
+		String compId = configValues.get("HUNT_COMPETITION_ID");
+		if (Strings.isNullOrEmpty(compId)) {
 			log.warn("No WOM Comp ID found for the Hunt Event.");
 			return;
 		}
 
-		configManager.setConfiguration(CONFIG_GROUP, "hunt_competition_id", comp_id);
+		configManager.setConfiguration(CONFIG_GROUP, "hunt_competition_id", compId);
 	}
 
 	private void updateHuntStatus(java.util.Map<String, String> configValues) {
 		String huntActive = configValues.get("HUNT_ACTIVE");
-		if (!isNullOrEmpty(huntActive)) {
+		if (!Strings.isNullOrEmpty(huntActive)) {
 			boolean isActive = huntActive.equalsIgnoreCase("TRUE");
 			String currentStatus = configManager.getConfiguration(CONFIG_GROUP, "huntActive");
 			boolean currentActive = Boolean.parseBoolean(currentStatus);
 
 			if (isActive != currentActive) {
-				configManager.setConfiguration(CONFIG_GROUP, "huntActive", String.valueOf(isActive));
+				configManager.setConfiguration(CONFIG_GROUP, "huntActive",
+					String.valueOf(isActive));
 			}
 		}
 	}
 
 	private void updateHuntWomUrl(Map<String, String> configValues) {
 		String url = configValues.get("HUNT_WOM_URL");
-		if (isNullOrEmpty(url)) {
+		if (Strings.isNullOrEmpty(url)) {
 			log.warn("No WOM Comp URL found for the Hunt Event.");
 			return;
 		}
 
 		configManager.setConfiguration(CONFIG_GROUP, "hunt_wom_url", url);
-	}
-
-	private static boolean isNullOrEmpty(String s) {
-		return s == null || s.isEmpty();
 	}
 
 	@Subscribe
@@ -379,9 +402,9 @@ public class FluxPlugin extends Plugin {
 		}
 	}
 
+	// TODO: please for the love of god fix this giant list of if statements. Case statement can be used. @alex
+	// TODO: @anthony, I promise but only if you cleanup the config file.
 	@Subscribe
-	//TODO: please for the love of god fix this giant list of if statements. Case statement can be used. @alex
-	//TODO: @anthony, I promise but only if you cleanup the config file.
 	public void onConfigChanged(ConfigChanged event) {
 		if (!event.getGroup().equals(CONFIG_GROUP)) {
 			return;
@@ -479,8 +502,10 @@ public class FluxPlugin extends Plugin {
 			}
 		}
 
-		if (key.equals("hunt_team_1_name") || key.equals("hunt_team_2_name") ||
-				key.equals("hunt_team_1_color") || key.equals("hunt_team_2_color")) {
+		if (key.equals("hunt_team_1_name")
+			|| key.equals("hunt_team_2_name")
+			|| key.equals("hunt_team_1_color")
+			|| key.equals("hunt_team_2_color")) {
 			if (panel != null && panel.getHuntCard() != null) {
 				panel.getHuntCard().updateTeamLabels();
 			}
@@ -498,7 +523,8 @@ public class FluxPlugin extends Plugin {
 			}
 		}
 
-		if (key.equals("hunt_wom_url") || key.equals("hunt_gdoc_url") || key.equals("hunt_signup_discord_channel_url")) {
+		if (key.equals("hunt_wom_url") || key.equals("hunt_gdoc_url") || key.equals(
+			"hunt_signup_discord_channel_url")) {
 			if (panel != null && panel.getHuntCard() != null) {
 				panel.getHuntCard().refreshButtonLinks();
 				panel.getHuntCard().refreshLeaderboard();
@@ -517,12 +543,10 @@ public class FluxPlugin extends Plugin {
 	public void onChatMessage(ChatMessage event) {
 		String loginMessage = loginMessageSender.getLoginMessage();
 		if (loginMessage != null
-				&& event.getType() == ChatMessageType.BROADCAST
-				&& event.getMessage().contains(loginMessage)) {
+			&& event.getType() == ChatMessageType.BROADCAST
+			&& event.getMessage().contains(loginMessage)) {
 			final MessageNode node = event.getMessageNode();
-			clientThread.invokeLater(() -> {
-				node.setRuneLiteFormatMessage("[Flux] " + loginMessage);
-			});
+			clientThread.invokeLater(() -> node.setRuneLiteFormatMessage("[Flux] " + loginMessage));
 		}
 	}
 

@@ -5,8 +5,7 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public enum EntrySelect
-{
+public enum EntrySelect {
 	NONE("None", 0),
 	HOME("Home", 1),
 	HUB("Admin Hub", 2),
@@ -21,8 +20,7 @@ public enum EntrySelect
 	private final int value;
 
 	@Override
-	public String toString()
-	{
+	public String toString() {
 		return name;
 	}
 }
