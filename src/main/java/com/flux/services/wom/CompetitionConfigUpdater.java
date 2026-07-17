@@ -8,6 +8,7 @@ import com.flux.services.wom.CompetitionModels.EventType;
 import com.flux.services.wom.CompetitionModels.HuntTeamData;
 import lombok.extern.slf4j.Slf4j;
 import java.util.LinkedHashMap;
+import net.runelite.client.hiscore.HiscoreSkill;
 
 @Slf4j
 public class CompetitionConfigUpdater {
@@ -40,7 +41,7 @@ public class CompetitionConfigUpdater {
             case SOTW:
                 if (data.sotwLeaderboard != null) {
                     saveSotwLeaderboard(data.sotwLeaderboard);
-					saveSotwSkill(data.eventMetric);
+					saveSotwSkill(isActive ? data.eventMetric : HiscoreSkill.OVERALL.name());
                     if (!isActive && !data.sotwLeaderboard.isEmpty()) {
                         String winner = data.sotwLeaderboard.keySet().iterator().next();
                         setConfigIfChanged(prefix + "_winner", winner);
