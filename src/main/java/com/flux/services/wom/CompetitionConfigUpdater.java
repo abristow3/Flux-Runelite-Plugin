@@ -36,6 +36,9 @@ public class CompetitionConfigUpdater {
         switch (type) {
             case BOTM:
                 setConfigIfChanged("botmWomUrl", womUrl);
+				if (data.eventMetric != null) {
+					saveBotmBoss(isActive ? data.eventMetric : HiscoreSkill.VORKATH.name());
+				}
                 break;
 
             case SOTW:
@@ -81,6 +84,10 @@ public class CompetitionConfigUpdater {
 
 	private void saveSotwSkill(String skillName) {
 		setConfigIfChanged("sotwSkill", skillName);
+	}
+
+	private void saveBotmBoss(String bossName) {
+		setConfigIfChanged("botmBoss", bossName);
 	}
 
     private void saveHuntTeamData(HuntTeamData huntData) {

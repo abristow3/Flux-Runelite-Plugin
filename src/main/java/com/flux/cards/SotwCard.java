@@ -205,16 +205,14 @@ public class SotwCard extends FluxCard {
     }
 
 	public HiscoreSkill getSkill() {
-		String skillName = getConfigValue("sotwSkill", "Overall");
+		String skillName = getConfigValue("sotwSkill", HiscoreSkill.OVERALL.name());
 
-		for (HiscoreSkill skill : HiscoreSkill.values()) {
-			if (skill.getName().equalsIgnoreCase(skillName)) {
-				logger.debug("Found SOTW skill name {}", skill.getName());
-				return skill;
-			}
+		try {
+			return HiscoreSkill.valueOf(skillName);
+		} catch (IllegalArgumentException e) {
+			logger.debug("Could not find SOTW skill name {}", skillName);
+			return HiscoreSkill.OVERALL;
 		}
-		logger.debug("Could not find SOTW skill name {}", skillName);
-		return HiscoreSkill.OVERALL;
 	}
 
     @Override

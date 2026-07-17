@@ -174,11 +174,8 @@ public class FluxPanel extends PluginPanel {
         if (entryConfig == null) return;
 
 		entries.put(entry, entryConfig);
-
         dropdown.addItem(entryConfig.getComboEntry());
-
         footerButtons.add(entryConfig.getButton());
-
         centerPanel.add(makeScrollable(entryConfig.getCard()), entryConfig.getName());
     }
 
@@ -348,6 +345,7 @@ public class FluxPanel extends PluginPanel {
     public void refreshAllCards() {
         refreshHomeCard();
         refreshSotwCard();
+		refreshBotmCard();
         updateEventGlows();
     }
 
@@ -368,6 +366,14 @@ public class FluxPanel extends PluginPanel {
 			updateIcon(sotwCard.getSkill(), EntrySelect.SOTW);
         }
     }
+
+	private void refreshBotmCard() {
+		if (botmCard != null) {
+			botmCard.refreshLeaderboard();
+			botmCard.updateEventTitle();
+			updateIcon(botmCard.getBoss(), EntrySelect.BOTM);
+		}
+	}
 
     public void shutdown() {
         glowTimer.stop();

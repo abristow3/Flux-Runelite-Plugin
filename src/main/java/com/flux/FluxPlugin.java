@@ -1,6 +1,7 @@
 package com.flux;
 
 import com.flux.components.combobox.EntrySelect;
+import com.flux.services.ChatCommandHandler;
 import com.flux.services.ClanRankMonitor;
 import com.flux.services.CompetitionScheduler;
 import com.flux.services.GoogleSheetParser;
@@ -13,6 +14,7 @@ import com.google.inject.Provides;
 
 import javax.inject.Inject;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import net.runelite.api.ChatMessageType;
@@ -21,6 +23,7 @@ import net.runelite.api.GameState;
 import net.runelite.api.MessageNode;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameStateChanged;
+import net.runelite.client.callback.ClientThread;
 import net.runelite.client.chat.ChatMessageManager;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
@@ -54,8 +57,10 @@ public class FluxPlugin extends Plugin {
     @Inject private ClientToolbar clientToolbar;
     @Inject private OkHttpClient okHttpClient;
 	@Inject private SpriteManager spriteManager;
-    @Inject private net.runelite.client.callback.ClientThread clientThread;
+	@Inject private ChatCommandHandler chatCommandHandler;
+    @Inject private ClientThread clientThread;
 
+	@Getter
     private FluxPanel panel;
     private NavigationButton uiNavigationButton;
     private CompetitionScheduler competitionScheduler;
@@ -70,7 +75,8 @@ public class FluxPlugin extends Plugin {
         initializePanel();
         configParser.start();
         refreshAllCards();
-    }
+		chatCommandHandler.registerChatCommands();
+	}
 
     @Override
     protected void shutDown() {
@@ -79,6 +85,7 @@ public class FluxPlugin extends Plugin {
         panel.shutdown();
         configParser.shutdown();
         clanRankMonitor.shutdown();
+		chatCommandHandler.unregisterChatCommands();
     }
 
     private void initializePanel() {
@@ -119,7 +126,7 @@ public class FluxPlugin extends Plugin {
 
         clanRankMonitor = new ClanRankMonitor(client, this::handleRankChange);
         loginMessageSender = new LoginMessageSender(chatMessageManager, configManager, config.loginColor());
-            }
+	}
 
     private void refreshAllCards() {
         if (panel != null) {
@@ -129,6 +136,7 @@ public class FluxPlugin extends Plugin {
             }
             if (panel.getBotmCard() != null) {
                 panel.getBotmCard().checkEventStateChanged();
+				panel.updateIcon(panel.getBotmCard().getBoss(), EntrySelect.BOTM);
             }
             if (panel.getHuntCard() != null) {
                 panel.getHuntCard().checkEventStateChanged();
@@ -408,6 +416,12 @@ public class FluxPlugin extends Plugin {
                 panel.getBotmCard().checkEventStateChanged();
             }
         }
+
+		if (key.equals("botmBoss")) {
+			if (panel != null && panel.getBotmCard() != null) {
+				panel.updateIcon(panel.getBotmCard().getBoss(), EntrySelect.BOTM);
+			}
+		}
 
         if (key.equals("sotw_active") || key.equals("sotwActive")) {
             if (panel != null) {
