@@ -6,6 +6,7 @@ import com.flux.components.LeaderboardCellRenderer;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import net.runelite.client.hiscore.HiscoreSkill;
 import okhttp3.OkHttpClient;
 import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 import javax.swing.*;
@@ -237,6 +238,17 @@ public class BotmCard extends FluxCard {
         String message = formatCountdownMessage("botm_start_time", "botm_end_time", configManager);
         updateWrappedLabelText(countdownLabel, message, false);
     }
+
+	public HiscoreSkill getBoss() {
+		String bossName = getConfigValue("botmBoss", HiscoreSkill.VORKATH.name());
+
+		try {
+			return HiscoreSkill.valueOf(bossName);
+		} catch (IllegalArgumentException e) {
+			logger.debug("Could not find BOTM skill name {}", bossName);
+			return HiscoreSkill.VORKATH;
+		}
+	}
 
     @Override
     public void shutdown() {

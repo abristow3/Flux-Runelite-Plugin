@@ -11,6 +11,7 @@ import java.time.Instant;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.Optional;
+import net.runelite.client.hiscore.HiscoreSkill;
 
 
 @Slf4j
@@ -49,9 +50,7 @@ public class CompetitionFinder {
             for (EventType type : new EventType[]{EventType.SOTW, EventType.BOTM}) {
                 if (type.matchesTitle(title) && results.get(type) == null) {
                     Optional<CompetitionData> data = fetchCompetitionData(competitionId, type, startsAt, endsAt);
-                    if (data.isPresent()) {
-                        results.put(type, data.get());
-                    }
+					data.ifPresent(competitionData -> results.put(type, competitionData));
                 }
             }
         }
@@ -144,9 +143,19 @@ public class CompetitionFinder {
                 startsAt,
                 endsAt,
                 type == EventType.SOTW ? dataParser.parseSotwLeaderboard(details) : null,
-                type == EventType.SOTW ? dataParser.parseSotwSkill(details) : null,
+				parseEventTarget(type, details),
                 null
         ));
     }
 
+	private String parseEventTarget(EventType type, JsonObject details) {
+		switch (type) {
+			case SOTW:
+				return dataParser.parseSotwSkill(details).name();
+			case BOTM:
+				return dataParser.parseBotmBoss(details).name();
+			default:
+				return null;
+		}
+	}
 }
