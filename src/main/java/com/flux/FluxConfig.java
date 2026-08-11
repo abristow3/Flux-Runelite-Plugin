@@ -1,10 +1,6 @@
 package com.flux;
-
-import com.flux.components.combobox.EntrySelect;
 import net.runelite.client.config.*;
-
 import java.awt.*;
-import java.awt.event.KeyEvent;
 
 @ConfigGroup(FluxPlugin.CONFIG_GROUP)
 public interface FluxConfig extends Config {
@@ -17,7 +13,15 @@ public interface FluxConfig extends Config {
     @ConfigSection(name = "Misc. Settings", description = "Miscellaneous plugin configuration options.", position = 200)
     String miscSettingsSection = "Miscellaneous Settings";
 
-    // ========== OVERLAY SECTION - VISIBLE ==========
+    @ConfigSection(name = "", description = "Hidden configuration settings", position = 1000)
+    String hiddenConfigsSection = "Hidden Configs";
+
+//##############################################################################
+//################### VISIBLE SECTION - POSITION 0 - 999 #######################
+//##############################################################################
+
+    // ========== PASSWORD OVERLAY SETTINGS SECTION - VISIBLE - POSITION 1-99 ==========
+
     @ConfigItem(position = 1, keyName = "overlay", name = "Display Overlay", description = "Displays the overlay on your game screen.", section = overlaySection)
     default boolean overlay() {
         return false;
@@ -46,283 +50,7 @@ public interface FluxConfig extends Config {
         return Color.WHITE;
     }
 
-// ========== OVERLAY SECTION - HIDDEN ==========
-
-    @ConfigItem(keyName = "botm_password", name = "BOTM Password", description = "Adds the BOTM event password to the overlay.", section = overlaySection, hidden = true)
-    default String botmPass() {
-        return "";
-    }
-
-    @ConfigItem(keyName = "entry_1", name = "Entry 1", description = "Selects what to show for entry 1 of the Clan Events panel.", section = overlaySection, hidden = true)
-    default EntrySelect entry_1() {
-        return EntrySelect.HOME;
-    }
-
-    @ConfigItem(keyName = "entry_2", name = "Entry 2", description = "Selects what to show for entry 2 of the Clan Events panel.", section = overlaySection, hidden = true)
-    default EntrySelect entry_2() {
-        return EntrySelect.HUB;
-    }
-
-    @ConfigItem(keyName = "entry_3", name = "Entry 3", description = "Selects what to show for entry 3 of the Clan Events panel.", section = overlaySection, hidden = true)
-    default EntrySelect entry_3() {
-        return EntrySelect.SOTW;
-    }
-
-    @ConfigItem(keyName = "entry_4", name = "Entry 4", description = "Selects what to show for entry 4 of the Clan Events panel.", section = overlaySection, hidden = true)
-    default EntrySelect entry_4() {
-        return EntrySelect.BOTM;
-    }
-
-    @ConfigItem(keyName = "entry_5", name = "Entry 5", description = "Selects what to show for entry 5 of the Clan Events panel.", section = overlaySection, hidden = true)
-    default EntrySelect entry_5() {
-        return EntrySelect.HOF_OVERALL;
-    }
-
-    @ConfigItem(keyName = "entry_6", name = "Entry 6", description = "Selects what to show for entry 6 of the Clan Events panel.", section = overlaySection, hidden = true)
-    default EntrySelect entry_6() {
-        return EntrySelect.HOF_KC;
-    }
-
-    @ConfigItem(keyName = "entry_7", name = "Entry 7", description = "Selects what to show for entry 7 of the Clan Events panel.", section = overlaySection, hidden = true)
-    default EntrySelect entry_7() {
-        return EntrySelect.HOF_PB;
-    }
-
-    @ConfigItem(keyName = "entry_8", name = "Entry 8", description = "Selects what to show for entry 8 of the Clan Events panel.", section = overlaySection, hidden = true)
-    default EntrySelect entry_8() {
-        return EntrySelect.HUNT;
-    }
-
-    @ConfigItem(keyName = "clan_login_message", name = "Login Message", description = "Message to broadcast to clan members upon login.", section = overlaySection, hidden = true)
-    default String clanLoginMessage() {
-        return "Check out the Flux Plugin Panel!";
-    }
-
-    @ConfigItem(keyName = "plugin_announcement_message", name = "Announcement Message", description = "Announcement message in the home card of the plugin panel.", section = overlaySection, hidden = true)
-    default String pluginAnnouncementMessage() {
-        return "The Flux plugin is available for download from the plugin hub!";
-    }
-
-    @ConfigItem(keyName = "rollCallActive", name = "Roll Call Active", description = "Is roll call active?", section = overlaySection, hidden = true)
-    default Boolean rollCallActive() {
-        return false;
-    }
-
-    @ConfigItem(keyName = "wom_url", name = "WOM URL", description = "Configures the WOM button URL", section = overlaySection, hidden = true)
-    default String womurl() {
-        return "https://wiseoldman.net/groups/141";
-    }
-
-    @ConfigItem(keyName = "wom_comps_url", name = "WOM Competitions URL", description = "URL to the Flux WOM Competitions page.", section = overlaySection, hidden = true)
-    default String womCompsUrl() {
-        return "https://wiseoldman.net/groups/141/competitions";
-    }
-
-    // ========== SOTW EVENT CONFIGURATION ==========
-
-    @ConfigItem(keyName = "sotwActive", name = "SOTW Active", description = "Is SOTW Active?", section = overlaySection, hidden = true)
-    default Boolean sotwActive() {
-        return false;
-    }
-
-    @ConfigItem(keyName = "sotwTitle", name = "SOTW Title", description = "Title for the SOTW Event in WOM.", section = overlaySection, hidden = true)
-    default String sotwTitle() {
-        return "No Active SOTW Event.";
-    }
-
-    @ConfigItem(keyName = "sotwLeaderboard", name = "SOTW Leaderboard", description = "Current SOTW Leaderboard", section = overlaySection, hidden = true)
-    default String sotwLeaderboard() {
-        return "[]";
-    }
-
-	@ConfigItem(keyName = "sotwSkill", name = "SOTW Skill", description = "Current SOTW Skill", section = overlaySection, hidden = true)
-	default String sotwSkill() {
-		return "OVERALL";
-	}
-
-    @ConfigItem(keyName = "sotw_wom_link", name = "SOTW WOM Link", description = "SOTW wise old man link.", section = overlaySection, hidden = true)
-    default String sotwWomLink() {
-        return "https://wiseoldman.net/groups/141/competitions";
-    }
-
-    @ConfigItem(keyName = "sotw_start_time", name = "SOTW Start Time", description = "Start time for the SOTW Event.", section = overlaySection, hidden = true)
-    default String sotwStartTime() {
-        return "1970-01-01T00:00:00Z";
-    }
-
-    @ConfigItem(keyName = "sotw_end_time", name = "SOTW End Time", description = "End time for the SOTW Event.", section = overlaySection, hidden = true)
-    default String sotwEndTime() {
-        return "1970-01-01T00:00:00Z";
-    }
-
-    @ConfigItem(keyName = "sotw_winner", name = "SOTW Winner", description = "Winner of the last active SOTW Event.", section = overlaySection, hidden = true)
-    default String sotwWinner() {
-        return "";
-    }
-
-    // ========== BOTM EVENT CONFIGURATION ==========
-
-    @ConfigItem(keyName = "botmActive", name = "BOTM Active", description = "Is BOTM Active?", section = overlaySection, hidden = true)
-    default Boolean botmActive() {
-        return false;
-    }
-
-    @ConfigItem(keyName = "botmTitle", name = "BOTM Title", description = "Title for the BOTM Event in WOM.", section = overlaySection, hidden = true)
-    default String botmTitle() {
-        return "No Active BOTM Event.";
-    }
-
-    @ConfigItem(keyName = "botmLeaderboard", name = "BOTM Leaderboard", description = "Current BOTM Leaderboard", section = overlaySection, hidden = true)
-    default String botmLeaderboard() {
-        return "[]";
-    }
-
-	@ConfigItem(keyName = "botmBoss", name = "BOTM Boss", description = "Current BOTM Boss", section = overlaySection, hidden = true)
-	default String botmBoss() {
-		return "VORKATH";
-	}
-
-    @ConfigItem(keyName = "botmWomUrl", name = "BOTM WOM URL", description = "BOTM wise old man URL.", section = overlaySection, hidden = true)
-    default String botmWomUrl() {
-        return "https://wiseoldman.net/groups/141/competitions";
-    }
-
-    @ConfigItem(keyName = "botm_start_time", name = "BOTM Start Time", description = "Start time for the BOTM Event.", section = overlaySection, hidden = true)
-    default String botmStartTime() {
-        return "1970-01-01T00:00:00Z";
-    }
-
-    @ConfigItem(keyName = "botm_end_time", name = "BOTM End Time", description = "End time for the BOTM Event.", section = overlaySection, hidden = true)
-    default String botmEndTime() {
-        return "1970-01-01T00:00:00Z";
-    }
-
-    @ConfigItem(keyName = "botm_winner", name = "BOTM Winner", description = "Winner of the last active BOTM Event.", section = overlaySection, hidden = true)
-    default String botmWinner() {
-        return "";
-    }
-
-    @ConfigItem(keyName = "botmGdocUrl", name = "BOTM GDoc URL", description = "URL to the GDoc for BOTM Score", section = overlaySection, hidden = true)
-    default String botmGdocUrl() {
-        return "https://docs.google.com/spreadsheets/d/e/2PACX-1vQXOtUM0Y3OMvnZKVw7PRwM9HmkGrbXha2K75Ev2bf_9Ev_EliUHT18BpJ5Djyp1ebdeWSrEoPnF064/pubhtml?gid=0&single=true";
-    }
-
-    // ========== HUNT EVENT CONFIGURATION ==========
-
-    @ConfigItem(keyName = "huntActive", name = "Hunt Active", description = "Is The Hunt Active?", section = overlaySection, hidden = true)
-    default Boolean huntActive() {
-        return false;
-    }
-
-    @ConfigItem(keyName = "huntTitle", name = "Hunt Title", description = "Title for the Hunt Event.", section = overlaySection, hidden = true)
-    default String huntTitle() {
-        return "No Active Hunt Event.";
-    }
-
-    @ConfigItem(keyName = "hunt_competition_id", name = "Hunt Competition ID", description = "WiseOldMan competition ID for The Hunt event.", section = overlaySection, hidden = true)
-    default String huntCompetitionId() {
-        return "100262";
-    }
-
-    @ConfigItem(keyName = "hunt_start_time", name = "Hunt Start Time", description = "Start time for the Hunt Event.", section = overlaySection, hidden = true)
-    default String huntStartTime() {
-        return "1970-01-01T00:00:00Z";
-    }
-
-    @ConfigItem(keyName = "hunt_end_time", name = "Hunt End Time", description = "End time for the Hunt Event.", section = overlaySection, hidden = true)
-    default String huntEndTime() {
-        return "1970-01-01T00:00:00Z";
-    }
-
-    @ConfigItem(keyName = "hunt_wom_url", name = "Hunt WOM URL", description = "Hunt Wise Old Man competition URL.", section = overlaySection, hidden = true)
-    default String huntWomUrl() {
-        return "https://wiseoldman.net/competitions/100262";
-    }
-
-    @ConfigItem(keyName = "hunt_gdoc_url", name = "The Hunt GDoc", description = "The Hunt GDoc URL.", section = overlaySection, hidden = true)
-    default String huntGdocUrl() {
-        return "https://docs.google.com/spreadsheets/d/e/2PACX-1vSLCxscAVFZY9wuDqmeBPu4UZio2I39DHDGy_8DXrvHqYKmZc8NgsC4DWv_olXOTjGQktcBnU88Fmf4/pubhtml?gid=0&single=true";
-    }
-
-    @ConfigItem(keyName = "hunt_team_1_name", name = "Hunt Team 1 Name", description = "Name of Hunt Team 1.", section = overlaySection, hidden = true)
-    default String huntTeam1Name() {
-        return "Team 1";
-    }
-
-    @ConfigItem(keyName = "hunt_team_1_color", name = "Hunt Team 1 Color", description = "Hex color for Hunt Team 1 (e.g., #FF0000).", section = overlaySection, hidden = true)
-    default String huntTeamOneColor() {
-        return "#FF0000";
-    }
-
-    @ConfigItem(keyName = "hunt_team_1_leaderboard", name = "Hunt Team 1 Leaderboard", description = "Top 10 EHB leaderboard for Team 1.", section = overlaySection, hidden = true)
-    default String huntTeam1Leaderboard() {
-        return "[]";
-    }
-
-    @ConfigItem(keyName = "hunt_team_2_name", name = "Hunt Team 2 Name", description = "Name of Hunt Team 2.", section = overlaySection, hidden = true)
-    default String huntTeam2Name() {
-        return "Team 2";
-    }
-
-    @ConfigItem(keyName = "hunt_team_2_color", name = "Hunt Team 2 Color", description = "Hex color for Hunt Team 2 (e.g., #0000FF).", section = overlaySection, hidden = true)
-    default String huntTeamTwoColor() {
-        return "#0000FF";
-    }
-
-    @ConfigItem(keyName = "hunt_team_2_leaderboard", name = "Hunt Team 2 Leaderboard", description = "Top 10 EHB leaderboard for Team 2.", section = overlaySection, hidden = true)
-    default String huntTeam2Leaderboard() {
-        return "[]";
-    }
-
-    @ConfigItem(keyName = "hunt_team_1_score", name = "Hunt Team 1 Score", description = "Current total score of Hunt Team 1.", section = overlaySection, hidden = true)
-    default int huntTeamOneScore() {
-        return 0;
-    }
-
-    @ConfigItem(keyName = "hunt_team_2_score", name = "Hunt Team 2 Score", description = "Current total score of Hunt Team 2.", section = overlaySection, hidden = true)
-    default int huntTeamTwoScore() {
-        return 0;
-    }
-
-    @ConfigItem(keyName = "hunt_passwords", name = "Hunt Passwords", description = "Hunt Passwords", section = overlaySection, hidden = true)
-    default String huntPasswords() {
-        return "";
-    }
-
-    @ConfigItem(keyName = "discord_invite_url", name = "Discord Invite URL", description = "Discord server invite perma-link", section = overlaySection, hidden = true)
-    default String discordInviteUrl() {
-        return "https://discord.gg/pTxsfJMNRJ";
-    }
-
-    @ConfigItem(keyName = "hunt_signup_discord_channel_url", name = "Hunt Signup Channel URL", description = "Discord channel to signup for the Hunt event.", section = overlaySection, hidden = true)
-    default String huntSignupDiscordChannelUrl() {
-        return "discord://discord.com/channels/414435426007384075/414458243499425792";
-    }
-
-	@ConfigItem(keyName = "hunt_master_password", name = "Hunt Master Password", description = "The main event password for the Hunt", section = overlaySection, hidden = true)
-	default String huntMasterPassword() {
-		return "";
-	}
-
-	@ConfigItem(keyName = "hunt_bounty_password", name = "Hunt Bounty Password", description = "The current bounty password for the Hunt", section = overlaySection, hidden = true)
-	default String huntBountyPassword() {
-		return "";
-	}
-
-	@ConfigItem(keyName = "hunt_daily_password", name = "Hunt Daily Password", description = "The current daily password for the Hunt", section = overlaySection, hidden = true)
-	default String huntDailyPassword() {
-		return "";
-	}
-
-	@ConfigItem(keyName = "combined_hunt_password", name = "Combined Hunt Password", description = "The concatenated Hunt password string for overlay display", section = overlaySection, hidden = true)
-	default String combinedHuntPassword() {
-		return "";
-	}
-
-    @ConfigItem(keyName = "misc_event_password", name = "Misc. Event Password", description = "A password used for other miscellaneous events", section = overlaySection, hidden = true)
-    default String miscEventPassword() {
-        return "";
-    }
+    // ========== EVENT PASSWORD TOGGLES - VISIBLE - POSITION 101-199 ==========
 
     @ConfigItem(position = 101, keyName = "display_hunt_master_password", name = "Show Hunt Master Password", description = "Displays the hunt master password on your screen", section = eventPasswordsSection)
     default boolean displayHuntMasterPassword() {
@@ -349,6 +77,8 @@ public interface FluxConfig extends Config {
         return true;
     }
 
+    // ========== MISC. SETTINGS - VISIBLE - POSITION 201 - 299 ==========
+
     @ConfigItem(position = 201, keyName = "menuPriority", name = "Sidebar Priority", description = "Adjust the runelite sidebar priority. Lower priority => higher on sidebar. Restart the client to take effect", section = miscSettingsSection)
     default int menuPriority() {
         return 5;
@@ -356,4 +86,248 @@ public interface FluxConfig extends Config {
 
     @ConfigItem(position = 202, keyName = "loginColor", name = "Login Message Color", description = "The color of the Login Message.", section = miscSettingsSection)
     default Color loginColor() {return new Color(255, 255, 0); } //Custom dark red.
+
+//############################################################################
+//################### HIDDEN SECTION - POSITION 1000+ ########################
+//############################################################################
+
+    // ========== BOTM SETTINGS SECTION - HIDDEN ==========
+
+    @ConfigItem(keyName = "botm_password", name = "BOTM Password", description = "Adds the BOTM event password to the overlay.", section = hiddenConfigsSection, hidden = true)
+    default String botmPass() {
+        return "";
+    }
+
+    @ConfigItem(keyName = "botmActive", name = "BOTM Active", description = "Is BOTM Active?", section = hiddenConfigsSection, hidden = true)
+    default Boolean botmActive() {
+        return false;
+    }
+
+    @ConfigItem(keyName = "botmTitle", name = "BOTM Title", description = "Title for the BOTM Event in WOM.", section = hiddenConfigsSection, hidden = true)
+    default String botmTitle() {
+        return "No Active BOTM Event.";
+    }
+
+    @ConfigItem(keyName = "botmLeaderboard", name = "BOTM Leaderboard", description = "Current BOTM Leaderboard", section = hiddenConfigsSection, hidden = true)
+    default String botmLeaderboard() {
+        return "[]";
+    }
+
+    @ConfigItem(keyName = "botmBoss", name = "BOTM Boss", description = "Current BOTM Boss", section = hiddenConfigsSection, hidden = true)
+    default String botmBoss() {
+        return "VORKATH";
+    }
+
+    @ConfigItem(keyName = "botmWomUrl", name = "BOTM WOM URL", description = "BOTM wise old man URL.", section = hiddenConfigsSection, hidden = true)
+    default String botmWomUrl() {
+        return "https://wiseoldman.net/groups/141/competitions";
+    }
+
+    @ConfigItem(keyName = "botm_start_time", name = "BOTM Start Time", description = "Start time for the BOTM Event.", section = hiddenConfigsSection, hidden = true)
+    default String botmStartTime() {
+        return "1970-01-01T00:00:00Z";
+    }
+
+    @ConfigItem(keyName = "botm_end_time", name = "BOTM End Time", description = "End time for the BOTM Event.", section = hiddenConfigsSection, hidden = true)
+    default String botmEndTime() {
+        return "1970-01-01T00:00:00Z";
+    }
+
+    @ConfigItem(keyName = "botm_winner", name = "BOTM Winner", description = "Winner of the last active BOTM Event.", section = hiddenConfigsSection, hidden = true)
+    default String botmWinner() {
+        return "";
+    }
+
+    @ConfigItem(keyName = "botmGdocUrl", name = "BOTM GDoc URL", description = "URL to the GDoc for BOTM Score", section = hiddenConfigsSection, hidden = true)
+    default String botmGdocUrl() {
+        return "https://docs.google.com/spreadsheets/d/e/2PACX-1vQXOtUM0Y3OMvnZKVw7PRwM9HmkGrbXha2K75Ev2bf_9Ev_EliUHT18BpJ5Djyp1ebdeWSrEoPnF064/pubhtml?gid=0&single=true";
+    }
+
+    // ========== SOTW SETTINGS SECTION - HIDDEN ==========
+
+    @ConfigItem(keyName = "sotwActive", name = "SOTW Active", description = "Is SOTW Active?", section = hiddenConfigsSection, hidden = true)
+    default Boolean sotwActive() {
+        return false;
+    }
+
+    @ConfigItem(keyName = "sotwTitle", name = "SOTW Title", description = "Title for the SOTW Event in WOM.", section = hiddenConfigsSection, hidden = true)
+    default String sotwTitle() {
+        return "No Active SOTW Event.";
+    }
+
+    @ConfigItem(keyName = "sotwLeaderboard", name = "SOTW Leaderboard", description = "Current SOTW Leaderboard", section = hiddenConfigsSection, hidden = true)
+    default String sotwLeaderboard() {
+        return "[]";
+    }
+
+    @ConfigItem(keyName = "sotwSkill", name = "SOTW Skill", description = "Current SOTW Skill", section = hiddenConfigsSection, hidden = true)
+    default String sotwSkill() {
+        return "OVERALL";
+    }
+
+    @ConfigItem(keyName = "sotw_wom_link", name = "SOTW WOM Link", description = "SOTW wise old man link.", section = hiddenConfigsSection, hidden = true)
+    default String sotwWomLink() {
+        return "https://wiseoldman.net/groups/141/competitions";
+    }
+
+    @ConfigItem(keyName = "sotw_start_time", name = "SOTW Start Time", description = "Start time for the SOTW Event.", section = hiddenConfigsSection, hidden = true)
+    default String sotwStartTime() {
+        return "1970-01-01T00:00:00Z";
+    }
+
+    @ConfigItem(keyName = "sotw_end_time", name = "SOTW End Time", description = "End time for the SOTW Event.", section = hiddenConfigsSection, hidden = true)
+    default String sotwEndTime() {
+        return "1970-01-01T00:00:00Z";
+    }
+
+    @ConfigItem(keyName = "sotw_winner", name = "SOTW Winner", description = "Winner of the last active SOTW Event.", section = hiddenConfigsSection, hidden = true)
+    default String sotwWinner() {
+        return "";
+    }
+
+    // ========== HUNT SETTINGS SECTION - HIDDEN ==========
+
+    @ConfigItem(keyName = "huntActive", name = "Hunt Active", description = "Is The Hunt Active?", section = hiddenConfigsSection, hidden = true)
+    default Boolean huntActive() {
+        return false;
+    }
+
+    @ConfigItem(keyName = "huntTitle", name = "Hunt Title", description = "Title for the Hunt Event.", section = hiddenConfigsSection, hidden = true)
+    default String huntTitle() {
+        return "No Active Hunt Event.";
+    }
+
+    @ConfigItem(keyName = "hunt_competition_id", name = "Hunt Competition ID", description = "WiseOldMan competition ID for The Hunt event.", section = hiddenConfigsSection, hidden = true)
+    default String huntCompetitionId() {
+        return "100262";
+    }
+
+    @ConfigItem(keyName = "hunt_start_time", name = "Hunt Start Time", description = "Start time for the Hunt Event.", section = hiddenConfigsSection, hidden = true)
+    default String huntStartTime() {
+        return "1970-01-01T00:00:00Z";
+    }
+
+    @ConfigItem(keyName = "hunt_end_time", name = "Hunt End Time", description = "End time for the Hunt Event.", section = hiddenConfigsSection, hidden = true)
+    default String huntEndTime() {
+        return "1970-01-01T00:00:00Z";
+    }
+
+    @ConfigItem(keyName = "hunt_wom_url", name = "Hunt WOM URL", description = "Hunt Wise Old Man competition URL.", section = hiddenConfigsSection, hidden = true)
+    default String huntWomUrl() {
+        return "https://wiseoldman.net/competitions/100262";
+    }
+
+    @ConfigItem(keyName = "hunt_gdoc_url", name = "The Hunt GDoc", description = "The Hunt GDoc URL.", section = hiddenConfigsSection, hidden = true)
+    default String huntGdocUrl() {
+        return "https://docs.google.com/spreadsheets/d/e/2PACX-1vSLCxscAVFZY9wuDqmeBPu4UZio2I39DHDGy_8DXrvHqYKmZc8NgsC4DWv_olXOTjGQktcBnU88Fmf4/pubhtml?gid=0&single=true";
+    }
+
+    @ConfigItem(keyName = "hunt_team_1_name", name = "Hunt Team 1 Name", description = "Name of Hunt Team 1.", section = hiddenConfigsSection, hidden = true)
+    default String huntTeam1Name() {
+        return "Team 1";
+    }
+
+    @ConfigItem(keyName = "hunt_team_1_color", name = "Hunt Team 1 Color", description = "Hex color for Hunt Team 1 (e.g., #FF0000).", section = hiddenConfigsSection, hidden = true)
+    default String huntTeamOneColor() {
+        return "#FF0000";
+    }
+
+    @ConfigItem(keyName = "hunt_team_1_leaderboard", name = "Hunt Team 1 Leaderboard", description = "Top 10 EHB leaderboard for Team 1.", section = hiddenConfigsSection, hidden = true)
+    default String huntTeam1Leaderboard() {
+        return "[]";
+    }
+
+    @ConfigItem(keyName = "hunt_team_2_name", name = "Hunt Team 2 Name", description = "Name of Hunt Team 2.", section = hiddenConfigsSection, hidden = true)
+    default String huntTeam2Name() {
+        return "Team 2";
+    }
+
+    @ConfigItem(keyName = "hunt_team_2_color", name = "Hunt Team 2 Color", description = "Hex color for Hunt Team 2 (e.g., #0000FF).", section = hiddenConfigsSection, hidden = true)
+    default String huntTeamTwoColor() {
+        return "#0000FF";
+    }
+
+    @ConfigItem(keyName = "hunt_team_2_leaderboard", name = "Hunt Team 2 Leaderboard", description = "Top 10 EHB leaderboard for Team 2.", section = hiddenConfigsSection, hidden = true)
+    default String huntTeam2Leaderboard() {
+        return "[]";
+    }
+
+    @ConfigItem(keyName = "hunt_team_1_score", name = "Hunt Team 1 Score", description = "Current total score of Hunt Team 1.", section = hiddenConfigsSection, hidden = true)
+    default int huntTeamOneScore() {
+        return 0;
+    }
+
+    @ConfigItem(keyName = "hunt_team_2_score", name = "Hunt Team 2 Score", description = "Current total score of Hunt Team 2.", section = hiddenConfigsSection, hidden = true)
+    default int huntTeamTwoScore() {
+        return 0;
+    }
+
+    @ConfigItem(keyName = "hunt_passwords", name = "Hunt Passwords", description = "Hunt Passwords", section = hiddenConfigsSection, hidden = true)
+    default String huntPasswords() {
+        return "";
+    }
+
+    @ConfigItem(keyName = "discord_invite_url", name = "Discord Invite URL", description = "Discord server invite perma-link", section = hiddenConfigsSection, hidden = true)
+    default String discordInviteUrl() {
+        return "https://discord.gg/pTxsfJMNRJ";
+    }
+
+    @ConfigItem(keyName = "hunt_signup_discord_channel_url", name = "Hunt Signup Channel URL", description = "Discord channel to signup for the Hunt event.", section = hiddenConfigsSection, hidden = true)
+    default String huntSignupDiscordChannelUrl() {
+        return "discord://discord.com/channels/414435426007384075/414458243499425792";
+    }
+
+    @ConfigItem(keyName = "hunt_master_password", name = "Hunt Master Password", description = "The main event password for the Hunt", section = hiddenConfigsSection, hidden = true)
+    default String huntMasterPassword() {
+        return "";
+    }
+
+    @ConfigItem(keyName = "hunt_bounty_password", name = "Hunt Bounty Password", description = "The current bounty password for the Hunt", section = hiddenConfigsSection, hidden = true)
+    default String huntBountyPassword() {
+        return "";
+    }
+
+    @ConfigItem(keyName = "hunt_daily_password", name = "Hunt Daily Password", description = "The current daily password for the Hunt", section = hiddenConfigsSection, hidden = true)
+    default String huntDailyPassword() {
+        return "";
+    }
+
+    @ConfigItem(keyName = "combined_hunt_password", name = "Combined Hunt Password", description = "The concatenated Hunt password string for overlay display", section = hiddenConfigsSection, hidden = true)
+    default String combinedHuntPassword() {
+        return "";
+    }
+
+    // ========== WOM SETTINGS SECTION - HIDDEN ==========
+
+    @ConfigItem(keyName = "wom_url", name = "WOM URL", description = "Configures the WOM button URL", section = hiddenConfigsSection, hidden = true)
+    default String womurl() {
+        return "https://wiseoldman.net/groups/141";
+    }
+
+    @ConfigItem(keyName = "wom_comps_url", name = "WOM Competitions URL", description = "URL to the Flux WOM Competitions page.", section = hiddenConfigsSection, hidden = true)
+    default String womCompsUrl() {
+        return "https://wiseoldman.net/groups/141/competitions";
+    }
+
+    // ========== MISC. SETTINGS SECTION - HIDDEN ==========
+
+    @ConfigItem(keyName = "clan_login_message", name = "Login Message", description = "Message to broadcast to clan members upon login.", section = hiddenConfigsSection, hidden = true)
+    default String clanLoginMessage() {
+        return "Check out the Flux Plugin Panel!";
+    }
+
+    @ConfigItem(keyName = "plugin_announcement_message", name = "Announcement Message", description = "Announcement message in the home card of the plugin panel.", section = hiddenConfigsSection, hidden = true)
+    default String pluginAnnouncementMessage() {
+        return "The Flux plugin is available for download from the plugin hub!";
+    }
+
+    @ConfigItem(keyName = "rollCallActive", name = "Roll Call Active", description = "Is roll call active?", section = hiddenConfigsSection, hidden = true)
+    default Boolean rollCallActive() {
+        return false;
+    }
+
+    @ConfigItem(keyName = "misc_event_password", name = "Misc. Event Password", description = "A password used for other miscellaneous events", section = hiddenConfigsSection, hidden = true)
+    default String miscEventPassword() {
+        return "";
+    }
 }
