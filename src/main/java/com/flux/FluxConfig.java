@@ -325,4 +325,34 @@ public interface FluxConfig extends Config {
 	default String combinedHuntPassword() {
 		return "";
 	}
+
+    @ConfigItem(position = 72, keyName = "misc_event_password", name = "Misc. Event Password", description = "A password used for other miscellaneous events", section = overlaySection, hidden = true)
+    default String miscEventPassword() {
+        return "";
+    }
+
+    @ConfigItem(position = 73, keyName = "display_hunt_master_password", name = "Hunt Master Password", description = "Displays the hunt master password on your screen", section = overlaySection)
+    default boolean displayHuntMasterPassword() {
+        return true;
+    }
+
+    @ConfigItem(position = 74, keyName = "display_hunt_bounty_password", name = "Hunt Bounty Password", description = "Displays the hunt bounty password on your screen", section = overlaySection)
+    default boolean displayHuntBountyPassword() {
+        return true;
+    }
+
+    @ConfigItem(position = 75, keyName = "display_hunt_daily_password", name = "Hunt Daily Password", description = "Displays the hunt daily password on your screen", section = overlaySection)
+    default boolean displayHuntDailyPassword() {
+        return true;
+    }
+
+    @ConfigItem(position = 76, keyName = "display_botm_password", name = "BOTM Password", description = "Displays the BOTM password on your screen", section = overlaySection)
+    default boolean displayBotmPassword() {
+        return true;
+    }
+
+    @ConfigItem(position = 77, keyName = "display_misc_event_password", name = "Misc. Event Password", description = "Displays miscellaneous event passwords on your screen", section = overlaySection)
+    default boolean displayMiscEventPassword() {
+        return true;
+    }
 }
