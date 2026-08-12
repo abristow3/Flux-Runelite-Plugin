@@ -77,6 +77,11 @@ public interface FluxConfig extends Config {
         return true;
     }
 
+	@ConfigItem(position = 106, keyName = "auto_reenable_hunt_passwords", name = "Auto Re-enable Hunt Passwords", description = "Auto re-enables the daily and bounty challenge password display when a new bounty or daily occurs.", section = eventPasswordsSection)
+	default boolean autoReenableHuntPasswords() {
+		return true;
+	}
+
     // ========== MISC. SETTINGS - VISIBLE - POSITION 201 - 299 ==========
 
     @ConfigItem(position = 201, keyName = "menuPriority", name = "Sidebar Priority", description = "Adjust the runelite sidebar priority. Lower priority => higher on sidebar. Restart the client to take effect", section = miscSettingsSection)
