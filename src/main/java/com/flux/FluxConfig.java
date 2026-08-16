@@ -297,11 +297,6 @@ public interface FluxConfig extends Config {
         return "";
     }
 
-    @ConfigItem(keyName = "combined_hunt_password", name = "Combined Hunt Password", description = "The concatenated Hunt password string for overlay display", section = hiddenConfigsSection, hidden = true)
-    default String combinedHuntPassword() {
-        return "";
-    }
-
     // ========== WOM SETTINGS SECTION - HIDDEN ==========
 
     @ConfigItem(keyName = "wom_url", name = "WOM URL", description = "Configures the WOM button URL", section = hiddenConfigsSection, hidden = true)

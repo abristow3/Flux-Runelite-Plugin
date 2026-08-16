@@ -1,5 +1,6 @@
 package com.flux;
 
+import com.flux.services.EventPasswordManager;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.ui.overlay.OverlayMenuEntry;
 import net.runelite.client.ui.overlay.OverlayPanel;
@@ -16,18 +17,19 @@ import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.util.List;
 
-
 import static net.runelite.api.MenuAction.RUNELITE_OVERLAY_CONFIG;
 import static net.runelite.client.ui.overlay.OverlayManager.OPTION_CONFIGURE;
 
 public class FluxOverlay extends OverlayPanel {
 	private final ConfigManager configManager;
 	private final FluxConfig config;
+    private final EventPasswordManager passwordManager;
 
 	@Inject
 	private FluxOverlay(ConfigManager configManager, FluxConfig config) {
 		this.configManager = configManager;
 		this.config = config;
+        this.passwordManager = new EventPasswordManager(configManager);
 
 		setPosition(OverlayPosition.TOP_CENTER);
 		getMenuEntries().add(new OverlayMenuEntry(RUNELITE_OVERLAY_CONFIG, OPTION_CONFIGURE, "Clan Events overlay"));
@@ -39,14 +41,7 @@ public class FluxOverlay extends OverlayPanel {
 			return null;
 		}
 
-		boolean botmActive = getBooleanConfig("botmActive");
-		boolean huntActive = getBooleanConfig("huntActive");
-
-		String eventPass = config.eventPass();
-		String botmPass = config.botmPass();
-		String huntPass = config.combinedHuntPassword();
-		String overlayString = "";
-
+        String overlayString = passwordManager.buildOverlayString();
 		Color passColor = config.passColor();
 		Color timeColor = config.timeColor();
 
@@ -55,18 +50,6 @@ public class FluxOverlay extends OverlayPanel {
 			timeColor = Color.WHITE;
 		}
 
-		if (!isNullOrEmpty(eventPass)) {
-			overlayString = overlayString + eventPass + " | ";
-		}
-
-		if (botmActive && !isNullOrEmpty(botmPass)) {
-			overlayString = overlayString + botmPass + " | ";
-			;
-		}
-
-		if (huntActive && !isNullOrEmpty(huntPass)) {
-			overlayString = overlayString + huntPass;
-		}
 
 		if (config.overlay()) {
 			panelComponent.getChildren().add(LineComponent.builder().left(overlayString).leftColor(passColor).build());
@@ -82,22 +65,10 @@ public class FluxOverlay extends OverlayPanel {
 		return super.render(graphics);
 	}
 
-	private boolean getBooleanConfig(String key) {
-		String value = configManager.getConfiguration("flux", key);
-		if (isNullOrEmpty(value)) {
-			return false;
-		}
-		return Boolean.parseBoolean(value);
-	}
-
 	public static String localToGMT() {
 		Date date = new Date();
 		SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
 		sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
 		return sdf.format(date) + " UTC";
-	}
-
-	private static boolean isNullOrEmpty(String s) {
-		return s == null || s.isEmpty();
 	}
 }
