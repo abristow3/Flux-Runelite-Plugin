@@ -42,13 +42,15 @@ public class ClanRankPrefixer {
 
 		// check the clan member name in the message
 		String rawMessage = event.getMessage();
-		String strippedMessage = Text.toJagexName(Text.removeTags(rawMessage)).trim();
+		String withoutTags = Text.removeTags(rawMessage);
+
+		// strip out CA_ID
+		withoutTags = withoutTags.replaceFirst("^CA_ID:\\d+\\|", "");
+		String strippedMessage = Text.toJagexName(withoutTags).trim();
 
 		if (strippedMessage.startsWith("To talk in your clan's channel")) {
 			return;
 		}
-
-		strippedMessage = strippedMessage.replaceFirst("^CA_ID:\\d+\\|", "");
 
 		ClanChannelMember matched = null;
 		String matchedName = null;
