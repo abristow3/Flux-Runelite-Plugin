@@ -46,14 +46,6 @@ public class LoginMessageSender {
         hasSentMessage = true;
     }
 
-    public void reset() {
-        hasSentMessage = false;
-    }
-
-    public boolean hasSentMessage() {
-        return hasSentMessage;
-    }
-
     public String getLoginMessage() {
         return configManager.getConfiguration(CONFIG_GROUP, CONFIG_KEY);
     }

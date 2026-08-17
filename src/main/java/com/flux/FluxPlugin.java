@@ -7,6 +7,7 @@ import com.flux.services.CompetitionScheduler;
 import com.flux.services.GoogleSheetParser;
 import com.flux.services.LoginMessageSender;
 import com.flux.services.EventPasswordManager;
+import com.flux.services.ClanRankPrefixer;
 import com.flux.services.wom.CompetitionConfigUpdater;
 import com.flux.services.wom.CompetitionDataParser;
 import com.flux.services.wom.CompetitionFinder;
@@ -29,6 +30,7 @@ import net.runelite.client.chat.ChatMessageManager;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
+import net.runelite.client.game.ChatIconManager;
 import net.runelite.client.game.SpriteManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
@@ -37,6 +39,7 @@ import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.ui.overlay.OverlayManager;
 import net.runelite.client.util.ImageUtil;
 import okhttp3.OkHttpClient;
+
 import java.awt.image.BufferedImage;
 import java.util.Map;
 
@@ -60,6 +63,7 @@ public class FluxPlugin extends Plugin {
 	@Inject private SpriteManager spriteManager;
 	@Inject private ChatCommandHandler chatCommandHandler;
     @Inject private ClientThread clientThread;
+	@Inject private ChatIconManager chatIconManager;
 
 	@Getter
     private FluxPanel panel;
@@ -69,6 +73,7 @@ public class FluxPlugin extends Plugin {
     private ClanRankMonitor clanRankMonitor;
     private LoginMessageSender loginMessageSender;
     private EventPasswordManager passwordManager;
+	private ClanRankPrefixer clanRankPrefixer;
 
     @Override
     protected void startUp() {
@@ -129,6 +134,7 @@ public class FluxPlugin extends Plugin {
 
         clanRankMonitor = new ClanRankMonitor(client, this::handleRankChange);
         loginMessageSender = new LoginMessageSender(chatMessageManager, configManager, config.loginColor());
+		clanRankPrefixer = new ClanRankPrefixer(client, chatMessageManager, clientThread, chatIconManager);
 	}
 
     private void refreshAllCards() {
@@ -539,6 +545,7 @@ public class FluxPlugin extends Plugin {
     }
 
     // updates the broadcast message font color from yellow to black for easier reading
+	// now also adds clan rank icon prefix to clan messages
     @Subscribe
     public void onChatMessage(ChatMessage event) {
         String loginMessage = loginMessageSender.getLoginMessage();
@@ -550,7 +557,13 @@ public class FluxPlugin extends Plugin {
                 node.setRuneLiteFormatMessage("[Flux] " + loginMessage);
             });
         }
+
+		clanRankPrefixer.onChatMessage(event);
     }
+
+//	public ClanRankPrefixer getClanRankPrefixer() {
+//		return clanRankPrefixer;
+//	}
 
     @Provides
     FluxConfig provideConfig(ConfigManager configManager) {
