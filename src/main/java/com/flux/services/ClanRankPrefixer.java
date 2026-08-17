@@ -40,9 +40,14 @@ public class ClanRankPrefixer {
 			return;
 		}
 
-		// normaliez and find the username
+		// check the clan member name in the message
 		String rawMessage = event.getMessage();
-		String strippedMessage = Text.removeTags(rawMessage).replace('\u00A0', ' ').trim();
+		String strippedMessage = Text.toJagexName(Text.removeTags(rawMessage)).trim();
+
+		if (strippedMessage.startsWith("To talk in your clan's channel")) {
+			return;
+		}
+
 		strippedMessage = strippedMessage.replaceFirst("^CA_ID:\\d+\\|", "");
 
 		ClanChannelMember matched = null;
@@ -74,6 +79,9 @@ public class ClanRankPrefixer {
 		String newMessage = iconIndex >= 0
 				? "<img=" + iconIndex + "> " + rawMessage
 				: "[" + title.getName() + "] " + rawMessage;
+
+		log.debug("Matched '{}' to rank '{}', icon index {}, new message: '{}'",
+				matchedName, title.getName(), iconIndex, newMessage);
 
 		MessageNode messageNode = event.getMessageNode();
 		clientThread.invokeLater(() -> {
