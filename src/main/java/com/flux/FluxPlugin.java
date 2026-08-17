@@ -561,10 +561,6 @@ public class FluxPlugin extends Plugin {
 		clanRankPrefixer.onChatMessage(event);
     }
 
-//	public ClanRankPrefixer getClanRankPrefixer() {
-//		return clanRankPrefixer;
-//	}
-
     @Provides
     FluxConfig provideConfig(ConfigManager configManager) {
         return configManager.getConfig(FluxConfig.class);
