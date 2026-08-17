@@ -6,6 +6,7 @@ import com.flux.services.ClanRankMonitor;
 import com.flux.services.CompetitionScheduler;
 import com.flux.services.GoogleSheetParser;
 import com.flux.services.LoginMessageSender;
+import com.flux.services.EventPasswordManager;
 import com.flux.services.wom.CompetitionConfigUpdater;
 import com.flux.services.wom.CompetitionDataParser;
 import com.flux.services.wom.CompetitionFinder;
@@ -67,6 +68,7 @@ public class FluxPlugin extends Plugin {
     private GoogleSheetParser configParser;
     private ClanRankMonitor clanRankMonitor;
     private LoginMessageSender loginMessageSender;
+    private EventPasswordManager passwordManager;
 
     @Override
     protected void startUp() {
@@ -108,6 +110,7 @@ public class FluxPlugin extends Plugin {
         CompetitionDataParser dataParser = new CompetitionDataParser();
         CompetitionFinder finder = new CompetitionFinder(apiClient, dataParser);
         CompetitionConfigUpdater configUpdater = new CompetitionConfigUpdater(configManager);
+        passwordManager = new EventPasswordManager(configManager);
 
         competitionScheduler = new CompetitionScheduler(
                 configManager,
@@ -166,6 +169,7 @@ public class FluxPlugin extends Plugin {
         updateHuntGdocUrl(configValues);
 		updateHuntTeamScores(configValues);
 		updateHuntWomUrl(configValues);
+        updateMiscEventPassword(configValues);
     }
 
     private void updateDiscordInviteLink(Map<String, String> configValues) {
@@ -312,23 +316,20 @@ public class FluxPlugin extends Plugin {
         }
     }
 
-	private void updateHuntPass(Map<String, String> configValues) {
-		String huntMasterPass = configValues.get("HUNT_MASTER_PASSWORD");
-		String huntBountyPass = configValues.get("HUNT_BOUNTY_PASSWORD");
-		String huntDailyPass = configValues.get("HUNT_DAILY_PASSWORD");
+    private void updateHuntPass(Map<String, String> configValues) {
+        String huntMasterPass = configValues.get("HUNT_MASTER_PASSWORD");
+        String huntBountyPass = configValues.get("HUNT_BOUNTY_PASSWORD");
+        String huntDailyPass = configValues.get("HUNT_DAILY_PASSWORD");
 
-		if (isNullOrEmpty(huntMasterPass) || isNullOrEmpty(huntBountyPass) || isNullOrEmpty(huntDailyPass)) {
-			log.warn("One or more Hunt event passwords were unable to be found.");
-			return;
-		}
+        if (isNullOrEmpty(huntMasterPass) || isNullOrEmpty(huntBountyPass) || isNullOrEmpty(huntDailyPass)) {
+            log.warn("One or more Hunt event passwords were unable to be found.");
+            return;
+        }
 
-		String combinedHuntPassword = String.join(" | ", huntMasterPass, huntBountyPass, huntDailyPass);
-		String currentValue = configManager.getConfiguration(CONFIG_GROUP, "combined_hunt_password");
-
-		if (!combinedHuntPassword.equals(currentValue)) {
-			configManager.setConfiguration(CONFIG_GROUP, "combined_hunt_password", combinedHuntPassword);
-		}
-	}
+        setIfChanged("hunt_master_password", huntMasterPass);
+        setIfChanged("hunt_bounty_password", huntBountyPass);
+        setIfChanged("hunt_daily_password", huntDailyPass);
+    }
 
 	private void updateHuntCompId(Map<String, String> configValues) {
 		String comp_id = configValues.get("HUNT_COMPETITION_ID");
@@ -363,9 +364,26 @@ public class FluxPlugin extends Plugin {
 		configManager.setConfiguration(CONFIG_GROUP, "hunt_wom_url", url);
 	}
 
+    private void updateMiscEventPassword(Map<String, String> configValues) {
+        String miscPass = configValues.get("MISC_EVENT_PASSWORD");
+        if (!isNullOrEmpty(miscPass)) {
+            String currentValue = configManager.getConfiguration(CONFIG_GROUP, "misc_event_password");
+            if (!miscPass.equals(currentValue)) {
+                configManager.setConfiguration(CONFIG_GROUP, "misc_event_password", miscPass);
+            }
+        }
+    }
+
 	private static boolean isNullOrEmpty(String s) {
 		return s == null || s.isEmpty();
 	}
+
+    private void setIfChanged(String key, String newValue) {
+        String currentValue = configManager.getConfiguration(CONFIG_GROUP, key);
+        if (!newValue.equals(currentValue)) {
+            configManager.setConfiguration(CONFIG_GROUP, key, newValue);
+        }
+    }
 
 	@Subscribe
     public void onGameStateChanged(GameStateChanged event) {
@@ -510,6 +528,14 @@ public class FluxPlugin extends Plugin {
 				panel.getHuntCard().refreshButtonLinks();
 			}
 		}
+
+        if (key.equals("hunt_bounty_password")) {
+            passwordManager.reenableBountyPasswordIfNeeded();
+        }
+
+        if (key.equals("hunt_daily_password")) {
+            passwordManager.reenableDailyPasswordIfNeeded();
+        }
     }
 
     // updates the broadcast message font color from yellow to black for easier reading

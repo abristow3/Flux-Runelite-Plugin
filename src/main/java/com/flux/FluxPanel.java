@@ -92,13 +92,13 @@ public class FluxPanel extends PluginPanel {
     }
 
     private void initializeCards() {
-        addEntry(config.entry_1());
-        addEntry(config.entry_3());
-        addEntry(config.entry_4());
-        addEntry(config.entry_5());
-        addEntry(config.entry_6());
-        addEntry(config.entry_7());
-        addEntry(config.entry_8());
+        addEntry(EntrySelect.HOME);
+        addEntry(EntrySelect.SOTW);
+        addEntry(EntrySelect.BOTM);
+        addEntry(EntrySelect.HOF_OVERALL);
+        addEntry(EntrySelect.HOF_KC);
+        addEntry(EntrySelect.HOF_PB);
+        addEntry(EntrySelect.HUNT);
     }
 
     private void setupHeader() {
@@ -230,7 +230,7 @@ public class FluxPanel extends PluginPanel {
         this.isAdminOrHigher = isAdminOrHigher;
 
         if (isAdminOrHigher && !adminHubInitialized) {
-            addEntry(config.entry_2());
+            addEntry(EntrySelect.HUB);
             setupFooter();
             dropdown.repaint();
             centerPanel.revalidate();
