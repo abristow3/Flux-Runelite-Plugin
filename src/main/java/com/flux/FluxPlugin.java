@@ -25,6 +25,7 @@ import net.runelite.api.GameState;
 import net.runelite.api.MessageNode;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameStateChanged;
+import net.runelite.api.events.GameTick;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.chat.ChatMessageManager;
 import net.runelite.client.config.ConfigManager;
@@ -559,6 +560,11 @@ public class FluxPlugin extends Plugin {
         }
 
 		clanRankPrefixer.onChatMessage(event);
+    }
+
+    @Subscribe
+    public void onGameTick(GameTick event) {
+        clanRankPrefixer.onGameTick(event);
     }
 
     @Provides
