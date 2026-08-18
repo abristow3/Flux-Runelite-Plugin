@@ -58,11 +58,11 @@ public class ClanRankPrefixer {
             return;
         }
 
-        // CA broadcasts only. same string used for detect + strip and it is keeping in sync.
+        // CA broadcasts only. same string used for detect and strip and it is keeping in sync.
         String withoutTags = Text.removeTags(rawMessage).trim();
         boolean isCombatAchievement = withoutTags.matches("^" + CA_ID_REGEX + ".*");
 
-        // names can have _ - nbsp instead of space, toJagexName fixes all three
+        // names can have "_" "-" nbsp instead of space, toJagexName fixes all three
         String strippedMessage = Text.toJagexName(withoutTags.replaceFirst("^" + CA_ID_REGEX, "")).trim();
 
         if (strippedMessage.startsWith("To talk in your clan's channel")) {
@@ -95,7 +95,7 @@ public class ClanRankPrefixer {
     }
 
     private void replaceCombatAchievementBroadcast(MessageNode originalNode, String rawMessage, ClanTitle title, int iconIndex) {
-        // strip only CA_ID tag, keep everything else (e.g. ironman icon)
+        // strip only CA_ID tag, keep everything else (ironman icon, GIM icon)
         String cleanText = rawMessage.replaceFirst(CA_ID_REGEX, "").trim();
         String injectedMessage = buildPrefixedMessage(cleanText, title, iconIndex);
 
@@ -156,7 +156,7 @@ public class ClanRankPrefixer {
                 continue;
             }
 
-            // re-check after apply. not CA lines don't get reclobbered, but cheap safety net.
+            // recheck after apply. not CA lines don't get reclobbered, but cheap safety net.
             if (!edit.message.equals(edit.messageNode.getRuneLiteFormatMessage())) {
                 applyEdit(edit);
             }
