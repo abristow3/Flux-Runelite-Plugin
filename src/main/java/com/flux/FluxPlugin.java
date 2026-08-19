@@ -1,12 +1,7 @@
 package com.flux;
 
 import com.flux.components.combobox.EntrySelect;
-import com.flux.services.ChatCommandHandler;
-import com.flux.services.ClanRankMonitor;
-import com.flux.services.CompetitionScheduler;
-import com.flux.services.GoogleSheetParser;
-import com.flux.services.LoginMessageSender;
-import com.flux.services.EventPasswordManager;
+import com.flux.services.*;
 import com.flux.services.wom.CompetitionConfigUpdater;
 import com.flux.services.wom.CompetitionDataParser;
 import com.flux.services.wom.CompetitionFinder;
@@ -26,6 +21,9 @@ import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.chat.ChatMessageManager;
+import net.runelite.client.chat.ChatColorType;
+import net.runelite.client.chat.ChatMessageBuilder;
+import net.runelite.client.chat.QueuedMessage;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
@@ -36,6 +34,7 @@ import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.ui.overlay.OverlayManager;
 import net.runelite.client.util.ImageUtil;
+
 import okhttp3.OkHttpClient;
 import java.awt.image.BufferedImage;
 import java.util.Map;
@@ -69,6 +68,7 @@ public class FluxPlugin extends Plugin {
     private ClanRankMonitor clanRankMonitor;
     private LoginMessageSender loginMessageSender;
     private EventPasswordManager passwordManager;
+    private HuntBroadcastSender huntBroadcastSender;
 
     @Override
     protected void startUp() {
@@ -129,6 +129,7 @@ public class FluxPlugin extends Plugin {
 
         clanRankMonitor = new ClanRankMonitor(client, this::handleRankChange);
         loginMessageSender = new LoginMessageSender(chatMessageManager, configManager, config.loginColor());
+        huntBroadcastSender = new HuntBroadcastSender(chatMessageManager, configManager, config.loginColor());
 	}
 
     private void refreshAllCards() {
@@ -531,10 +532,12 @@ public class FluxPlugin extends Plugin {
 
         if (key.equals("hunt_bounty_password")) {
             passwordManager.reenableBountyPasswordIfNeeded();
+            huntBroadcastSender.sendBountyBroadcast();
         }
 
         if (key.equals("hunt_daily_password")) {
             passwordManager.reenableDailyPasswordIfNeeded();
+            huntBroadcastSender.sendDailyBroadcast();
         }
     }
 
