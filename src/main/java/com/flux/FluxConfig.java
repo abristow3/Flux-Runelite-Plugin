@@ -92,6 +92,11 @@ public interface FluxConfig extends Config {
     @ConfigItem(position = 202, keyName = "loginColor", name = "Login Message Color", description = "The color of the Login Message.", section = miscSettingsSection)
     default Color loginColor() {return new Color(255, 255, 0); } //Custom dark red.
 
+    @ConfigItem(position = 203, keyName = "hunt_broadcasts", name = "Hunt Broadcasts", description = "Sends a local chat broadcast when the Hunt daily or bounty password rotates.", section = eventPasswordsSection)
+    default boolean huntBroadcasts() {
+        return true;
+    }
+
 //############################################################################
 //################### HIDDEN SECTION - POSITION 1000+ ########################
 //############################################################################
