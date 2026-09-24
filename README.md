@@ -2,6 +2,8 @@
 
 A comprehensive clan management plugin designed for the Flux OSRS clan community. This plugin provides real-time event tracking, competition leaderboards, and clan information directly in your RuneLite client.
 
+[![Active Installs](http://img.shields.io/endpoint?url=https://api.runelite.net/pluginhub/shields/installs/plugin/flux)](https://runelite.net/plugin-hub/show/flux)
+
 ## Features
 
 ### 🏠 Home Dashboard
