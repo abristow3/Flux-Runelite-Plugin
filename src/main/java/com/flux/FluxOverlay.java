@@ -42,6 +42,10 @@ public class FluxOverlay extends OverlayPanel {
 		}
 
         String overlayString = passwordManager.buildOverlayString();
+        if (overlayString.isEmpty()) {
+            return null;
+        }
+
 		Color passColor = config.passColor();
 		Color timeColor = config.timeColor();
 

@@ -76,6 +76,7 @@ public class FluxPlugin extends Plugin {
         initializeServices();
         initializePanel();
         configParser.start();
+        competitionScheduler.start();
         refreshAllCards();
 		chatCommandHandler.registerChatCommands();
 	}
@@ -86,6 +87,7 @@ public class FluxPlugin extends Plugin {
         clientToolbar.removeNavigation(uiNavigationButton);
         panel.shutdown();
         configParser.shutdown();
+        competitionScheduler.stop();
         clanRankMonitor.shutdown();
 		chatCommandHandler.unregisterChatCommands();
     }
@@ -93,7 +95,7 @@ public class FluxPlugin extends Plugin {
     private void initializePanel() {
         final BufferedImage icon = ImageUtil.loadImageResource(getClass(), "/flux-icon-tiny.png");
 
-        panel = new FluxPanel(competitionScheduler, config, configManager, okHttpClient, spriteManager);
+        panel = new FluxPanel(config, configManager, okHttpClient, spriteManager);
 
         uiNavigationButton = NavigationButton.builder()
                 .tooltip("Flux")
@@ -306,30 +308,13 @@ public class FluxPlugin extends Plugin {
 	}
 
     private void updateBotmPass(java.util.Map<String, String> configValues) {
-        String botmPass = configValues.get("BOTM_PASS");
-        if (!isNullOrEmpty(botmPass)) {
-            String currentValue = configManager.getConfiguration(CONFIG_GROUP, "botm_password");
-            if (!botmPass.equals(currentValue)) {
-                configManager.setConfiguration(CONFIG_GROUP, "botm_password", botmPass);
-            }
-        } else {
-            log.warn("BOTM_PASS is missing or empty in the Google Sheet values.");
-        }
+        setOrClear("botm_password", configValues.get("BOTM_PASS"));
     }
 
     private void updateHuntPass(Map<String, String> configValues) {
-        String huntMasterPass = configValues.get("HUNT_MASTER_PASSWORD");
-        String huntBountyPass = configValues.get("HUNT_BOUNTY_PASSWORD");
-        String huntDailyPass = configValues.get("HUNT_DAILY_PASSWORD");
-
-        if (isNullOrEmpty(huntMasterPass) || isNullOrEmpty(huntBountyPass) || isNullOrEmpty(huntDailyPass)) {
-            log.warn("One or more Hunt event passwords were unable to be found.");
-            return;
-        }
-
-        setIfChanged("hunt_master_password", huntMasterPass);
-        setIfChanged("hunt_bounty_password", huntBountyPass);
-        setIfChanged("hunt_daily_password", huntDailyPass);
+        setOrClear("hunt_master_password", configValues.get("HUNT_MASTER_PASSWORD"));
+        setOrClear("hunt_bounty_password", configValues.get("HUNT_BOUNTY_PASSWORD"));
+        setOrClear("hunt_daily_password", configValues.get("HUNT_DAILY_PASSWORD"));
     }
 
 	private void updateHuntCompId(Map<String, String> configValues) {
@@ -366,13 +351,7 @@ public class FluxPlugin extends Plugin {
 	}
 
     private void updateMiscEventPassword(Map<String, String> configValues) {
-        String miscPass = configValues.get("MISC_EVENT_PASSWORD");
-        if (!isNullOrEmpty(miscPass)) {
-            String currentValue = configManager.getConfiguration(CONFIG_GROUP, "misc_event_password");
-            if (!miscPass.equals(currentValue)) {
-                configManager.setConfiguration(CONFIG_GROUP, "misc_event_password", miscPass);
-            }
-        }
+        setOrClear("misc_event_password", configValues.get("MISC_EVENT_PASSWORD"));
     }
 
 	private static boolean isNullOrEmpty(String s) {
@@ -384,6 +363,13 @@ public class FluxPlugin extends Plugin {
         if (!newValue.equals(currentValue)) {
             configManager.setConfiguration(CONFIG_GROUP, key, newValue);
         }
+    }
+
+    private void setOrClear(String key, String newValue) {
+        if (newValue == null) {
+            return; // key absent from sheet data; don't touch the stored value
+        }
+        setIfChanged(key, newValue.trim());
     }
 
 	@Subscribe

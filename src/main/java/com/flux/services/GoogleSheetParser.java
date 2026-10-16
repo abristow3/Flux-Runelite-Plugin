@@ -232,13 +232,14 @@ public class GoogleSheetParser {
             for (int i = 0; i < jsonArray.size(); i++) {
                 JsonArray row = jsonArray.get(i).getAsJsonArray();
 
-                if (row.size() < 2) {
-                    log.debug("[Config] Skipping row {} (less than 2 columns)", i);
+                if (row.size() == 0) {
+                    log.debug("[Config] Skipping row {} (empty)", i);
                     continue;
                 }
 
                 String key = row.get(0).getAsString().trim();
-                String value = row.get(1).getAsString().trim();
+                // Sheets API omits trailing empty cells, so a cleared value cell means no second column
+                String value = row.size() > 1 ? row.get(1).getAsString().trim() : "";
 
                 if (key.isEmpty() || key.equalsIgnoreCase("key") || key.equalsIgnoreCase("config")) {
                     log.debug("[Config] Skipping header/empty key: {}", key);
