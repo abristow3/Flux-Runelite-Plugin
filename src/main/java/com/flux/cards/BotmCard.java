@@ -55,23 +55,14 @@ public class BotmCard extends FluxCard {
     private void addEventTitle() {
         String titleText = getConfigValue("botmTitle", "No active competition");
         eventTitle = createWrappedLabelWithUnderline(titleText, FONT_SECTION, COLOR_YELLOW);
-
-        // Center using FlowLayout panel
-        JPanel eventTitlePanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        eventTitlePanel.setOpaque(false);
-        eventTitlePanel.add(eventTitle);
-        add(eventTitlePanel);
+		setupDynamicResize(eventTitle);
+        add(eventTitle);
     }
 
     private void addCountdownLabel() {
         countdownLabel = createWrappedLabel("Loading...", FONT_NORMAL, COLOR_LIGHT_GRAY);
-
-        // Center using FlowLayout panel
-        JPanel countdownPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        countdownPanel.setOpaque(false);
-        countdownPanel.add(countdownLabel);
-        add(countdownPanel);
-
+		setupDynamicResize(countdownLabel);
+        add(countdownLabel);
         updateCountdownLabel();
     }
 
