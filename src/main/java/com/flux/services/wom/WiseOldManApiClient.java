@@ -18,6 +18,7 @@ public class WiseOldManApiClient {
     private final JsonParser jsonParser = new JsonParser();
     private final OkHttpClient httpClient;
     private static final String EMPTY_STRING = "";
+	private static final String USER_AGENT = "Flux Runelite Plugin";
 
     public WiseOldManApiClient(OkHttpClient httpClient) {
         this.httpClient = httpClient;
@@ -43,6 +44,7 @@ public class WiseOldManApiClient {
     private String makeHttpRequest(String urlString) {
         Request request = new Request.Builder()
                 .url(urlString)
+				.header("User-Agent", USER_AGENT)
                 .build();
 
         try (Response response = httpClient.newCall(request).execute()) {
