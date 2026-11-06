@@ -10,6 +10,7 @@ import com.flux.components.InverseCornerButton;
 import com.flux.components.combobox.ComboBoxIconEntry;
 import com.flux.components.combobox.ComboBoxIconListRenderer;
 import com.flux.components.combobox.EntrySelect;
+import com.flux.services.CompetitionScheduler;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.config.ConfigManager;
 import com.flux.cards.*;
@@ -25,6 +26,7 @@ public class FluxPanel extends PluginPanel {
 
     private final FluxConfig config;
     private final ConfigManager configManager;
+	private final CompetitionScheduler competitionScheduler;
 
     private final JPanel headerPanel = new JPanel();
     private final JPanel centerPanel = new JPanel();
@@ -50,10 +52,11 @@ public class FluxPanel extends PluginPanel {
 
     private final Timer glowTimer = new Timer(GLOW_CHECK_INTERVAL, e -> updateEventGlows());
 
-    public FluxPanel(FluxConfig config, ConfigManager configManager, OkHttpClient okHttpClient, SpriteManager spriteManager) {
+    public FluxPanel(CompetitionScheduler competitionScheduler, FluxConfig config, ConfigManager configManager, OkHttpClient okHttpClient, SpriteManager spriteManager) {
         super(false);
         this.config = config;
         this.configManager = configManager;
+		this.competitionScheduler = competitionScheduler;
 		this.okHttpClient = okHttpClient;
 		this.spriteManager = spriteManager;
 
@@ -64,6 +67,18 @@ public class FluxPanel extends PluginPanel {
         setupFooter();
         selectFirstEntry();
     }
+
+	@Override
+	public void onActivate()
+	{
+		competitionScheduler.start();
+	}
+
+	@Override
+	public void onDeactivate()
+	{
+		competitionScheduler.stop();
+	}
 
     private void setupLayout() {
         setLayout(new BorderLayout());
@@ -365,6 +380,7 @@ public class FluxPanel extends PluginPanel {
         botmCard.shutdown();
         sotwCard.shutdown();
         huntCard.shutdown();
+		competitionScheduler.stop();
     }
 
     @FunctionalInterface

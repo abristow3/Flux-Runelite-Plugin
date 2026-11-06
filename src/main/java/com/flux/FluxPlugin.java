@@ -21,9 +21,6 @@ import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.chat.ChatMessageManager;
-import net.runelite.client.chat.ChatColorType;
-import net.runelite.client.chat.ChatMessageBuilder;
-import net.runelite.client.chat.QueuedMessage;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
@@ -76,7 +73,6 @@ public class FluxPlugin extends Plugin {
         initializeServices();
         initializePanel();
         configParser.start();
-        competitionScheduler.start();
         refreshAllCards();
 		chatCommandHandler.registerChatCommands();
 	}
@@ -87,7 +83,6 @@ public class FluxPlugin extends Plugin {
         clientToolbar.removeNavigation(uiNavigationButton);
         panel.shutdown();
         configParser.shutdown();
-        competitionScheduler.stop();
         clanRankMonitor.shutdown();
 		chatCommandHandler.unregisterChatCommands();
     }
@@ -95,7 +90,7 @@ public class FluxPlugin extends Plugin {
     private void initializePanel() {
         final BufferedImage icon = ImageUtil.loadImageResource(getClass(), "/flux-icon-tiny.png");
 
-        panel = new FluxPanel(config, configManager, okHttpClient, spriteManager);
+        panel = new FluxPanel(competitionScheduler, config, configManager, okHttpClient, spriteManager);
 
         uiNavigationButton = NavigationButton.builder()
                 .tooltip("Flux")
