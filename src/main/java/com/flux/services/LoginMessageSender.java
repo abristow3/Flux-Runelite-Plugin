@@ -5,6 +5,8 @@ import net.runelite.client.chat.ChatMessageManager;
 import net.runelite.client.chat.QueuedMessage;
 import net.runelite.client.config.ConfigManager;
 import lombok.extern.slf4j.Slf4j;
+import net.runelite.client.util.Text;
+
 import java.awt.Color;
 
 @Slf4j
@@ -39,7 +41,7 @@ public class LoginMessageSender {
         chatMessageManager.queue(
                 QueuedMessage.builder()
                         .type(ChatMessageType.BROADCAST)
-                        .runeLiteFormattedMessage("<col=" + hex + ">[Flux] " + loginMessage + "</col>")
+                        .runeLiteFormattedMessage("<col=" + hex + ">[Flux] " + Text.escapeJagex(loginMessage) + "</col>")
                         .build()
         );
 
