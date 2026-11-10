@@ -8,6 +8,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.runelite.client.hiscore.HiscoreSkill;
 import okhttp3.OkHttpClient;
+import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -53,7 +54,7 @@ public class BotmCard extends FluxCard {
     }
 
     private void addEventTitle() {
-        String titleText = getConfigValue("botmTitle", "No active competition");
+        String titleText = StringEscapeUtils.escapeHtml4(getConfigValue("botmTitle", "No active competition"));
         eventTitle = createWrappedLabelWithUnderline(titleText, FONT_SECTION, COLOR_YELLOW);
 		setupDynamicResize(eventTitle);
         add(eventTitle);
@@ -137,7 +138,7 @@ public class BotmCard extends FluxCard {
     }
 
     public void updateEventTitle() {
-        String titleText = getConfigValue("botmTitle", "No active competition");
+        String titleText = StringEscapeUtils.escapeHtml4(getConfigValue("botmTitle", "No active competition"));
         updateWrappedLabelText(eventTitle, titleText, true);
         eventTitle.revalidate();
         eventTitle.repaint();

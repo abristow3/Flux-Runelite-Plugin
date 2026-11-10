@@ -17,6 +17,7 @@ import com.google.gson.JsonParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import okhttp3.OkHttpClient;
+import org.apache.commons.text.StringEscapeUtils;
 
 public class HuntCard extends FluxCard {
     private final ConfigManager configManager;
@@ -53,7 +54,7 @@ public class HuntCard extends FluxCard {
         addVerticalSpace(SPACING_MEDIUM);
 
         eventTitle = createWrappedLabelWithUnderline(
-                getConfigValue("huntTitle", "No active hunt event", configManager),
+                StringEscapeUtils.escapeHtml4(getConfigValue("huntTitle", "No active hunt event", configManager)),
                 FONT_SECTION,
                 COLOR_YELLOW
         );
@@ -87,8 +88,8 @@ public class HuntCard extends FluxCard {
     }
 
     private String buildScoreText() {
-        String team1Name = getConfigValue("hunt_team_1_name", "Team 1", configManager);
-        String team2Name = getConfigValue("hunt_team_2_name", "Team 2", configManager);
+        String team1Name = StringEscapeUtils.escapeHtml4(getConfigValue("hunt_team_1_name", "Team 1", configManager));
+        String team2Name = StringEscapeUtils.escapeHtml4(getConfigValue("hunt_team_2_name", "Team 2", configManager));
         int team1Score = getConfigInt("hunt_team_1_score", 0, configManager);
         int team2Score = getConfigInt("hunt_team_2_score", 0, configManager);
 
@@ -211,7 +212,7 @@ public class HuntCard extends FluxCard {
     }
 
     public void updateEventTitle() {
-        String titleText = getConfigValue("huntTitle", "No active hunt event", configManager);
+        String titleText = StringEscapeUtils.escapeHtml4(getConfigValue("huntTitle", "No active hunt event", configManager));
         updateWrappedLabelText(eventTitle, titleText, true);
         eventTitle.setMaximumSize(new Dimension(getWidth() - CONTENT_PADDING, Integer.MAX_VALUE));
         eventTitle.revalidate();
@@ -323,7 +324,7 @@ public class HuntCard extends FluxCard {
         String winner = getWinnerFromGoogleSheetScores();
 
         if (winner != null && !winner.isEmpty()) {
-            return "The Hunt has ended!<br>Winning team: " + winner;
+            return "The Hunt has ended!<br>Winning team: " + StringEscapeUtils.escapeHtml4(winner);
         }
 
         return "No active Hunt event.";

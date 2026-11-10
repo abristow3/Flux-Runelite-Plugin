@@ -19,6 +19,8 @@ public class LeaderboardCellRenderer extends DefaultTableCellRenderer {
     private Timer timer;
 
     public LeaderboardCellRenderer() {
+		putClientProperty("html.disable", Boolean.TRUE);
+
         timer = new Timer(50, e -> {
             shinePos += 0.01f;
             if (shinePos > 1f)

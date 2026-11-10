@@ -3,6 +3,7 @@ package com.flux.cards;
 import net.runelite.client.config.ConfigManager;
 import com.flux.components.LeaderboardCellRenderer;
 import net.runelite.client.hiscore.HiscoreSkill;
+import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger; import org.slf4j.LoggerFactory;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -43,7 +44,7 @@ public class SotwCard extends FluxCard {
     }
 
     private void addEventTitle() {
-        String titleText = getConfigValue("sotwTitle", "No active competition");
+        String titleText = StringEscapeUtils.escapeHtml4(getConfigValue("sotwTitle", "No active competition"));
         eventTitle = createWrappedLabelWithUnderline(titleText, FONT_SECTION, COLOR_YELLOW);
         setupDynamicResize(eventTitle);
         add(eventTitle);
@@ -124,7 +125,7 @@ public class SotwCard extends FluxCard {
     }
 
     public void updateEventTitle() {
-        String titleText = getConfigValue("sotwTitle", "No active competition");
+        String titleText = StringEscapeUtils.escapeHtml4(getConfigValue("sotwTitle", "No active competition"));
         updateWrappedLabelText(eventTitle, titleText, true);
         eventTitle.revalidate();
         eventTitle.repaint();
